@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'claude/**']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: الجودة والاختبارات
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: تجهيز PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, intl, pdo_sqlite, redis, gd, zip, bcmath
+          coverage: none
+
+      - name: تجهيز Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: تثبيت تبعيات PHP
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: تثبيت تبعيات الواجهة
+        run: npm ci
+
+      - name: التهيئة
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          touch database/database.sqlite
+
+      - name: تنسيق الكود (Pint)
+        run: php vendor/bin/pint --test
+
+      - name: بناء الأصول
+        run: npm run build
+
+      - name: الهجرات
+        run: php artisan migrate --force
+
+      - name: الاختبارات (Pest)
+        run: php vendor/bin/pest
+
+      # بوابة ADR-006: ميزانية الأداء تُفرض هنا فور توفّر الصفحات العامة.
+      # - name: Lighthouse CI
+      #   run: npx --yes @lhci/cli autorun

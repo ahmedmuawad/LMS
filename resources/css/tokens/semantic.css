@@ -1,0 +1,137 @@
+/* =========================================================
+   الطبقة 2 — Semantic Tokens
+   هذه هي الطبقة المستخدمة في 95% من الكود،
+   وهي وحدها ما يبدّله ثيم المشترك.
+   ========================================================= */
+:root {
+  /* الأسطح */
+  --sem-bg:              var(--c-slate-50);
+  --sem-surface:         var(--c-white);
+  --sem-surface-raised:  var(--c-white);
+  --sem-surface-sunken:  var(--c-slate-50);
+  --sem-overlay:         rgb(15 42 50 / 55%);
+
+  /* النص */
+  --sem-text:            var(--c-teal-900);
+  --sem-text-muted:      var(--c-slate-600);
+  --sem-text-subtle:     var(--c-slate-500);
+  --sem-text-inverse:    var(--c-white);
+
+  /* الحدود */
+  --sem-border:          var(--c-slate-200);
+  --sem-border-strong:   var(--c-slate-300);
+
+  /* الأدوار */
+  --sem-primary:         var(--c-teal-600);
+  --sem-primary-hover:   var(--c-teal-700);
+  --sem-primary-subtle:  var(--c-teal-50);
+  --sem-primary-on:      var(--c-white);
+  --sem-accent:          var(--c-gold-500);
+  --sem-accent-subtle:   var(--c-gold-100);
+  --sem-accent-on:       #20180A;
+
+  --sem-success:         var(--c-green-500); --sem-success-subtle: var(--c-green-100);
+  --sem-warning:         var(--c-amber-500); --sem-warning-subtle: var(--c-amber-100);
+  --sem-danger:          var(--c-red-500);   --sem-danger-subtle:  var(--c-red-100);
+  --sem-info:            var(--c-blue-500);  --sem-info-subtle:    var(--c-blue-100);
+
+  /* دلالات تعليمية — خاصة بهذا المنتج */
+  --sem-progress:   var(--c-teal-500);
+  --sem-completed:  var(--c-green-500);
+  --sem-locked:     var(--c-slate-400);
+  --sem-live:       var(--c-red-500);
+  --sem-attended:   var(--c-green-500);
+  --sem-absent:     var(--c-red-500);
+  --sem-late:       var(--c-amber-500);
+  --sem-excused:    var(--c-blue-500);
+  --sem-paid:       var(--c-green-500);
+  --sem-due:        var(--c-amber-500);
+  --sem-overdue:    var(--c-red-500);
+
+  /* الارتفاع */
+  --sem-shadow-xs: 0 1px 1px rgb(15 42 50 / 5%);
+  --sem-shadow-sm: 0 1px 2px rgb(15 42 50 / 7%);
+  --sem-shadow-md: 0 2px 6px rgb(15 42 50 / 8%), 0 1px 2px rgb(15 42 50 / 5%);
+  --sem-shadow-lg: 0 12px 32px rgb(15 42 50 / 11%), 0 2px 6px rgb(15 42 50 / 5%);
+  --sem-shadow-xl: 0 24px 56px rgb(15 42 50 / 14%), 0 4px 10px rgb(15 42 50 / 6%);
+
+  color-scheme: light;
+}
+
+/* --- الوضع الداكن: النظام (بدون اختيار صريح) --- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --sem-bg:             var(--c-dark-bg);
+    --sem-surface:        var(--c-dark-surface);
+    --sem-surface-raised: var(--c-dark-raised);
+    --sem-surface-sunken: var(--c-dark-sunken);
+    --sem-overlay:        rgb(0 0 0 / 65%);
+    --sem-text:           var(--c-dark-text);
+    --sem-text-muted:     var(--c-dark-muted);
+    --sem-text-subtle:    var(--c-dark-subtle);
+    --sem-text-inverse:   var(--c-dark-bg);
+    --sem-border:         var(--c-dark-border);
+    --sem-border-strong:  var(--c-dark-border-strong);
+    --sem-primary:        var(--c-dark-primary);
+    --sem-primary-hover:  var(--c-dark-primary-hover);
+    --sem-primary-subtle: var(--c-dark-primary-subtle);
+    --sem-primary-on:     #062028;
+    --sem-accent:         var(--c-gold-300);
+    --sem-accent-subtle:  var(--c-dark-accent-subtle);
+    --sem-accent-on:      #20180A;
+    --sem-success:        var(--c-green-400); --sem-success-subtle: var(--c-dark-green-subtle);
+    --sem-warning:        var(--c-amber-400); --sem-warning-subtle: var(--c-dark-amber-subtle);
+    --sem-danger:         var(--c-red-400);   --sem-danger-subtle:  var(--c-dark-red-subtle);
+    --sem-info:           var(--c-blue-400);  --sem-info-subtle:    var(--c-dark-blue-subtle);
+    --sem-progress:  var(--c-dark-primary); --sem-completed: var(--c-green-400);
+    --sem-locked:    var(--c-dark-locked);   --sem-live:      var(--c-red-400);
+    --sem-attended:  var(--c-green-400);     --sem-absent:    var(--c-red-400);
+    --sem-late:      var(--c-amber-400);     --sem-excused:   var(--c-blue-400);
+    --sem-paid:      var(--c-green-400);     --sem-due:       var(--c-amber-400);
+    --sem-overdue:   var(--c-red-400);
+    --sem-shadow-xs: 0 1px 1px rgb(0 0 0 / 30%);
+    --sem-shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
+    --sem-shadow-md: 0 2px 8px rgb(0 0 0 / 45%);
+    --sem-shadow-lg: 0 14px 36px rgb(0 0 0 / 55%);
+    --sem-shadow-xl: 0 26px 60px rgb(0 0 0 / 62%);
+    color-scheme: dark;
+  }
+}
+
+/* --- الوضع الداكن: اختيار صريح --- */
+:root[data-theme="dark"] {
+  --sem-bg:             var(--c-dark-bg);
+  --sem-surface:        var(--c-dark-surface);
+  --sem-surface-raised: var(--c-dark-raised);
+  --sem-surface-sunken: var(--c-dark-sunken);
+  --sem-overlay:        rgb(0 0 0 / 65%);
+  --sem-text:           var(--c-dark-text);
+  --sem-text-muted:     var(--c-dark-muted);
+  --sem-text-subtle:    var(--c-dark-subtle);
+  --sem-text-inverse:   var(--c-dark-bg);
+  --sem-border:         var(--c-dark-border);
+  --sem-border-strong:  var(--c-dark-border-strong);
+  --sem-primary:        var(--c-dark-primary);
+  --sem-primary-hover:  var(--c-dark-primary-hover);
+  --sem-primary-subtle: var(--c-dark-primary-subtle);
+  --sem-primary-on:     #062028;
+  --sem-accent:         var(--c-gold-300);
+  --sem-accent-subtle:  var(--c-dark-accent-subtle);
+  --sem-accent-on:      #20180A;
+  --sem-success:        var(--c-green-400); --sem-success-subtle: var(--c-dark-green-subtle);
+  --sem-warning:        var(--c-amber-400); --sem-warning-subtle: var(--c-dark-amber-subtle);
+  --sem-danger:         var(--c-red-400);   --sem-danger-subtle:  var(--c-dark-red-subtle);
+  --sem-info:           var(--c-blue-400);  --sem-info-subtle:    var(--c-dark-blue-subtle);
+  --sem-progress:  var(--c-dark-primary); --sem-completed: var(--c-green-400);
+  --sem-locked:    var(--c-dark-locked);   --sem-live:      var(--c-red-400);
+  --sem-attended:  var(--c-green-400);     --sem-absent:    var(--c-red-400);
+  --sem-late:      var(--c-amber-400);     --sem-excused:   var(--c-blue-400);
+  --sem-paid:      var(--c-green-400);     --sem-due:       var(--c-amber-400);
+  --sem-overdue:   var(--c-red-400);
+  --sem-shadow-xs: 0 1px 1px rgb(0 0 0 / 30%);
+  --sem-shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
+  --sem-shadow-md: 0 2px 8px rgb(0 0 0 / 45%);
+  --sem-shadow-lg: 0 14px 36px rgb(0 0 0 / 55%);
+  --sem-shadow-xl: 0 26px 60px rgb(0 0 0 / 62%);
+  color-scheme: dark;
+}

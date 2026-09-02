@@ -1,0 +1,157 @@
+@import 'tailwindcss';
+
+@import './tokens/primitive.css'  layer(base);
+@import './tokens/semantic.css'   layer(base);
+
+@source '../views';
+@source '../../modules/**/resources/views';
+@source '../../themes/**/views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+/* فئات تُبنى ديناميكياً في المكوّنات — يجب تثبيتها صراحة */
+@source inline("bg-{primary,accent,success,warning,danger,info}-subtle");
+@source inline("text-{primary,accent,success,warning,danger,info}");
+@source inline("bg-{progress,completed,locked,live,attended,absent,late,excused,paid,due,overdue}");
+@source inline("text-{progress,completed,locked,live,attended,absent,late,excused,paid,due,overdue}");
+@source inline("border-{primary,accent,success,warning,danger,info}");
+
+/* =========================================================
+   ربط الطبقة الدلالية بأدوات Tailwind
+   `inline` تجعل الأدوات تشير للمتغيّر نفسه لا لقيمته،
+   فيتغيّر كل شيء عند تبديل ثيم المشترك.
+   ========================================================= */
+@theme inline {
+  /* الأسطح والنص والحدود */
+  --color-bg:             var(--sem-bg);
+  --color-surface:        var(--sem-surface);
+  --color-surface-raised: var(--sem-surface-raised);
+  --color-surface-sunken: var(--sem-surface-sunken);
+  --color-overlay:        var(--sem-overlay);
+  --color-content:        var(--sem-text);
+  --color-muted:          var(--sem-text-muted);
+  --color-subtle:         var(--sem-text-subtle);
+  --color-inverse:        var(--sem-text-inverse);
+  --color-line:           var(--sem-border);
+  --color-line-strong:    var(--sem-border-strong);
+
+  /* الأدوار */
+  --color-primary:        var(--sem-primary);
+  --color-primary-hover:  var(--sem-primary-hover);
+  --color-primary-subtle: var(--sem-primary-subtle);
+  --color-primary-on:     var(--sem-primary-on);
+  --color-accent:         var(--sem-accent);
+  --color-accent-subtle:  var(--sem-accent-subtle);
+  --color-accent-on:      var(--sem-accent-on);
+  --color-success:        var(--sem-success);
+  --color-success-subtle: var(--sem-success-subtle);
+  --color-warning:        var(--sem-warning);
+  --color-warning-subtle: var(--sem-warning-subtle);
+  --color-danger:         var(--sem-danger);
+  --color-danger-subtle:  var(--sem-danger-subtle);
+  --color-info:           var(--sem-info);
+  --color-info-subtle:    var(--sem-info-subtle);
+
+  /* دلالات تعليمية */
+  --color-progress:  var(--sem-progress);
+  --color-completed: var(--sem-completed);
+  --color-locked:    var(--sem-locked);
+  --color-live:      var(--sem-live);
+  --color-attended:  var(--sem-attended);
+  --color-absent:    var(--sem-absent);
+  --color-late:      var(--sem-late);
+  --color-excused:   var(--sem-excused);
+  --color-paid:      var(--sem-paid);
+  --color-due:       var(--sem-due);
+  --color-overdue:   var(--sem-overdue);
+
+  /* الخطوط */
+  --font-display: 'Tajawal', 'Segoe UI', system-ui, sans-serif;
+  --font-sans:    'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif;
+  --font-mono:    'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+
+  /* السلّم الطباعي (مقاس/ارتفاع سطر) */
+  --text-2xs: 0.6875rem;  --text-2xs--line-height: 1.45;
+  --text-xs:  0.75rem;    --text-xs--line-height: 1.5;
+  --text-sm:  0.8125rem;  --text-sm--line-height: 1.62;
+  --text-base:0.9375rem;  --text-base--line-height: 1.8;
+  --text-lg:  1.0625rem;  --text-lg--line-height: 1.75;
+  --text-xl:  1.25rem;    --text-xl--line-height: 1.45;
+  --text-2xl: 1.5rem;     --text-2xl--line-height: 1.36;
+  --text-3xl: 1.875rem;   --text-3xl--line-height: 1.28;
+  --text-4xl: 2.25rem;    --text-4xl--line-height: 1.24;
+
+  /* نصف القطر */
+  --radius-sm: 6px;  --radius-md: 8px;  --radius-lg: 12px;
+  --radius-xl: 16px; --radius-2xl: 22px;
+
+  /* الظلال */
+  --shadow-xs: var(--sem-shadow-xs);
+  --shadow-sm: var(--sem-shadow-sm);
+  --shadow-md: var(--sem-shadow-md);
+  --shadow-lg: var(--sem-shadow-lg);
+  --shadow-xl: var(--sem-shadow-xl);
+
+  /* الحركة */
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* =========================================================
+   الأساس
+   ========================================================= */
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-content);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* النص اللاتيني يحتمل ارتفاع سطر أقل من العربي */
+  html[lang="en"] body { line-height: 1.65; }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1.35;
+    text-wrap: balance;
+  }
+
+  /* الأرقام تصطف دائماً في الجداول والمبالغ */
+  .tabular, td, th, time, [data-numeric] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* حالة تركيز واحدة في كل النظام */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  ::selection { background: var(--color-primary-subtle); color: var(--color-content); }
+
+  [dir="rtl"] .flip-rtl { transform: scaleX(-1); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* =========================================================
+   مرافق مشتركة
+   ========================================================= */
+@utility surface-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+}
