@@ -1,28 +1,28 @@
 <x-layouts.app :title="__('نظام تصميم أُسُس')">
-<div class="grid lg:grid-cols-[236px_minmax(0,1fr)] min-h-screen">
+<div class="grid grid-cols-1 lg:grid-cols-[236px_minmax(0,1fr)] min-h-screen">
 
     {{-- الشريط الجانبي --}}
-    <aside class="lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto bg-surface border-b lg:border-b-0 lg:border-e border-line p-5 flex flex-col gap-6">
+    <aside class="min-w-0 lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto bg-surface border-b lg:border-b-0 lg:border-e border-line p-4 sm:p-5 flex flex-col gap-4 lg:gap-6">
         <div class="flex items-center gap-3">
             <div class="size-10 rounded-md grid place-items-center text-primary-on font-bold text-lg shadow-sm shrink-0"
-                 style="background: linear-gradient(140deg, var(--color-primary), var(--sem-primary-hover));"
+                 style="background-color: var(--sem-primary-hover); background-image: linear-gradient(140deg, var(--color-primary), var(--sem-primary-hover));"
                  aria-hidden="true">أ</div>
             <div>
                 <div class="font-display font-extrabold text-[17px] leading-tight">أُسُس</div>
                 <div class="text-2xs text-subtle">{{ __('نظام تصميم المنصّة') }} · v0.1</div>
             </div>
         </div>
-        <nav class="flex flex-col gap-0.5" aria-label="{{ __('أقسام النظام') }}">
+        <nav class="flex lg:flex-col gap-1 lg:gap-0.5 overflow-x-auto lg:overflow-x-visible -mx-4 px-4 lg:mx-0 lg:px-0 pb-1 lg:pb-0" aria-label="{{ __('أقسام النظام') }}">
             @foreach ([
                 'الأسس'      => ['colors' => 'الألوان', 'type' => 'الطباعة', 'space' => 'المسافات والأشكال'],
                 'المكوّنات'  => ['buttons' => 'الأزرار والشارات', 'forms' => 'النماذج', 'feedback' => 'التنبيهات', 'data' => 'الجداول والإحصاء'],
                 'المنتج'     => ['learning' => 'الكورسات والدروس', 'center' => 'السنتر والحضور'],
                 'الأنماط'    => ['states' => 'الحالات', 'rules' => 'القواعد المفروضة'],
             ] as $group => $links)
-                <div class="text-2xs tracking-wider text-subtle font-semibold px-3 pt-3 pb-1">{{ $group }}</div>
+                <div class="hidden lg:block text-2xs tracking-wider text-subtle font-semibold px-3 pt-3 pb-1">{{ $group }}</div>
                 @foreach ($links as $id => $label)
-                    <a href="#{{ $id }}" class="group text-sm text-muted hover:text-content hover:bg-surface-sunken px-3 py-1.5 rounded-sm flex items-center gap-2 transition-colors">
-                        <span class="size-1.5 rounded-full bg-line-strong group-hover:bg-primary transition-colors" aria-hidden="true"></span>
+                    <a href="#{{ $id }}" class="group text-sm text-muted hover:text-content hover:bg-surface-sunken bg-surface-sunken lg:bg-transparent px-3 py-2 lg:py-1.5 rounded-full lg:rounded-sm flex items-center gap-2 whitespace-nowrap shrink-0 transition-colors min-h-9">
+                        <span class="hidden lg:block size-1.5 rounded-full bg-line-strong group-hover:bg-primary transition-colors" aria-hidden="true"></span>
                         {{ $label }}
                     </a>
                 @endforeach
@@ -30,12 +30,12 @@
         </nav>
     </aside>
 
-    <main id="main" class="p-5 sm:p-8 pb-16 max-w-[1180px]">
+    <main id="main" class="min-w-0 p-4 sm:p-6 lg:p-8 pb-16 max-w-[1180px]">
 
         <header class="flex flex-wrap items-end justify-between gap-4 mb-10">
             <div>
-                <p class="text-xs text-accent font-semibold tracking-wide mb-1.5">{{ __('منصّة الكورسات والخدمات والسناتر') }}</p>
-                <h1 class="text-3xl font-extrabold">{{ __('نظام تصميم أُسُس') }}</h1>
+                <p class="text-xs text-accent-text font-semibold tracking-wide mb-1.5">{{ __('منصّة الكورسات والخدمات والسناتر') }}</p>
+                <h1 class="text-2xl sm:text-3xl font-extrabold">{{ __('نظام تصميم أُسُس') }}</h1>
                 <p class="text-muted mt-1.5 max-w-[56ch] text-sm">
                     {{ __('ثلاث طبقات من الـ Tokens، مكتبة مكوّنات موحّدة، وعربية أولاً. بدّل الوضع من هنا — كل ما تحته يتبع بلا سطر CSS إضافي.') }}
                 </p>
@@ -61,16 +61,16 @@
 
             <x-ui.card class="mb-4">
                 <p class="text-xs font-semibold text-subtle mb-4 tracking-wide">{{ __('الطبقة 1 — مقياس الهوية') }}</p>
-                <div class="grid grid-cols-11 rounded-md overflow-hidden border border-line">
+                <div class="flex overflow-x-auto rounded-md border border-line">
                     @foreach ([50,100,200,300,400,500,600,700,800,900,950] as $step)
-                        <div class="h-11 grid place-items-end justify-center pb-1 font-mono text-[9px] {{ $step < 400 ? 'text-black/40' : 'text-white/60' }}"
+                        <div class="h-11 min-w-11 flex-1 grid place-items-end justify-center pb-1 font-mono text-[9px] {{ $step < 400 ? 'text-black/40' : 'text-white/60' }}"
                              style="background: var(--c-teal-{{ $step }})">{{ $step }}</div>
                     @endforeach
                 </div>
                 <p class="text-xs font-semibold text-subtle mt-5 mb-3 tracking-wide">{{ __('مقياس التمييز') }}</p>
-                <div class="grid grid-cols-4 rounded-md overflow-hidden border border-line">
+                <div class="flex overflow-x-auto rounded-md border border-line">
                     @foreach ([100,300,500,700] as $step)
-                        <div class="h-11 grid place-items-end justify-center pb-1 font-mono text-[9px] {{ $step < 500 ? 'text-black/40' : 'text-white/60' }}"
+                        <div class="h-11 min-w-16 flex-1 grid place-items-end justify-center pb-1 font-mono text-[9px] {{ $step < 500 ? 'text-black/40' : 'text-white/60' }}"
                              style="background: var(--c-gold-{{ $step }})">{{ $step }}</div>
                     @endforeach
                 </div>
@@ -332,8 +332,8 @@
             <div class="grid gap-4 lg:grid-cols-2">
                 <div class="grid gap-4 sm:grid-cols-2 content-start">
                     <article class="surface-card overflow-hidden">
-                        <div class="h-24 relative" style="background: linear-gradient(135deg, var(--c-teal-700), var(--c-teal-500) 70%, var(--c-gold-500));">
-                            <span class="absolute top-2.5 start-2.5 text-2xs font-semibold px-2.5 py-0.5 rounded-full bg-black/55 text-white">١٢ ساعة</span>
+                        <div class="h-24 relative" style="background-color: var(--c-teal-700); background-image: linear-gradient(135deg, var(--c-teal-700), var(--c-teal-500) 70%, var(--c-gold-500));">
+                            <span class="absolute top-2.5 start-2.5 text-2xs font-semibold px-2.5 py-0.5 rounded-full text-white" style="background-color:#000C">١٢ ساعة</span>
                         </div>
                         <div class="p-4">
                             <h4 class="text-[15px] font-bold mb-1">{{ __('أساسيات تطوير الويب') }}</h4>
@@ -349,8 +349,8 @@
                         </div>
                     </article>
                     <article class="surface-card overflow-hidden">
-                        <div class="h-24 relative" style="background: linear-gradient(135deg, var(--c-teal-800), var(--c-gold-500));">
-                            <span class="absolute top-2.5 start-2.5"><x-ui.badge tone="live" :pulse="true" class="!bg-black/55 !text-white">{{ __('مباشر') }}</x-ui.badge></span>
+                        <div class="h-24 relative" style="background-color: var(--c-teal-800); background-image: linear-gradient(135deg, var(--c-teal-800), var(--c-gold-500));">
+                            <span class="absolute top-2.5 start-2.5"><x-ui.badge tone="live" :pulse="true" class="!text-white" style="background-color:#000C">{{ __('مباشر') }}</x-ui.badge></span>
                         </div>
                         <div class="p-4">
                             <h4 class="text-[15px] font-bold mb-1">{{ __('مراجعة الفيزياء النهائية') }}</h4>
@@ -413,10 +413,10 @@
                         </div>
                         <x-ui.badge tone="primary">{{ __('حصة ١٤ من ١٦') }}</x-ui.badge>
                     </div>
-                    <div class="grid gap-1.5" style="grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));">
+                    <div class="grid gap-1.5" style="grid-template-columns: repeat(auto-fill, minmax(26px, 1fr));">
                         @foreach (['p','p','l','p','p','a','p','p','p','p','l','p','a','p','p','p','p','p','n','n'] as $i => $st)
                             <span @class([
-                                'aspect-square rounded-sm grid place-items-center text-[10px] font-mono text-white',
+                                'aspect-square rounded-sm grid place-items-center text-[10px] font-mono text-status-on',
                                 'bg-attended' => $st === 'p',
                                 'bg-absent'   => $st === 'a',
                                 'bg-late'     => $st === 'l',

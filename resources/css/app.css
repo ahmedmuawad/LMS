@@ -10,7 +10,8 @@
 
 /* فئات تُبنى ديناميكياً في المكوّنات — يجب تثبيتها صراحة */
 @source inline("bg-{primary,accent,success,warning,danger,info}-subtle");
-@source inline("text-{primary,accent,success,warning,danger,info}");
+@source inline("text-{primary,accent,accent-text,success,warning,danger,info}");
+@source inline("text-{success,warning,danger,info,status}-on");
 @source inline("bg-{progress,completed,locked,live,attended,absent,late,excused,paid,due,overdue}");
 @source inline("text-{progress,completed,locked,live,attended,absent,late,excused,paid,due,overdue}");
 @source inline("border-{primary,accent,success,warning,danger,info}");
@@ -42,6 +43,7 @@
   --color-accent:         var(--sem-accent);
   --color-accent-subtle:  var(--sem-accent-subtle);
   --color-accent-on:      var(--sem-accent-on);
+  --color-accent-text:    var(--sem-accent-text);
   --color-success:        var(--sem-success);
   --color-success-subtle: var(--sem-success-subtle);
   --color-warning:        var(--sem-warning);
@@ -50,6 +52,11 @@
   --color-danger-subtle:  var(--sem-danger-subtle);
   --color-info:           var(--sem-info);
   --color-info-subtle:    var(--sem-info-subtle);
+  --color-success-on:     var(--sem-success-on);
+  --color-warning-on:     var(--sem-warning-on);
+  --color-danger-on:      var(--sem-danger-on);
+  --color-info-on:        var(--sem-info-on);
+  --color-status-on:      var(--sem-status-on);
 
   /* دلالات تعليمية */
   --color-progress:  var(--sem-progress);
@@ -136,6 +143,17 @@
   ::selection { background: var(--color-primary-subtle); color: var(--color-content); }
 
   [dir="rtl"] .flip-rtl { transform: scaleX(-1); }
+
+  /* مساحة اللمس: على الأجهزة التي لا تملك مؤشراً دقيقاً */
+  @media (pointer: coarse) {
+    button, [role="button"], a[href]:not(.sr-only), summary, label:has(input),
+    input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+      min-block-size: 40px;
+    }
+  }
+
+  /* لا يوجد تمرير أفقي للصفحة نفسها — المحتوى العريض يمرّر داخل حاويته */
+  html, body { overflow-x: clip; }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {

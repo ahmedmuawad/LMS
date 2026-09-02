@@ -16,7 +16,7 @@
         'subtle'    => 'bg-primary-subtle text-primary border-transparent hover:brightness-95',
         'accent'    => 'bg-accent text-accent-on border-transparent hover:brightness-95',
         'ghost'     => 'bg-transparent text-muted border-transparent hover:bg-surface-sunken hover:text-content',
-        'danger'    => 'bg-danger text-white border-transparent hover:brightness-110',
+        'danger'    => 'bg-danger text-danger-on border-transparent hover:brightness-110',
         'link'      => 'bg-transparent text-primary border-transparent hover:underline px-0',
     ];
     $sizes = [

@@ -29,11 +29,17 @@
   --sem-accent:          var(--c-gold-500);
   --sem-accent-subtle:   var(--c-gold-100);
   --sem-accent-on:       #20180A;
+  --sem-accent-text:     var(--c-gold-700);   /* للنص فوق الأسطح الفاتحة */
 
   --sem-success:         var(--c-green-500); --sem-success-subtle: var(--c-green-100);
   --sem-warning:         var(--c-amber-500); --sem-warning-subtle: var(--c-amber-100);
   --sem-danger:          var(--c-red-500);   --sem-danger-subtle:  var(--c-red-100);
   --sem-info:            var(--c-blue-500);  --sem-info-subtle:    var(--c-blue-100);
+
+  /* نص فوق التعبئات الملوّنة — يقلب مع الوضع لأن التعبئة نفسها تقلب */
+  --sem-success-on: #FFFFFF; --sem-warning-on: #FFFFFF;
+  --sem-danger-on:  #FFFFFF; --sem-info-on:    #FFFFFF;
+  --sem-status-on:  #FFFFFF;
 
   /* دلالات تعليمية — خاصة بهذا المنتج */
   --sem-progress:   var(--c-teal-500);
@@ -79,10 +85,14 @@
     --sem-accent:         var(--c-gold-300);
     --sem-accent-subtle:  var(--c-dark-accent-subtle);
     --sem-accent-on:      #20180A;
+    --sem-accent-text:    var(--c-gold-200);
     --sem-success:        var(--c-green-400); --sem-success-subtle: var(--c-dark-green-subtle);
     --sem-warning:        var(--c-amber-400); --sem-warning-subtle: var(--c-dark-amber-subtle);
     --sem-danger:         var(--c-red-400);   --sem-danger-subtle:  var(--c-dark-red-subtle);
     --sem-info:           var(--c-blue-400);  --sem-info-subtle:    var(--c-dark-blue-subtle);
+    --sem-success-on: #06231A; --sem-warning-on: #2A1D06;
+    --sem-danger-on:  #2E0D09; --sem-info-on:    #07223A;
+    --sem-status-on:  #06231A;
     --sem-progress:  var(--c-dark-primary); --sem-completed: var(--c-green-400);
     --sem-locked:    var(--c-dark-locked);   --sem-live:      var(--c-red-400);
     --sem-attended:  var(--c-green-400);     --sem-absent:    var(--c-red-400);
@@ -118,10 +128,14 @@
   --sem-accent:         var(--c-gold-300);
   --sem-accent-subtle:  var(--c-dark-accent-subtle);
   --sem-accent-on:      #20180A;
+  --sem-accent-text:    var(--c-gold-200);
   --sem-success:        var(--c-green-400); --sem-success-subtle: var(--c-dark-green-subtle);
   --sem-warning:        var(--c-amber-400); --sem-warning-subtle: var(--c-dark-amber-subtle);
   --sem-danger:         var(--c-red-400);   --sem-danger-subtle:  var(--c-dark-red-subtle);
   --sem-info:           var(--c-blue-400);  --sem-info-subtle:    var(--c-dark-blue-subtle);
+  --sem-success-on: #06231A; --sem-warning-on: #2A1D06;
+  --sem-danger-on:  #2E0D09; --sem-info-on:    #07223A;
+  --sem-status-on:  #06231A;
   --sem-progress:  var(--c-dark-primary); --sem-completed: var(--c-green-400);
   --sem-locked:    var(--c-dark-locked);   --sem-live:      var(--c-red-400);
   --sem-attended:  var(--c-green-400);     --sem-absent:    var(--c-red-400);

@@ -3,7 +3,7 @@
     $tones = [
         'neutral'  => 'bg-surface-sunken text-muted',
         'primary'  => 'bg-primary-subtle text-primary',
-        'accent'   => 'bg-accent-subtle text-accent',
+        'accent'   => 'bg-accent-subtle text-accent-text',
         'success'  => 'bg-success-subtle text-success',
         'warning'  => 'bg-warning-subtle text-warning',
         'danger'   => 'bg-danger-subtle text-danger',

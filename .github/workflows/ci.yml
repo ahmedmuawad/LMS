@@ -53,6 +53,24 @@ jobs:
       - name: الاختبارات (Pest)
         run: php vendor/bin/pest
 
+      - name: تشغيل الخادم للفحوص البصرية
+        run: |
+          php artisan serve --host=127.0.0.1 --port=8899 &
+          npx --yes wait-on http://127.0.0.1:8899/up --timeout 60000
+
+      - name: تثبيت متصفّح الفحص
+        run: npx playwright install --with-deps chromium
+
+      - name: فحص الاستجابة (6 مقاسات × لغتين)
+        env:
+          PLAYWRIGHT_CHROMIUM: ''
+        run: node tests/Browser/responsive.mjs
+
+      - name: فحص التباين (WCAG AA · فاتح وداكن)
+        env:
+          PLAYWRIGHT_CHROMIUM: ''
+        run: node tests/Browser/contrast.mjs
+
       # بوابة ADR-006: ميزانية الأداء تُفرض هنا فور توفّر الصفحات العامة.
       # - name: Lighthouse CI
       #   run: npx --yes @lhci/cli autorun

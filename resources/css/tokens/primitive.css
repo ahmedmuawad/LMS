@@ -12,29 +12,30 @@
 
   /* --- التمييز: Gold --- */
   --c-gold-100:#F6EBD3; --c-gold-300:#E0C285;
-  --c-gold-500:#C08A2E; --c-gold-700:#8F6417;
+  --c-gold-500:#C08A2E; --c-gold-700:#7A5410;
+  --c-gold-200:#EBD7AC;
 
   /* --- الحياد: Slate (بانحياز خفيف نحو الهوية) --- */
   --c-slate-50:#F6F8F8;  --c-slate-100:#EDF1F2; --c-slate-200:#DDE4E6;
-  --c-slate-300:#C2CDD0; --c-slate-400:#93A3A7; --c-slate-500:#6C7D82;
+  --c-slate-300:#C2CDD0; --c-slate-400:#7E9095; --c-slate-500:#5E6E73;
   --c-slate-600:#516166; --c-slate-700:#3B484C; --c-slate-800:#283236;
   --c-slate-900:#182024;
 
   /* --- الحالات --- */
-  --c-green-100:#DCEFE8; --c-green-500:#17795E; --c-green-400:#3FB08C;
-  --c-amber-100:#F7EBD6; --c-amber-500:#B4761B; --c-amber-400:#DFA53F;
-  --c-red-100:#F7E0DE;   --c-red-500:#B4342B;   --c-red-400:#E8695E;
-  --c-blue-100:#DEEAF5;  --c-blue-500:#2A6FA8;  --c-blue-400:#5C9FD6;
+  --c-green-100:#DCEFE8; --c-green-500:#12664F; --c-green-400:#4BBE99;
+  --c-amber-100:#F7EBD6; --c-amber-500:#855813; --c-amber-400:#E5AE4E;
+  --c-red-100:#F7E0DE;   --c-red-500:#A82F27;   --c-red-400:#ED7A70;
+  --c-blue-100:#DEEAF5;  --c-blue-500:#22608F;  --c-blue-400:#6DABDE;
 
   --c-white:#FFFFFF;
 
   /* --- أسطح الوضع الداكن --- */
   --c-dark-bg:#0A1D23; --c-dark-surface:#102A32; --c-dark-raised:#15343D;
   --c-dark-sunken:#0C242B; --c-dark-border:#1E3D46; --c-dark-border-strong:#2B505B;
-  --c-dark-text:#E6F0F1; --c-dark-muted:#9DB2B7; --c-dark-subtle:#7B9198;
+  --c-dark-text:#E6F0F1; --c-dark-muted:#9DB2B7; --c-dark-subtle:#93A6AC;
   --c-dark-primary:#3FA9B8; --c-dark-primary-hover:#5CC0CE; --c-dark-primary-subtle:#12333C;
   --c-dark-accent-subtle:#33291A;
   --c-dark-green-subtle:#12332B; --c-dark-amber-subtle:#332714;
   --c-dark-red-subtle:#3A1D1A;   --c-dark-blue-subtle:#14293B;
-  --c-dark-locked:#5B7076;
+  --c-dark-locked:#6B8288;
 }
