@@ -15,6 +15,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call([
+            CurrencySeeder::class,
+            CountrySeeder::class,
+            FeatureSeeder::class,
+            PlanSeeder::class,
+        ]);
+
         // User::factory(10)->create();
 
         User::factory()->create([
