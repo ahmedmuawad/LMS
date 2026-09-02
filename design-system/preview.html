@@ -1,0 +1,858 @@
+<title>نظام تصميم أُسُس</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* ============ الطبقة 1: Primitive ============ */
+:root{
+  --teal-50:#EAF4F5;  --teal-100:#CFE6E9; --teal-200:#A3CED4; --teal-300:#6FB0BA;
+  --teal-400:#3D919F;  --teal-500:#17808F; --teal-600:#12707E; --teal-700:#0E5A66;
+  --teal-800:#0B454E;  --teal-900:#0F2A32; --teal-950:#0A1D23;
+  --gold-100:#F6EBD3; --gold-300:#E0C285; --gold-500:#C08A2E; --gold-700:#8F6417;
+  --slate-50:#F6F8F8; --slate-100:#EDF1F2; --slate-200:#DDE4E6; --slate-300:#C2CDD0;
+  --slate-400:#93A3A7; --slate-500:#6C7D82; --slate-600:#516166; --slate-700:#3B484C;
+  --slate-800:#283236; --slate-900:#182024;
+  --green-500:#17795E; --green-100:#DCEFE8;
+  --amber-500:#B4761B; --amber-100:#F7EBD6;
+  --red-500:#B4342B;   --red-100:#F7E0DE;
+  --blue-500:#2A6FA8;  --blue-100:#DEEAF5;
+
+  --sp-1:4px;  --sp-2:8px;  --sp-3:12px; --sp-4:16px; --sp-5:20px;
+  --sp-6:24px; --sp-8:32px; --sp-10:40px; --sp-12:48px; --sp-16:64px;
+  --r-sm:6px; --r-md:8px; --r-lg:12px; --r-xl:16px; --r-2xl:22px; --r-full:9999px;
+
+  --font-display:"Tajawal","Segoe UI",system-ui,sans-serif;
+  --font-body:"IBM Plex Sans Arabic","Tajawal",system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,monospace;
+
+  --dur-fast:120ms; --dur-base:200ms; --ease:cubic-bezier(.16,1,.3,1);
+}
+/* ============ الطبقة 2: Semantic — فاتح ============ */
+:root{
+  --bg:#F4F7F7; --surface:#FFFFFF; --surface-raised:#FFFFFF; --surface-sunken:var(--slate-50);
+  --text:var(--teal-900); --text-muted:var(--slate-600); --text-subtle:var(--slate-500);
+  --text-inverse:#FFFFFF;
+  --border:var(--slate-200); --border-strong:var(--slate-300);
+  --primary:var(--teal-600); --primary-hover:var(--teal-700); --primary-subtle:var(--teal-50);
+  --primary-on:#FFFFFF;
+  --accent:var(--gold-500); --accent-subtle:var(--gold-100);
+  --success:var(--green-500); --success-subtle:var(--green-100);
+  --warning:var(--amber-500); --warning-subtle:var(--amber-100);
+  --danger:var(--red-500);   --danger-subtle:var(--red-100);
+  --info:var(--blue-500);    --info-subtle:var(--blue-100);
+  --shadow-sm:0 1px 2px rgba(15,42,50,.07);
+  --shadow-md:0 2px 6px rgba(15,42,50,.08),0 1px 2px rgba(15,42,50,.05);
+  --shadow-lg:0 12px 32px rgba(15,42,50,.11),0 2px 6px rgba(15,42,50,.05);
+  /* دلالات تعليمية */
+  --progress:var(--teal-500); --completed:var(--green-500); --locked:var(--slate-400);
+  --live:var(--red-500); --attended:var(--green-500); --absent:var(--red-500); --late:var(--amber-500);
+  --paid:var(--green-500); --due:var(--amber-500); --overdue:var(--red-500);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A1D23; --surface:#102A32; --surface-raised:#15343D; --surface-sunken:#0C242B;
+    --text:#E6F0F1; --text-muted:#9DB2B7; --text-subtle:#7B9198; --text-inverse:#0A1D23;
+    --border:#1E3D46; --border-strong:#2B505B;
+    --primary:#3FA9B8; --primary-hover:#5CC0CE; --primary-subtle:#12333C; --primary-on:#062028;
+    --accent:#E0C285; --accent-subtle:#33291A;
+    --success:#3FB08C; --success-subtle:#12332B;
+    --warning:#DFA53F; --warning-subtle:#332714;
+    --danger:#E8695E;  --danger-subtle:#3A1D1A;
+    --info:#5C9FD6;    --info-subtle:#14293B;
+    --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+    --shadow-md:0 2px 8px rgba(0,0,0,.45);
+    --shadow-lg:0 14px 36px rgba(0,0,0,.55);
+    --progress:#3FA9B8; --completed:#3FB08C; --locked:#5B7076; --live:#E8695E;
+    --attended:#3FB08C; --absent:#E8695E; --late:#DFA53F;
+    --paid:#3FB08C; --due:#DFA53F; --overdue:#E8695E;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A1D23; --surface:#102A32; --surface-raised:#15343D; --surface-sunken:#0C242B;
+  --text:#E6F0F1; --text-muted:#9DB2B7; --text-subtle:#7B9198; --text-inverse:#0A1D23;
+  --border:#1E3D46; --border-strong:#2B505B;
+  --primary:#3FA9B8; --primary-hover:#5CC0CE; --primary-subtle:#12333C; --primary-on:#062028;
+  --accent:#E0C285; --accent-subtle:#33291A;
+  --success:#3FB08C; --success-subtle:#12332B;
+  --warning:#DFA53F; --warning-subtle:#332714;
+  --danger:#E8695E;  --danger-subtle:#3A1D1A;
+  --info:#5C9FD6;    --info-subtle:#14293B;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4);
+  --shadow-md:0 2px 8px rgba(0,0,0,.45);
+  --shadow-lg:0 14px 36px rgba(0,0,0,.55);
+  --progress:#3FA9B8; --completed:#3FB08C; --locked:#5B7076; --live:#E8695E;
+  --attended:#3FB08C; --absent:#E8695E; --late:#DFA53F;
+  --paid:#3FB08C; --due:#DFA53F; --overdue:#E8695E;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:var(--font-body); font-size:15px; line-height:1.8;
+  -webkit-font-smoothing:antialiased;
+}
+html[dir="ltr"] body{font-size:15px; line-height:1.65}
+h1,h2,h3,h4{font-family:var(--font-display); font-weight:700; line-height:1.35; text-wrap:balance; margin:0}
+code,.mono,.num{font-family:var(--font-mono); font-variant-numeric:tabular-nums; direction:ltr; unicode-bidi:embed}
+
+/* ---------- التخطيط ---------- */
+.shell{display:grid; grid-template-columns:236px minmax(0,1fr); gap:0; min-height:100vh}
+@media(max-width:900px){.shell{grid-template-columns:1fr}}
+
+.side{
+  position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+  background:var(--surface); border-inline-end:1px solid var(--border);
+  padding:var(--sp-6) var(--sp-5); display:flex; flex-direction:column; gap:var(--sp-6);
+}
+@media(max-width:900px){.side{position:static; height:auto; border-inline-end:0; border-block-end:1px solid var(--border)}}
+.brand{display:flex; align-items:center; gap:var(--sp-3)}
+.brand-mark{
+  width:38px; height:38px; border-radius:var(--r-md); flex:none;
+  background:linear-gradient(140deg,var(--primary),var(--teal-800));
+  display:grid; place-items:center; color:#fff; font-family:var(--font-display);
+  font-weight:800; font-size:19px; box-shadow:var(--shadow-sm);
+}
+.brand-name{font-family:var(--font-display); font-weight:800; font-size:17px; line-height:1.2}
+.brand-sub{font-size:11.5px; color:var(--text-subtle); letter-spacing:.02em}
+.nav{display:flex; flex-direction:column; gap:2px}
+.nav a{
+  color:var(--text-muted); text-decoration:none; font-size:14px; padding:7px var(--sp-3);
+  border-radius:var(--r-sm); display:flex; align-items:center; gap:var(--sp-2);
+  transition:background var(--dur-fast), color var(--dur-fast);
+}
+.nav a:hover{background:var(--surface-sunken); color:var(--text)}
+.nav a .dot{width:6px;height:6px;border-radius:var(--r-full);background:var(--border-strong);flex:none}
+.nav a:hover .dot{background:var(--primary)}
+.nav-group{font-size:11px; letter-spacing:.08em; color:var(--text-subtle); font-weight:600;
+  padding:var(--sp-3) var(--sp-3) var(--sp-1); text-transform:none}
+
+.main{padding:var(--sp-8) var(--sp-8) var(--sp-16); max-width:1180px}
+@media(max-width:640px){.main{padding:var(--sp-5) var(--sp-4) var(--sp-12)}}
+
+.topbar{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between;
+  gap:var(--sp-4); margin-block-end:var(--sp-8)}
+.eyebrow{font-size:12px; color:var(--accent); font-weight:600; letter-spacing:.06em; margin-block-end:6px}
+.topbar h1{font-size:31px; font-weight:800}
+.topbar p{color:var(--text-muted); margin:6px 0 0; max-width:56ch; font-size:14.5px}
+.switches{display:flex; gap:var(--sp-2); flex:none}
+.switch{
+  display:inline-flex; background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r-full); padding:3px; gap:2px; box-shadow:var(--shadow-sm);
+}
+.switch button{
+  font-family:var(--font-body); font-size:12.5px; font-weight:600; cursor:pointer;
+  border:0; background:transparent; color:var(--text-muted); padding:6px 13px;
+  border-radius:var(--r-full); transition:all var(--dur-fast);
+}
+.switch button[aria-pressed="true"]{background:var(--primary); color:var(--primary-on)}
+.switch button:focus-visible{outline:2px solid var(--primary); outline-offset:2px}
+
+section{margin-block-end:var(--sp-16); scroll-margin-top:var(--sp-6)}
+.sec-head{display:flex; align-items:baseline; gap:var(--sp-3); margin-block-end:var(--sp-2);
+  padding-block-end:var(--sp-3); border-block-end:1px solid var(--border)}
+.sec-head h2{font-size:21px}
+.sec-head .tag{font-size:11.5px; color:var(--text-subtle); font-family:var(--font-mono)}
+.sec-note{color:var(--text-muted); font-size:14px; margin:var(--sp-3) 0 var(--sp-6); max-width:70ch}
+
+.grid{display:grid; gap:var(--sp-4)}
+.g2{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(215px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(165px,1fr))}
+.row{display:flex; flex-wrap:wrap; gap:var(--sp-3); align-items:center}
+
+.panel{background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:var(--sp-5)}
+.panel-t{font-size:12px; font-weight:600; color:var(--text-subtle); margin-block-end:var(--sp-4);
+  letter-spacing:.04em}
+
+/* ---------- ألوان ---------- */
+.scale{display:grid; grid-template-columns:repeat(11,1fr); border-radius:var(--r-md);
+  overflow:hidden; border:1px solid var(--border)}
+.scale div{height:46px; display:grid; place-items:end center; padding-block-end:4px;
+  font-size:9.5px; font-family:var(--font-mono); color:#fff9}
+.scale div.dk{color:#0006}
+.swatch{display:flex; align-items:center; gap:var(--sp-3); padding:var(--sp-2) 0}
+.chip{width:34px;height:34px;border-radius:var(--r-md);border:1px solid var(--border);flex:none;box-shadow:var(--shadow-sm)}
+.swatch .n{font-size:13px; font-weight:600}
+.swatch .v{font-size:11px; color:var(--text-subtle); font-family:var(--font-mono)}
+
+/* ---------- طباعة ---------- */
+.type-row{display:flex; align-items:baseline; gap:var(--sp-5); padding:var(--sp-3) 0;
+  border-block-end:1px dashed var(--border)}
+.type-row:last-child{border:0}
+.type-meta{font-family:var(--font-mono); font-size:10.5px; color:var(--text-subtle);
+  width:104px; flex:none}
+.t-display{font-family:var(--font-display); font-size:34px; font-weight:800; line-height:1.3}
+.t-h2{font-family:var(--font-display); font-size:24px; font-weight:700}
+.t-h3{font-family:var(--font-display); font-size:20px; font-weight:700}
+.t-body{font-size:15px; line-height:1.85}
+.t-sm{font-size:13px; color:var(--text-muted)}
+.t-cap{font-size:12px; color:var(--text-subtle)}
+
+/* ---------- أزرار ---------- */
+.btn{
+  font-family:var(--font-body); font-weight:600; font-size:14px; cursor:pointer;
+  border-radius:var(--r-md); border:1px solid transparent; padding:9px 18px;
+  display:inline-flex; align-items:center; gap:var(--sp-2); line-height:1.4;
+  transition:background var(--dur-fast),border-color var(--dur-fast),transform var(--dur-fast);
+}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible{outline:2px solid var(--primary); outline-offset:2px}
+.btn-primary{background:var(--primary); color:var(--primary-on)}
+.btn-primary:hover{background:var(--primary-hover)}
+.btn-secondary{background:var(--surface); color:var(--text); border-color:var(--border-strong)}
+.btn-secondary:hover{background:var(--surface-sunken)}
+.btn-subtle{background:var(--primary-subtle); color:var(--primary)}
+.btn-ghost{background:transparent; color:var(--text-muted)}
+.btn-ghost:hover{background:var(--surface-sunken); color:var(--text)}
+.btn-danger{background:var(--danger); color:#fff}
+.btn-accent{background:var(--accent); color:#20180A}
+.btn[disabled]{opacity:.45; cursor:not-allowed}
+.btn-sm{font-size:12.5px; padding:6px 13px}
+.btn-lg{font-size:15.5px; padding:12px 24px}
+
+/* ---------- شارات ---------- */
+.badge{display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600;
+  padding:3px 10px; border-radius:var(--r-full); line-height:1.6}
+.b-primary{background:var(--primary-subtle); color:var(--primary)}
+.b-success{background:var(--success-subtle); color:var(--success)}
+.b-warning{background:var(--warning-subtle); color:var(--warning)}
+.b-danger{background:var(--danger-subtle);  color:var(--danger)}
+.b-info{background:var(--info-subtle); color:var(--info)}
+.b-neutral{background:var(--surface-sunken); color:var(--text-muted)}
+.b-live{background:var(--danger-subtle); color:var(--danger)}
+.b-live .pulse{width:7px;height:7px;border-radius:var(--r-full);background:currentColor}
+@media (prefers-reduced-motion:no-preference){
+  .b-live .pulse{animation:pulse 1.8s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+}
+
+/* ---------- حقول ---------- */
+.field{display:flex; flex-direction:column; gap:6px; margin-block-end:var(--sp-4)}
+.field label{font-size:13px; font-weight:600}
+.field .req{color:var(--danger)}
+.input{
+  font-family:var(--font-body); font-size:14px; color:var(--text);
+  background:var(--surface); border:1px solid var(--border-strong);
+  border-radius:var(--r-md); padding:9px var(--sp-3); width:100%;
+  transition:border-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+.input::placeholder{color:var(--text-subtle)}
+.input:focus{outline:none; border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-subtle)}
+.input.err{border-color:var(--danger)}
+.hint{font-size:12px; color:var(--text-subtle)}
+.err-msg{font-size:12px; color:var(--danger); display:flex; align-items:center; gap:5px}
+.check{display:flex; align-items:center; gap:var(--sp-2); font-size:14px}
+.check input{accent-color:var(--primary); width:17px; height:17px}
+.seg{display:inline-flex; border:1px solid var(--border-strong); border-radius:var(--r-md); overflow:hidden}
+.seg button{font-family:var(--font-body); font-size:13px; font-weight:600; border:0; cursor:pointer;
+  padding:7px 15px; background:var(--surface); color:var(--text-muted)}
+.seg button[aria-pressed="true"]{background:var(--primary); color:var(--primary-on)}
+.seg button+button{border-inline-start:1px solid var(--border-strong)}
+
+/* ---------- تنبيهات ---------- */
+.alert{display:flex; gap:var(--sp-3); padding:var(--sp-3) var(--sp-4); border-radius:var(--r-md);
+  border-inline-start:3px solid; font-size:13.5px; align-items:flex-start}
+.alert strong{display:block; font-size:13.5px; margin-block-end:2px}
+.a-success{background:var(--success-subtle); border-color:var(--success); color:var(--success)}
+.a-warning{background:var(--warning-subtle); border-color:var(--warning); color:var(--warning)}
+.a-danger{background:var(--danger-subtle);  border-color:var(--danger);  color:var(--danger)}
+.a-info{background:var(--info-subtle); border-color:var(--info); color:var(--info)}
+.alert p{margin:0; opacity:.92}
+
+/* ---------- جدول ---------- */
+.tbl-wrap{overflow-x:auto; border:1px solid var(--border); border-radius:var(--r-lg); background:var(--surface)}
+table{border-collapse:collapse; width:100%; font-size:13.5px; min-width:560px}
+thead th{background:var(--surface-sunken); text-align:start; font-weight:600; font-size:12px;
+  color:var(--text-muted); padding:11px var(--sp-4); border-block-end:1px solid var(--border); white-space:nowrap}
+tbody td{padding:12px var(--sp-4); border-block-end:1px solid var(--border)}
+tbody tr:last-child td{border-block-end:0}
+tbody tr:hover{background:var(--surface-sunken)}
+td.num{font-family:var(--font-mono); font-variant-numeric:tabular-nums}
+
+/* ---------- بطاقات المنتج ---------- */
+.card{background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); overflow:hidden}
+.card-media{height:104px; background:linear-gradient(135deg,var(--teal-700),var(--teal-500) 70%,var(--gold-500));
+  position:relative}
+.card-media .badge{position:absolute; inset-block-start:10px; inset-inline-start:10px;
+  background:#0009; color:#fff; backdrop-filter:blur(4px)}
+.card-body{padding:var(--sp-4)}
+.card h4{font-size:15.5px; margin-block-end:5px}
+.card .meta{font-size:12.5px; color:var(--text-subtle); display:flex; gap:var(--sp-3); flex-wrap:wrap}
+.card .foot{display:flex; align-items:center; justify-content:space-between; margin-block-start:var(--sp-4);
+  padding-block-start:var(--sp-3); border-block-start:1px solid var(--border)}
+.price{font-family:var(--font-mono); font-weight:500; font-size:16px; color:var(--text)}
+.price s{color:var(--text-subtle); font-size:12.5px; margin-inline-end:6px}
+
+.bar{height:6px; background:var(--surface-sunken); border-radius:var(--r-full); overflow:hidden}
+.bar span{display:block; height:100%; background:var(--progress); border-radius:var(--r-full)}
+
+/* ---------- قائمة الدروس ---------- */
+.lessons{border:1px solid var(--border); border-radius:var(--r-lg); overflow:hidden; background:var(--surface)}
+.lesson{display:flex; align-items:center; gap:var(--sp-3); padding:11px var(--sp-4);
+  border-block-end:1px solid var(--border); font-size:14px}
+.lesson:last-child{border-block-end:0}
+.l-ico{width:24px;height:24px;border-radius:var(--r-full); display:grid; place-items:center;
+  font-size:12px; flex:none; font-family:var(--font-mono)}
+.l-done .l-ico{background:var(--success-subtle); color:var(--success)}
+.l-now .l-ico{background:var(--primary); color:var(--primary-on)}
+.l-lock .l-ico{background:var(--surface-sunken); color:var(--locked)}
+.l-lock{color:var(--text-subtle)}
+.lesson .t{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.lesson .d{font-family:var(--font-mono); font-size:11.5px; color:var(--text-subtle)}
+.l-now{background:var(--primary-subtle)}
+
+/* ---------- حضور ---------- */
+.att{display:grid; grid-template-columns:repeat(auto-fill,minmax(30px,1fr)); gap:5px}
+.att i{aspect-ratio:1; border-radius:var(--r-sm); display:grid; place-items:center;
+  font-size:10px; font-style:normal; font-family:var(--font-mono); color:#fff}
+.at-p{background:var(--attended)} .at-a{background:var(--absent)}
+.at-l{background:var(--late)} .at-n{background:var(--surface-sunken); color:var(--text-subtle)}
+
+/* ---------- إحصاء ---------- */
+.stat{background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg); padding:var(--sp-4)}
+.stat .k{font-size:12px; color:var(--text-subtle); margin-block-end:4px}
+.stat .v{font-family:var(--font-mono); font-size:25px; font-weight:500; line-height:1.2}
+.stat .d{font-size:12px; margin-block-start:5px; display:flex; align-items:center; gap:4px}
+.up{color:var(--success)} .down{color:var(--danger)}
+
+/* ---------- سؤال ---------- */
+.q-opt{display:flex; align-items:center; gap:var(--sp-3); padding:11px var(--sp-4);
+  border:1px solid var(--border-strong); border-radius:var(--r-md); font-size:14px; cursor:pointer;
+  background:var(--surface); transition:border-color var(--dur-fast), background var(--dur-fast)}
+.q-opt:hover{border-color:var(--primary)}
+.q-opt .k{width:24px;height:24px;border-radius:var(--r-sm); background:var(--surface-sunken);
+  display:grid;place-items:center;font-family:var(--font-mono); font-size:12px; flex:none}
+.q-ok{border-color:var(--success); background:var(--success-subtle)}
+.q-ok .k{background:var(--success); color:#fff}
+.q-no{border-color:var(--danger); background:var(--danger-subtle)}
+.q-no .k{background:var(--danger); color:#fff}
+
+/* ---------- حالات ---------- */
+.empty{text-align:center; padding:var(--sp-10) var(--sp-5); border:1px dashed var(--border-strong);
+  border-radius:var(--r-lg); background:var(--surface)}
+.empty .ic{width:46px;height:46px;border-radius:var(--r-lg); background:var(--primary-subtle);
+  color:var(--primary); display:grid;place-items:center; margin:0 auto var(--sp-3); font-size:21px}
+.empty h4{font-size:15px; margin-block-end:5px}
+.empty p{color:var(--text-muted); font-size:13.5px; margin:0 auto var(--sp-4); max-width:38ch}
+.sk{background:linear-gradient(90deg,var(--surface-sunken) 25%,var(--border) 37%,var(--surface-sunken) 63%);
+  background-size:400% 100%; border-radius:var(--r-sm); height:12px}
+@media (prefers-reduced-motion:no-preference){
+  .sk{animation:sh 1.4s ease-in-out infinite}
+  @keyframes sh{0%{background-position:100% 0}100%{background-position:0 0}}
+}
+
+/* ---------- مسافات ---------- */
+.sp-demo{display:flex; align-items:flex-end; gap:var(--sp-3); flex-wrap:wrap}
+.sp-demo div{text-align:center; font-family:var(--font-mono); font-size:10px; color:var(--text-subtle)}
+.sp-demo i{display:block; background:var(--primary); border-radius:3px; height:26px; margin-block-end:5px}
+.r-demo{display:flex; gap:var(--sp-3); flex-wrap:wrap}
+.r-demo div{width:62px;height:62px;background:var(--primary-subtle);border:1px solid var(--primary);
+  display:grid;place-items:end center;padding-block-end:4px;font-family:var(--font-mono);font-size:10px;color:var(--primary)}
+.sh-demo{display:flex; gap:var(--sp-4); flex-wrap:wrap}
+.sh-demo div{width:84px;height:62px;background:var(--surface);border-radius:var(--r-md);
+  display:grid;place-items:center;font-family:var(--font-mono);font-size:10.5px;color:var(--text-subtle)}
+
+/* ---------- قواعد ---------- */
+.rules{display:grid; gap:var(--sp-2)}
+.rule{display:flex; gap:var(--sp-3); align-items:flex-start; font-size:13.5px;
+  padding:11px var(--sp-4); background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md)}
+.rule .m{font-family:var(--font-mono); font-size:13px; flex:none; width:16px}
+.rule.no .m{color:var(--danger)} .rule.yes .m{color:var(--success)}
+.rule code{background:var(--surface-sunken); padding:1px 6px; border-radius:4px; font-size:12px}
+
+footer{border-block-start:1px solid var(--border); padding-block-start:var(--sp-6);
+  color:var(--text-subtle); font-size:12.5px; display:flex; justify-content:space-between;
+  flex-wrap:wrap; gap:var(--sp-3)}
+</style>
+
+<div class="shell">
+  <aside class="side">
+    <div class="brand">
+      <div class="brand-mark">أ</div>
+      <div>
+        <div class="brand-name">أُسُس</div>
+        <div class="brand-sub">نظام تصميم المنصّة · v0.1</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <div class="nav-group">الأسس</div>
+      <a href="#colors"><span class="dot"></span>الألوان</a>
+      <a href="#type"><span class="dot"></span>الطباعة</a>
+      <a href="#space"><span class="dot"></span>المسافات والأشكال</a>
+      <a href="#rtl"><span class="dot"></span>قواعد RTL</a>
+      <div class="nav-group">المكوّنات</div>
+      <a href="#buttons"><span class="dot"></span>الأزرار والشارات</a>
+      <a href="#forms"><span class="dot"></span>النماذج</a>
+      <a href="#feedback"><span class="dot"></span>التنبيهات</a>
+      <a href="#data"><span class="dot"></span>الجداول والإحصاء</a>
+      <div class="nav-group">مكوّنات المنتج</div>
+      <a href="#learning"><span class="dot"></span>الكورسات والدروس</a>
+      <a href="#quiz"><span class="dot"></span>الاختبارات</a>
+      <a href="#center"><span class="dot"></span>السنتر والحضور</a>
+      <div class="nav-group">الأنماط</div>
+      <a href="#states"><span class="dot"></span>الحالات</a>
+      <a href="#gov"><span class="dot"></span>الحوكمة</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <div class="eyebrow">منصّة الكورسات والخدمات والسناتر</div>
+        <h1>نظام تصميم أُسُس</h1>
+        <p>ثلاث طبقات من الـ Tokens، مكتبة مكوّنات موحّدة، وعربية أولاً. بدّل اللغة والوضع من الأعلى — كل ما تحته يتبع تلقائياً بدون سطر CSS إضافي.</p>
+      </div>
+      <div class="switches">
+        <div class="switch" role="group" aria-label="اللغة والاتجاه">
+          <button type="button" id="ar" aria-pressed="true">عربي</button>
+          <button type="button" id="en" aria-pressed="false">EN</button>
+        </div>
+        <div class="switch" role="group" aria-label="الوضع">
+          <button type="button" id="lt" aria-pressed="true">فاتح</button>
+          <button type="button" id="dk" aria-pressed="false">داكن</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ الألوان ============ -->
+    <section id="colors">
+      <div class="sec-head"><h2>الألوان</h2><span class="tag">3 طبقات</span></div>
+      <p class="sec-note">الطبقة الأولى قيم خام لا تُستخدم في المكوّنات. الطبقة الثانية هي المعنى وهي المستخدمة فعلياً. <strong>ثيم المستأجر يبدّل الطبقة الثانية فقط</strong> — فتتغيّر المنصة كلها بلا لمس مكوّن واحد.</p>
+
+      <div class="panel" style="margin-block-end:var(--sp-4)">
+        <div class="panel-t">الطبقة 1 — Primitive · مقياس الهوية (Teal)</div>
+        <div class="scale">
+          <div style="background:#EAF4F5" class="dk">50</div><div style="background:#CFE6E9" class="dk">100</div>
+          <div style="background:#A3CED4" class="dk">200</div><div style="background:#6FB0BA" class="dk">300</div>
+          <div style="background:#3D919F">400</div><div style="background:#17808F">500</div>
+          <div style="background:#12707E">600</div><div style="background:#0E5A66">700</div>
+          <div style="background:#0B454E">800</div><div style="background:#0F2A32">900</div>
+          <div style="background:#0A1D23">950</div>
+        </div>
+        <div class="panel-t" style="margin-block:var(--sp-4) var(--sp-3)">مقياس التمييز (Gold) · مقياس الحياد (Slate)</div>
+        <div class="scale" style="grid-template-columns:repeat(4,1fr); margin-block-end:var(--sp-2)">
+          <div style="background:#F6EBD3" class="dk">100</div><div style="background:#E0C285" class="dk">300</div>
+          <div style="background:#C08A2E">500</div><div style="background:#8F6417">700</div>
+        </div>
+        <div class="scale" style="grid-template-columns:repeat(9,1fr)">
+          <div style="background:#F6F8F8" class="dk">50</div><div style="background:#EDF1F2" class="dk">100</div>
+          <div style="background:#DDE4E6" class="dk">200</div><div style="background:#C2CDD0" class="dk">300</div>
+          <div style="background:#93A3A7" class="dk">400</div><div style="background:#6C7D82">500</div>
+          <div style="background:#516166">600</div><div style="background:#3B484C">700</div>
+          <div style="background:#182024">900</div>
+        </div>
+      </div>
+
+      <div class="grid g2">
+        <div class="panel">
+          <div class="panel-t">الطبقة 2 — الأدوار</div>
+          <div class="swatch"><span class="chip" style="background:var(--primary)"></span>
+            <div><div class="n">أساسي</div><div class="v">--primary</div></div></div>
+          <div class="swatch"><span class="chip" style="background:var(--accent)"></span>
+            <div><div class="n">تمييز</div><div class="v">--accent</div></div></div>
+          <div class="swatch"><span class="chip" style="background:var(--success)"></span>
+            <div><div class="n">نجاح</div><div class="v">--success</div></div></div>
+          <div class="swatch"><span class="chip" style="background:var(--warning)"></span>
+            <div><div class="n">تحذير</div><div class="v">--warning</div></div></div>
+          <div class="swatch"><span class="chip" style="background:var(--danger)"></span>
+            <div><div class="n">خطر</div><div class="v">--danger</div></div></div>
+          <div class="swatch"><span class="chip" style="background:var(--info)"></span>
+            <div><div class="n">معلومة</div><div class="v">--info</div></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-t">الطبقة 2 — دلالات تعليمية خاصة بنا</div>
+          <div class="swatch"><span class="chip" style="background:var(--progress)"></span>
+            <div><div class="n">تقدّم في الدرس</div><div class="v">--progress</div></div></div>
+          <div class="swatch"><span class="chip" style="background:var(--completed)"></span>
+            <div><div class="n">مكتمل</div><div class="v">--completed</div></div></div>
+          <div class="swatch"><span class="chip" style="background:var(--locked)"></span>
+            <div><div class="n">مقفول</div><div class="v">--locked</div></div></div>
+          <div class="swatch"><span class="chip" style="background:var(--live)"></span>
+            <div><div class="n">بث مباشر الآن</div><div class="v">--live</div></div></div>
+          <div class="swatch"><span class="chip" style="background:var(--late)"></span>
+            <div><div class="n">متأخر عن الحصة</div><div class="v">--late</div></div></div>
+          <div class="swatch"><span class="chip" style="background:var(--overdue)"></span>
+            <div><div class="n">قسط متأخر</div><div class="v">--overdue</div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ الطباعة ============ -->
+    <section id="type">
+      <div class="sec-head"><h2>الطباعة</h2><span class="tag">Tajawal + IBM Plex Sans Arabic</span></div>
+      <p class="sec-note">خطّان عربيان بأدوار مختلفة: <strong>تجوّل</strong> للعناوين لأنه هندسي وواثق، و<strong>بلكس العربي</strong> للنصوص لأنه الأوضح في الأحجام الصغيرة. الأرقام دائماً بخط أحادي المسافة لتصطف في الجداول.</p>
+      <div class="panel">
+        <div class="type-row"><span class="type-meta">display · 34/44 · 800</span><span class="t-display">تعلَّم مهارة جديدة اليوم</span></div>
+        <div class="type-row"><span class="type-meta">h2 · 24/32 · 700</span><span class="t-h2">أساسيات تطوير الويب</span></div>
+        <div class="type-row"><span class="type-meta">h3 · 20/28 · 700</span><span class="t-h3">الوحدة الثالثة: قواعد البيانات</span></div>
+        <div class="type-row"><span class="type-meta">body · 15/28 · 400</span><span class="t-body">في هذه الوحدة نتعلّم كيف نصمّم قاعدة بيانات علائقية سليمة، ونفهم الفرق بين العلاقات وأنواع الفهارس وأثرها المباشر على سرعة الاستعلام.</span></div>
+        <div class="type-row"><span class="type-meta">body-sm · 13/21</span><span class="t-sm">المدة المتبقّية لإنهاء الكورس: ١٤ يوماً</span></div>
+        <div class="type-row"><span class="type-meta">caption · 12/18</span><span class="t-cap">آخر تحديث للمنهج قبل ٣ أيام</span></div>
+        <div class="type-row"><span class="type-meta">mono · 13</span><span class="mono">EGP 1,250.00 · 2026-09-14 · #ORD-48213</span></div>
+      </div>
+      <div class="rules" style="margin-block-start:var(--sp-4)">
+        <div class="rule no"><span class="m">✕</span><div><code>letter-spacing: -0.02em</code> — المسافة السالبة تكسر اتصال الحروف العربية.</div></div>
+        <div class="rule no"><span class="m">✕</span><div><code>font-style: italic</code> و<code>text-transform: uppercase</code> — لا معنى لهما في العربية ويشوّهانها.</div></div>
+        <div class="rule yes"><span class="m">✓</span><div><code>line-height: 1.8</code> للنص العربي بدل 1.5 — التشكيل والنقاط تحتاج مساحة رأسية.</div></div>
+        <div class="rule yes"><span class="m">✓</span><div>حجم الخط العربي أكبر بـ 1–2px من مقابله اللاتيني عند نفس المستوى البصري.</div></div>
+      </div>
+    </section>
+
+    <!-- ============ المسافات ============ -->
+    <section id="space">
+      <div class="sec-head"><h2>المسافات والأشكال</h2><span class="tag">وحدة الأساس 4px</span></div>
+      <p class="sec-note">كل قياس في الواجهة من هذا السلّم. <code>padding: 13px</code> يرفضه الـ Linter آلياً.</p>
+      <div class="grid g2">
+        <div class="panel">
+          <div class="panel-t">المسافات</div>
+          <div class="sp-demo">
+            <div><i style="width:4px"></i>1</div><div><i style="width:8px"></i>2</div>
+            <div><i style="width:12px"></i>3</div><div><i style="width:16px"></i>4</div>
+            <div><i style="width:24px"></i>6</div><div><i style="width:32px"></i>8</div>
+            <div><i style="width:48px"></i>12</div><div><i style="width:64px"></i>16</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-t">نصف القطر</div>
+          <div class="r-demo">
+            <div style="border-radius:6px">sm</div><div style="border-radius:8px">md</div>
+            <div style="border-radius:12px">lg</div><div style="border-radius:16px">xl</div>
+            <div style="border-radius:22px">2xl</div>
+          </div>
+        </div>
+      </div>
+      <div class="panel" style="margin-block-start:var(--sp-4)">
+        <div class="panel-t">الارتفاع — خمسة مستويات فقط</div>
+        <div class="sh-demo">
+          <div style="box-shadow:var(--shadow-sm)">sm</div>
+          <div style="box-shadow:var(--shadow-md)">md</div>
+          <div style="box-shadow:var(--shadow-lg)">lg</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ RTL ============ -->
+    <section id="rtl">
+      <div class="sec-head"><h2>قواعد الاتجاه</h2><span class="tag">Logical Properties</span></div>
+      <p class="sec-note">لا يوجد ملف <code>rtl.css</code> في هذا المشروع. الواجهة تُبنى مرة واحدة بخصائص منطقية، فتنعكس تلقائياً — جرّب زر <strong>EN</strong> بالأعلى.</p>
+      <div class="rules">
+        <div class="rule no"><span class="m">✕</span><div><code>margin-left</code> · <code>padding-right</code> · <code>text-align: left</code> · <code>border-left</code> · <code>left: 0</code></div></div>
+        <div class="rule yes"><span class="m">✓</span><div><code>margin-inline-start</code> · <code>padding-inline-end</code> · <code>text-align: start</code> · <code>border-inline-start</code> · <code>inset-inline-start: 0</code></div></div>
+        <div class="rule yes"><span class="m">✓</span><div>ينعكس: التخطيط، أسهم التنقّل، شرائط التقدّم، ترتيب الأعمدة.</div></div>
+        <div class="rule no"><span class="m">✕</span><div>لا ينعكس: الأرقام، الوقت، أيقونات التشغيل، الشعارات، أكواد البرمجة، محاور الرسوم الزمنية.</div></div>
+      </div>
+    </section>
+
+    <!-- ============ الأزرار ============ -->
+    <section id="buttons">
+      <div class="sec-head"><h2>الأزرار والشارات</h2><span class="tag">7 أنواع · 3 أحجام</span></div>
+      <div class="panel" style="margin-block-end:var(--sp-4)">
+        <div class="panel-t">الأنواع</div>
+        <div class="row">
+          <button class="btn btn-primary">اشترِ الكورس</button>
+          <button class="btn btn-secondary">حفظ كمسودة</button>
+          <button class="btn btn-subtle">إضافة درس</button>
+          <button class="btn btn-accent">ترقية الباقة</button>
+          <button class="btn btn-ghost">إلغاء</button>
+          <button class="btn btn-danger">حذف المجموعة</button>
+          <button class="btn btn-secondary" disabled>غير متاح في باقتك</button>
+        </div>
+        <div class="panel-t" style="margin-block:var(--sp-5) var(--sp-3)">الأحجام</div>
+        <div class="row">
+          <button class="btn btn-primary btn-sm">صغير</button>
+          <button class="btn btn-primary">متوسط</button>
+          <button class="btn btn-primary btn-lg">كبير</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-t">الشارات — الحالة تُقرأ من الشكل لا من اللون وحده</div>
+        <div class="row">
+          <span class="badge b-success">✓ منشور</span>
+          <span class="badge b-warning">⏳ بانتظار المراجعة</span>
+          <span class="badge b-neutral">مسودة</span>
+          <span class="badge b-danger">✕ مرفوض</span>
+          <span class="badge b-info">مجاني</span>
+          <span class="badge b-primary">مستوى متقدّم</span>
+          <span class="badge b-live"><span class="pulse"></span>مباشر الآن</span>
+          <span class="badge b-warning">🔒 يتطلب باقة أعلى</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ النماذج ============ -->
+    <section id="forms">
+      <div class="sec-head"><h2>النماذج</h2><span class="tag">FormField موحّد</span></div>
+      <p class="sec-note">كل حقل يمرّ عبر غلاف واحد يضمن نفس التسمية والتلميح ورسالة الخطأ وعلامة المطلوب — فلا يختلف حقل عن حقل في أي شاشة.</p>
+      <div class="grid g2">
+        <div class="panel">
+          <div class="field">
+            <label for="f1">عنوان الكورس <span class="req">*</span></label>
+            <input class="input" id="f1" value="أساسيات تطوير الويب بلغة PHP">
+            <span class="hint">يظهر في نتائج البحث وصفحة الكورس.</span>
+          </div>
+          <div class="field">
+            <label for="f2">سعر الكورس <span class="req">*</span></label>
+            <input class="input err" id="f2" value="-50" aria-describedby="e2">
+            <span class="err-msg" id="e2">✕ السعر لا يمكن أن يكون بالسالب. اكتب رقماً أكبر من صفر أو اجعل الكورس مجانياً.</span>
+          </div>
+          <div class="field">
+            <label for="f3">وصف مختصر</label>
+            <textarea class="input" id="f3" rows="3" placeholder="اكتب سطرين يشرحان ما سيتعلمه الطالب…"></textarea>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="field">
+            <label for="f4">التصنيف</label>
+            <select class="input" id="f4"><option>برمجة وتطوير</option><option>تصميم</option><option>لغات</option></select>
+          </div>
+          <div class="field">
+            <label>طريقة التقديم</label>
+            <div class="seg" role="group">
+              <button type="button" aria-pressed="true">مسجّل</button>
+              <button type="button" aria-pressed="false">مباشر</button>
+              <button type="button" aria-pressed="false">مدمج</button>
+            </div>
+          </div>
+          <div class="field">
+            <label class="check"><input type="checkbox" checked> إصدار الشهادة تلقائياً عند الإكمال</label>
+            <label class="check"><input type="checkbox"> السماح بتحميل الدروس للمشاهدة دون اتصال</label>
+            <label class="check"><input type="checkbox" checked> منع لقطة الشاشة داخل التطبيق</label>
+          </div>
+          <div class="row" style="margin-block-start:var(--sp-5)">
+            <button class="btn btn-primary">حفظ ونشر</button>
+            <button class="btn btn-ghost">حفظ كمسودة</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ التنبيهات ============ -->
+    <section id="feedback">
+      <div class="sec-head"><h2>التنبيهات</h2><span class="tag">ماذا حدث · لماذا · ماذا تفعل</span></div>
+      <div class="grid g2">
+        <div class="alert a-success"><span>✓</span><div><strong>تم تفعيل الدفع عبر فوري</strong><p>يستطيع طلابك الآن الدفع نقداً من أي منفذ فوري.</p></div></div>
+        <div class="alert a-warning"><span>⚠</span><div><strong>اقتربت من حد الباقة</strong><p>استهلكت ٤٦٠ من ٥٠٠ طالب. رقِّ باقتك قبل أن يتعذّر تسجيل طلاب جدد.</p></div></div>
+        <div class="alert a-danger"><span>✕</span><div><strong>فشل تجديد الاشتراك</strong><p>رُفضت البطاقة المنتهية في ٠٩/٢٦. حدِّث بيانات الدفع خلال ٥ أيام قبل تعليق المنصة.</p></div></div>
+        <div class="alert a-info"><span>ℹ</span><div><strong>٣ واجبات بانتظار التصحيح</strong><p>أقدمها مُرسل منذ يومين. الطلاب يرون حالتها «قيد التصحيح».</p></div></div>
+      </div>
+    </section>
+
+    <!-- ============ الجداول ============ -->
+    <section id="data">
+      <div class="sec-head"><h2>الجداول والإحصاء</h2><span class="tag">أرقام مصطفّة</span></div>
+      <div class="grid g4" style="margin-block-end:var(--sp-4)">
+        <div class="stat"><div class="k">إيراد هذا الشهر</div><div class="v">٤٨٬٢٥٠</div><div class="d up">▲ ١٢٪ عن الشهر الماضي</div></div>
+        <div class="stat"><div class="k">طلاب نشطون</div><div class="v">١٬٣٨٤</div><div class="d up">▲ ٨٪</div></div>
+        <div class="stat"><div class="k">نسبة إكمال الكورسات</div><div class="v">٦٢٪</div><div class="d down">▼ ٣٪</div></div>
+        <div class="stat"><div class="k">أقساط متأخرة</div><div class="v">١٧</div><div class="d down">▲ ٤ حالات</div></div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>الطالب</th><th>المجموعة</th><th>الحضور</th><th>آخر قسط</th><th>الحالة</th><th>المبلغ</th></tr></thead>
+          <tbody>
+            <tr><td>سارة عبد الرحمن</td><td>ثانوية · فيزياء · سبت ٤م</td><td class="num">١٤/١٦</td><td class="num">2026-08-28</td><td><span class="badge b-success">مدفوع</span></td><td class="num">٦٥٠</td></tr>
+            <tr><td>يوسف حمدي</td><td>ثانوية · فيزياء · سبت ٤م</td><td class="num">٩/١٦</td><td class="num">2026-08-05</td><td><span class="badge b-warning">مستحق</span></td><td class="num">٦٥٠</td></tr>
+            <tr><td>منة الله طارق</td><td>إعدادي · رياضيات · اثنين ٦م</td><td class="num">١٦/١٦</td><td class="num">2026-09-01</td><td><span class="badge b-success">مدفوع</span></td><td class="num">٥٠٠</td></tr>
+            <tr><td>عمر السيد</td><td>ثانوية · كيمياء · خميس ٥م</td><td class="num">٦/١٦</td><td class="num">2026-07-12</td><td><span class="badge b-danger">متأخر ٥١ يوم</span></td><td class="num">٧٠٠</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ الكورسات ============ -->
+    <section id="learning">
+      <div class="sec-head"><h2>الكورسات والدروس</h2><span class="tag">مكوّنات المنتج</span></div>
+      <div class="grid g2">
+        <div class="grid g2" style="align-content:start">
+          <article class="card">
+            <div class="card-media"><span class="badge">١٢ ساعة</span></div>
+            <div class="card-body">
+              <h4>أساسيات تطوير الويب</h4>
+              <div class="meta"><span>م. أحمد معوّض</span><span>·</span><span>٤٢ درساً</span></div>
+              <div style="margin-block-start:var(--sp-3)">
+                <div class="bar"><span style="width:68%"></span></div>
+                <div class="t-cap" style="margin-block-start:6px">أنجزت ٦٨٪ — باقي ١٣ درساً</div>
+              </div>
+              <div class="foot">
+                <span class="price"><s>١٬٢٠٠</s>٧٥٠ ج.م</span>
+                <button class="btn btn-primary btn-sm">أكمل التعلّم</button>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-media" style="background:linear-gradient(135deg,#0E5A66,#C08A2E)">
+              <span class="badge b-live" style="background:#0009;color:#fff"><span class="pulse"></span>مباشر</span>
+            </div>
+            <div class="card-body">
+              <h4>مراجعة الفيزياء النهائية</h4>
+              <div class="meta"><span>حصة مباشرة</span><span>·</span><span>Zoom</span></div>
+              <div class="t-cap" style="margin-block-start:var(--sp-3)">تبدأ بعد ١٢ دقيقة · ٨٤ طالباً مسجّلاً</div>
+              <div class="foot">
+                <span class="price">مجاني</span>
+                <button class="btn btn-accent btn-sm">ادخل الحصة</button>
+              </div>
+            </div>
+          </article>
+        </div>
+        <div>
+          <div class="panel-t">قائمة المنهج — الحالة تُقرأ من الأيقونة والنص معاً</div>
+          <div class="lessons">
+            <div class="lesson l-done"><span class="l-ico">✓</span><span class="t">مقدّمة: ماذا سنبني في هذا الكورس</span><span class="d">٠٦:٤٢</span></div>
+            <div class="lesson l-done"><span class="l-ico">✓</span><span class="t">تجهيز بيئة العمل</span><span class="d">١٢:١٠</span></div>
+            <div class="lesson l-now"><span class="l-ico">▸</span><span class="t">الاتصال بقاعدة البيانات</span><span class="d">١٨:٣٣</span></div>
+            <div class="lesson"><span class="l-ico" style="background:var(--surface-sunken);color:var(--text-muted)">◷</span><span class="t">اختبار الوحدة الأولى</span><span class="d">١٠ أسئلة</span></div>
+            <div class="lesson l-lock"><span class="l-ico">🔒</span><span class="t">العلاقات بين الجداول</span><span class="d">يُفتح بعد ٣ أيام</span></div>
+            <div class="lesson l-lock"><span class="l-ico">🔒</span><span class="t">مشروع التخرّج</span><span class="d">٤٥:٠٠</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ الاختبارات ============ -->
+    <section id="quiz">
+      <div class="sec-head"><h2>الاختبارات</h2><span class="tag">تصحيح فوري</span></div>
+      <div class="panel">
+        <div class="row" style="justify-content:space-between; margin-block-end:var(--sp-4)">
+          <div><div class="panel-t" style="margin:0">السؤال ٣ من ١٠</div>
+            <h4 style="font-size:16px; margin-block-start:6px">أي أنواع الفهارس أنسب لعمود يُستخدم في <code>ORDER BY</code> باستمرار؟</h4></div>
+          <span class="badge b-warning">⏱ ٠٤:١٢ متبقّية</span>
+        </div>
+        <div class="grid" style="gap:var(--sp-2)">
+          <div class="q-opt"><span class="k">أ</span>فهرس فريد على عمود آخر</div>
+          <div class="q-opt q-ok"><span class="k">ب</span>فهرس عادي على نفس العمود ✓</div>
+          <div class="q-opt q-no"><span class="k">ج</span>لا حاجة لأي فهرس ✕ إجابتك</div>
+          <div class="q-opt"><span class="k">د</span>فهرس نصّي كامل</div>
+        </div>
+        <div class="alert a-info" style="margin-block-start:var(--sp-4)">
+          <span>ℹ</span><div><strong>الشرح</strong><p>الفرز بدون فهرس يجبر قاعدة البيانات على ترتيب كل الصفوف في الذاكرة، وهو أثقل استعلام في أي منصة تعليمية.</p></div>
+        </div>
+        <div class="row" style="margin-block-start:var(--sp-4)">
+          <button class="btn btn-primary">السؤال التالي</button>
+          <button class="btn btn-ghost">راجعه لاحقاً</button>
+          <span class="badge b-neutral" style="margin-inline-start:auto">حُفظت إجابتك تلقائياً</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ السنتر ============ -->
+    <section id="center">
+      <div class="sec-head"><h2>السنتر والحضور</h2><span class="tag">حضوري + أونلاين</span></div>
+      <p class="sec-note">هذه الشاشات هي ما لا يملكه أي منافس في الكورسات الأونلاين، ولا تملكه أنظمة السناتر مربوطاً بمنصة بيع.</p>
+      <div class="grid g2">
+        <div class="panel">
+          <div class="row" style="justify-content:space-between; margin-block-end:var(--sp-4)">
+            <div><strong style="font-size:14.5px">ثانوية · فيزياء · السبت ٤:٠٠م</strong>
+              <div class="t-cap">قاعة ٢ · ٢٨ طالباً · م. هبة صلاح</div></div>
+            <span class="badge b-primary">حصة ١٤ من ١٦</span>
+          </div>
+          <div class="att">
+            <i class="at-p">١</i><i class="at-p">٢</i><i class="at-l">٣</i><i class="at-p">٤</i><i class="at-p">٥</i>
+            <i class="at-a">٦</i><i class="at-p">٧</i><i class="at-p">٨</i><i class="at-p">٩</i><i class="at-p">١٠</i>
+            <i class="at-l">١١</i><i class="at-p">١٢</i><i class="at-a">١٣</i><i class="at-p">١٤</i><i class="at-p">١٥</i>
+            <i class="at-p">١٦</i><i class="at-p">١٧</i><i class="at-p">١٨</i><i class="at-n">١٩</i><i class="at-n">٢٠</i>
+          </div>
+          <div class="row" style="margin-block-start:var(--sp-4); font-size:12.5px; color:var(--text-muted)">
+            <span class="row" style="gap:6px"><span class="chip" style="width:12px;height:12px;background:var(--attended)"></span>حاضر ١٤</span>
+            <span class="row" style="gap:6px"><span class="chip" style="width:12px;height:12px;background:var(--late)"></span>متأخر ٢</span>
+            <span class="row" style="gap:6px"><span class="chip" style="width:12px;height:12px;background:var(--absent)"></span>غائب ٢</span>
+            <span class="row" style="gap:6px"><span class="chip" style="width:12px;height:12px;background:var(--surface-sunken)"></span>لم يُسجَّل ٢</span>
+          </div>
+          <div class="row" style="margin-block-start:var(--sp-4)">
+            <button class="btn btn-primary btn-sm">مسح كود QR</button>
+            <button class="btn btn-secondary btn-sm">تسجيل يدوي</button>
+            <button class="btn btn-ghost btn-sm">إشعار أولياء الأمور</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-t">التقرير الشهري الذي يصل ولي الأمر</div>
+          <div class="grid" style="gap:var(--sp-3)">
+            <div class="row" style="justify-content:space-between"><span>الحضور</span><strong class="mono">14/16 · 87%</strong></div>
+            <div class="bar"><span style="width:87%;background:var(--attended)"></span></div>
+            <div class="row" style="justify-content:space-between"><span>متوسط الدرجات</span><strong class="mono">78%</strong></div>
+            <div class="bar"><span style="width:78%"></span></div>
+            <div class="row" style="justify-content:space-between"><span>الواجبات المسلّمة</span><strong class="mono">9/12</strong></div>
+            <div class="bar"><span style="width:75%;background:var(--warning)"></span></div>
+            <div class="row" style="justify-content:space-between; padding-block-start:var(--sp-3); border-block-start:1px solid var(--border)">
+              <span>موقف المصروفات</span><span class="badge b-danger">متأخر ٦٥٠ ج.م</span></div>
+          </div>
+          <div class="row" style="margin-block-start:var(--sp-4)">
+            <button class="btn btn-subtle btn-sm">إرسال واتساب</button>
+            <button class="btn btn-secondary btn-sm">طباعة PDF</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ الحالات ============ -->
+    <section id="states">
+      <div class="sec-head"><h2>الحالات</h2><span class="tag">إلزامية لكل قائمة</span></div>
+      <div class="grid g3">
+        <div>
+          <div class="panel-t">فارغة</div>
+          <div class="empty">
+            <div class="ic">＋</div>
+            <h4>لا توجد كورسات بعد</h4>
+            <p>ابدأ بكورسك الأول — يمكنك حفظه كمسودة والعودة إليه في أي وقت.</p>
+            <button class="btn btn-primary btn-sm">أنشئ كورساً</button>
+          </div>
+        </div>
+        <div>
+          <div class="panel-t">تحميل — هيكل بشكل المحتوى القادم</div>
+          <div class="panel">
+            <div class="sk" style="width:58%; height:16px; margin-block-end:var(--sp-3)"></div>
+            <div class="sk" style="width:100%; margin-block-end:var(--sp-2)"></div>
+            <div class="sk" style="width:88%; margin-block-end:var(--sp-2)"></div>
+            <div class="sk" style="width:44%; margin-block-end:var(--sp-5)"></div>
+            <div class="sk" style="width:100%; height:38px"></div>
+          </div>
+        </div>
+        <div>
+          <div class="panel-t">خطأ — يقول ماذا يفعل المستخدم الآن</div>
+          <div class="empty" style="border-color:var(--danger)">
+            <div class="ic" style="background:var(--danger-subtle); color:var(--danger)">!</div>
+            <h4>تعذّر تحميل قائمة الطلاب</h4>
+            <p>انقطع الاتصال بالخادم. بياناتك محفوظة ولم يضِع شيء.</p>
+            <button class="btn btn-secondary btn-sm">أعد المحاولة</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ الحوكمة ============ -->
+    <section id="gov">
+      <div class="sec-head"><h2>كيف يبقى موحّداً</h2><span class="tag">يُفرض آلياً</span></div>
+      <div class="rules">
+        <div class="rule no"><span class="m">✕</span><div><strong>Stylelint يرفض:</strong> أي لون حرفي · أي token من الطبقة الأولى داخل مكوّن · أي خاصية اتجاهية · أي قياس خارج السلّم.</div></div>
+        <div class="rule no"><span class="m">✕</span><div><strong>ESLint يرفض:</strong> أي نص مكتوب مباشرة في الواجهة — كل نص يمرّ بملف ترجمة عربي وإنجليزي.</div></div>
+        <div class="rule yes"><span class="m">✓</span><div><strong>انحدار بصري:</strong> لقطة لكل مكوّن × ٤ (عربي/إنجليزي × فاتح/داكن) في كل Pull Request.</div></div>
+        <div class="rule yes"><span class="m">✓</span><div><strong>فحص التباين:</strong> آلي على كل الـ tokens — أي نسبة أقل من 4.5:1 توقف الـ build.</div></div>
+        <div class="rule yes"><span class="m">✓</span><div><strong>قاعدة الصفر:</strong> مكوّن غير موجود في النظام لا يُستخدم — يُضاف للنظام أولاً.</div></div>
+      </div>
+    </section>
+
+    <footer>
+      <span>أُسُس · نظام تصميم منصة الكورسات والخدمات والسناتر</span>
+      <span class="mono">65 مكوّناً · 3 طبقات tokens · عربي/إنجليزي · فاتح/داكن</span>
+    </footer>
+  </main>
+</div>
+
+<script>
+(function(){
+  var root = document.documentElement;
+  root.setAttribute('lang','ar'); root.setAttribute('dir','rtl');
+  function press(a,b,onA){ a.setAttribute('aria-pressed',String(onA)); b.setAttribute('aria-pressed',String(!onA)); }
+  var ar=document.getElementById('ar'), en=document.getElementById('en'),
+      lt=document.getElementById('lt'), dk=document.getElementById('dk');
+  ar.addEventListener('click',function(){root.setAttribute('dir','rtl');root.setAttribute('lang','ar');press(ar,en,true);});
+  en.addEventListener('click',function(){root.setAttribute('dir','ltr');root.setAttribute('lang','en');press(en,ar,true);});
+  lt.addEventListener('click',function(){root.setAttribute('data-theme','light');press(lt,dk,true);});
+  dk.addEventListener('click',function(){root.setAttribute('data-theme','dark');press(dk,lt,true);});
+  try{
+    if(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){ press(dk,lt,true); }
+  }catch(e){}
+})();
+</script>
