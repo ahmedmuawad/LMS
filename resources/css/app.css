@@ -143,6 +143,7 @@
   ::selection { background: var(--color-primary-subtle); color: var(--color-content); }
 
   [dir="rtl"] .flip-rtl { transform: scaleX(-1); }
+  [x-cloak] { display: none !important; }
 
   /* مساحة اللمس: على الأجهزة التي لا تملك مؤشراً دقيقاً */
   @media (pointer: coarse) {

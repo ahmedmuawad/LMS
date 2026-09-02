@@ -71,6 +71,11 @@ jobs:
           PLAYWRIGHT_CHROMIUM: ''
         run: node tests/Browser/contrast.mjs
 
+      - name: فحص السلوك والوصولية
+        env:
+          PLAYWRIGHT_CHROMIUM: ''
+        run: node tests/Browser/behaviour.mjs
+
       # بوابة ADR-006: ميزانية الأداء تُفرض هنا فور توفّر الصفحات العامة.
       # - name: Lighthouse CI
       #   run: npx --yes @lhci/cli autorun

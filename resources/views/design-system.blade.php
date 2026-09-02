@@ -15,7 +15,7 @@
         <nav class="flex lg:flex-col gap-1 lg:gap-0.5 overflow-x-auto lg:overflow-x-visible -mx-4 px-4 lg:mx-0 lg:px-0 pb-1 lg:pb-0" aria-label="{{ __('أقسام النظام') }}">
             @foreach ([
                 'الأسس'      => ['colors' => 'الألوان', 'type' => 'الطباعة', 'space' => 'المسافات والأشكال'],
-                'المكوّنات'  => ['buttons' => 'الأزرار والشارات', 'forms' => 'النماذج', 'feedback' => 'التنبيهات', 'data' => 'الجداول والإحصاء'],
+                'المكوّنات'  => ['buttons' => 'الأزرار والشارات', 'forms' => 'النماذج', 'overlays' => 'الطبقات والتنقّل', 'feedback' => 'التنبيهات', 'data' => 'الجداول والإحصاء'],
                 'المنتج'     => ['learning' => 'الكورسات والدروس', 'center' => 'السنتر والحضور'],
                 'الأنماط'    => ['states' => 'الحالات', 'rules' => 'القواعد المفروضة'],
             ] as $group => $links)
@@ -259,6 +259,139 @@
                     </div>
                 </x-ui.card>
             </div>
+        </section>
+
+
+        {{-- ============ الطبقات والتنقّل ============ --}}
+        <section id="overlays" class="mb-16 scroll-mt-6">
+            <div class="flex items-baseline gap-3 pb-3 mb-3 border-b border-line">
+                <h2 class="text-xl">{{ __('الطبقات والتنقّل') }}</h2>
+                <span class="text-2xs text-subtle font-mono">Alpine · x-trap · aria</span>
+            </div>
+            <p class="text-muted text-sm mb-6 max-w-[70ch]">
+                {{ __('كل طبقة تُغلق بـ Escape، وتحبس التركيز بداخلها، وتعيده لمكانه عند الإغلاق. على الموبايل تظهر النافذة من الأسفل لا في المنتصف.') }}
+            </p>
+
+            <div class="grid gap-4 lg:grid-cols-2 mb-4">
+                <x-ui.card :title="__('رأس الصفحة وفتات الخبز')">
+                    <x-ui.page-header :title="__('كورس: أساسيات تطوير الويب')" :subtitle="__('٤٢ درساً · ١٢ ساعة · منشور')" back="#overlays">
+                        <x-slot:breadcrumb>
+                            <x-ui.breadcrumb :items="[
+                                ['label' => __('الرئيسية'), 'url' => '#'],
+                                ['label' => __('الكورسات'), 'url' => '#'],
+                                ['label' => __('أساسيات تطوير الويب')],
+                            ]" />
+                        </x-slot:breadcrumb>
+                        <x-slot:actions>
+                            <x-ui.dropdown>
+                                <x-slot:trigger><x-ui.button size="sm" variant="secondary">{{ __('إجراءات') }} ▾</x-ui.button></x-slot:trigger>
+                                <x-ui.menu-item icon="⧉">{{ __('تكرار الكورس') }}</x-ui.menu-item>
+                                <x-ui.menu-item icon="↓">{{ __('تصدير الطلاب') }}</x-ui.menu-item>
+                                <x-ui.menu-item icon="✕" :danger="true">{{ __('أرشفة') }}</x-ui.menu-item>
+                            </x-ui.dropdown>
+                            <x-ui.button size="sm">{{ __('تعديل') }}</x-ui.button>
+                        </x-slot:actions>
+                    </x-ui.page-header>
+                </x-ui.card>
+
+                <x-ui.card :title="__('التبويبات')">
+                    <x-ui.tabs :tabs="['info' => __('البيانات'), 'curriculum' => __('المنهج'), 'students' => __('الطلاب'), 'settings' => __('الإعدادات')]">
+                        <x-ui.tab-panel name="info"><p class="text-sm text-muted">{{ __('عنوان الكورس ووصفه وتصنيفه وسعره.') }}</p></x-ui.tab-panel>
+                        <x-ui.tab-panel name="curriculum"><p class="text-sm text-muted">{{ __('الأقسام والدروس والاختبارات بالسحب والإفلات.') }}</p></x-ui.tab-panel>
+                        <x-ui.tab-panel name="students"><p class="text-sm text-muted">{{ __('١٬٣٨٤ طالباً مسجّلاً.') }}</p></x-ui.tab-panel>
+                        <x-ui.tab-panel name="settings"><p class="text-sm text-muted">{{ __('الشهادة والفتح التدريجي ومدة الوصول.') }}</p></x-ui.tab-panel>
+                    </x-ui.tabs>
+                </x-ui.card>
+            </div>
+
+            <div class="grid gap-4 lg:grid-cols-3 mb-4">
+                <x-ui.card :title="__('خطوات المعالج')">
+                    <x-ui.steps :steps="[__('النمط'), __('الهوية'), __('الدفع'), __('الإطلاق')]" :current="1" />
+                </x-ui.card>
+                <x-ui.card :title="__('الترقيم')">
+                    <x-ui.pagination :current="3" :last="12" url="#" />
+                </x-ui.card>
+                <x-ui.card :title="__('الطبقات')">
+                    <div class="flex flex-wrap gap-2">
+                        <x-ui.button size="sm" x-data="{}" x-on:click="$dispatch('open-modal', 'demo')">{{ __('افتح نافذة') }}</x-ui.button>
+                        <x-ui.button size="sm" variant="secondary" x-data="{}" x-on:click="$dispatch('open-drawer', 'demo')">{{ __('افتح درجاً') }}</x-ui.button>
+                        <x-ui.button size="sm" variant="subtle" x-data="{}"
+                                     x-on:click="$dispatch('toast', { tone: 'success', text: '{{ __('تم حفظ التغييرات') }}' })">{{ __('أظهر تنبيهاً') }}</x-ui.button>
+                    </div>
+                </x-ui.card>
+            </div>
+
+            <div class="grid gap-4 lg:grid-cols-3">
+                <x-ui.card :title="__('المستخدمون')">
+                    <div class="flex items-center gap-3 mb-4">
+                        <x-ui.avatar name="أحمد معوّض" size="lg" />
+                        <x-ui.avatar name="سارة عبد الرحمن" />
+                        <x-ui.avatar name="Youssef Hamdy" size="sm" />
+                        <x-ui.avatar name="منة الله" size="xs" />
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <x-ui.tag>{{ __('برمجة') }}</x-ui.tag>
+                        <x-ui.tag :removable="true">{{ __('مستوى متقدّم') }}</x-ui.tag>
+                        <x-ui.tag>PHP</x-ui.tag>
+                    </div>
+                </x-ui.card>
+
+                <x-ui.card :title="__('المفاتيح والاختيارات')">
+                    <x-ui.switch :checked="true" :label="__('إصدار الشهادة تلقائياً')" :hint="__('عند بلوغ نسبة الإكمال المطلوبة.')" />
+                    <x-ui.switch :label="__('السماح بالتحميل دون اتصال')" :hint="__('يتطلب باقة النمو أو أعلى.')" />
+                    <div class="grid gap-2 mt-4">
+                        <x-ui.radio-card name="mode" value="solo" icon="👤" :checked="true"
+                                         :label="__('مدرّس فردي')" :hint="__('أكاديمية باسمك أنت وحدك.')" />
+                        <x-ui.radio-card name="mode" value="center" icon="🏫"
+                                         :label="__('سنتر تعليمي')" :hint="__('مجموعات وحضور وأقساط وأولياء أمور.')" />
+                    </div>
+                </x-ui.card>
+
+                <x-ui.card :title="__('سجل النشاط')">
+                    <x-ui.timeline :items="[
+                        ['title' => __('صدرت الشهادة'), 'meta' => '2026-09-01 · 14:22', 'tone' => 'success', 'icon' => '✓'],
+                        ['title' => __('اجتاز اختبار الوحدة الثالثة'), 'meta' => '2026-08-30 · 19:05', 'body' => __('الدرجة ٨٦٪ من محاولة واحدة.')],
+                        ['title' => __('فشل تجديد الاشتراك'), 'meta' => '2026-08-28 · 03:10', 'tone' => 'danger', 'icon' => '✕'],
+                    ]" />
+                </x-ui.card>
+            </div>
+
+            <div class="grid gap-4 lg:grid-cols-2 mt-4">
+                <x-ui.card :title="__('رفع الملفات')">
+                    <x-ui.file-upload :hint="__('PDF أو DOCX · حتى ٢٠ ميجابايت')" accept=".pdf,.docx" />
+                </x-ui.card>
+                <x-ui.card :title="__('ملخّص الطلب')">
+                    <x-ui.description-list :items="[
+                        __('الكورس')        => 'أساسيات تطوير الويب',
+                        __('السعر')         => '٧٥٠٫٠٠ ج.م',
+                        __('الخصم')         => '−٤٥٠٫٠٠ ج.م',
+                        __('ضريبة القيمة المضافة (١٤٪)') => '٤٢٫٠٠ ج.م',
+                        __('الإجمالي')      => '٣٤٢٫٠٠ ج.م',
+                        __('طريقة الدفع')   => 'Paymob · فيزا ****4242',
+                    ]" />
+                </x-ui.card>
+            </div>
+
+            <x-ui.modal name="demo" :title="__('حذف المجموعة')">
+                <p class="text-sm text-muted">
+                    {{ __('سيتم حذف مجموعة «ثانوية · فيزياء · السبت ٤م» و٢٨ تسجيلاً بداخلها. سجلّ الحضور والأقساط المحصّلة يبقى محفوظاً في التقارير.') }}
+                </p>
+                <div class="mt-4"><x-ui.alert tone="warning">{{ __('لا يمكن التراجع عن هذا الإجراء.') }}</x-ui.alert></div>
+                <x-slot:footer>
+                    <x-ui.button variant="ghost" x-data="{}" x-on:click="$dispatch('close-modal', 'demo')">{{ __('إلغاء') }}</x-ui.button>
+                    <x-ui.button variant="danger">{{ __('نعم، احذف المجموعة') }}</x-ui.button>
+                </x-slot:footer>
+            </x-ui.modal>
+
+            <x-ui.drawer name="demo" :title="__('تصفية الطلاب')">
+                <x-ui.field :label="__('المرحلة')" for="d1"><x-ui.select id="d1"><option>{{ __('الكل') }}</option><option>{{ __('ثانوية') }}</option></x-ui.select></x-ui.field>
+                <x-ui.field :label="__('حالة الدفع')" for="d2"><x-ui.select id="d2"><option>{{ __('الكل') }}</option><option>{{ __('متأخر') }}</option></x-ui.select></x-ui.field>
+                <x-ui.switch :label="__('الغائبون ٣ حصص متتالية فقط')" />
+                <x-slot:footer>
+                    <x-ui.button variant="ghost" x-data="{}" x-on:click="$dispatch('close-drawer', 'demo')">{{ __('مسح') }}</x-ui.button>
+                    <x-ui.button>{{ __('تطبيق') }}</x-ui.button>
+                </x-slot:footer>
+            </x-ui.drawer>
         </section>
 
         {{-- ============ التنبيهات ============ --}}

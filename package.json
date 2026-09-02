@@ -7,7 +7,8 @@
         "dev": "vite",
         "test:responsive": "node tests/Browser/responsive.mjs",
         "test:contrast": "node tests/Browser/contrast.mjs",
-        "test:ui": "npm run test:responsive && npm run test:contrast"
+        "test:ui": "npm run test:responsive && npm run test:contrast && npm run test:behaviour",
+        "test:behaviour": "node tests/Browser/behaviour.mjs"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",

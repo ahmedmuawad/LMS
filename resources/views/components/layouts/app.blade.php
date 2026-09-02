@@ -25,6 +25,7 @@
         {{ __('تخطَّ إلى المحتوى') }}
     </a>
     {{ $slot }}
+    <x-ui.toast />
     @stack('scripts')
 </body>
 </html>
