@@ -111,3 +111,30 @@ function actingAsSuperAdmin(array $overrides = []): SuperAdmin
 
     return $admin;
 }
+
+/**
+ * زيارة موقع المشترك بنطاقه — لا يكفي المسار وحده،
+ * إذ تُحلّ هوية المشترك من النطاق لا من الجلسة.
+ */
+function tenantUrl(Tenant $tenant, string $path): string
+{
+    $domain = $tenant->domains->firstWhere('is_primary', true)?->domain
+        ?? $tenant->domains()->first()->domain;
+
+    return 'http://'.$domain.$path;
+}
+
+function tenantGet(Tenant $tenant, string $path)
+{
+    return test()->get(tenantUrl($tenant, $path));
+}
+
+function tenantPut(Tenant $tenant, string $path, array $data = [])
+{
+    return test()->put(tenantUrl($tenant, $path), $data);
+}
+
+function tenantPost(Tenant $tenant, string $path, array $data = [])
+{
+    return test()->post(tenantUrl($tenant, $path), $data);
+}

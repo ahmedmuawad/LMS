@@ -7,6 +7,7 @@ use App\Http\Controllers\Tenant\AuthController;
 use App\Http\Controllers\Tenant\DashboardController;
 use App\Http\Controllers\Tenant\ImpersonationController;
 use App\Http\Controllers\Tenant\OnboardingController;
+use App\Http\Controllers\Tenant\SettingsController;
 use App\Http\Middleware\ApplyTenantTheme;
 use App\Http\Middleware\EnsurePanelAccess;
 use App\Http\Middleware\RequireOnboarding;
@@ -49,6 +50,15 @@ $tenantRoutes = function (): void {
     Route::get('/admin/dashboard', DashboardController::class)
         ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
         ->name('admin.dashboard');
+
+    // الإعدادات — قبل مسار الموارد
+    Route::prefix('admin/settings')
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->name('admin.settings.')->group(function (): void {
+            Route::get('/', [SettingsController::class, 'index'])->name('index');
+            Route::get('/{group}', [SettingsController::class, 'show'])->name('show');
+            Route::put('/{group}', [SettingsController::class, 'update'])->name('update');
+        });
 
     // نواة الإدارة: متحكّم واحد يخدم كل الموارد
     Route::prefix('admin/{resource}')

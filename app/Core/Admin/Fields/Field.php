@@ -123,6 +123,11 @@ abstract class Field
         return $this->hint;
     }
 
+    public function getDefault(): mixed
+    {
+        return $this->default;
+    }
+
     public function isRequired(): bool
     {
         return $this->required;

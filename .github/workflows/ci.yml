@@ -76,7 +76,7 @@ jobs:
           node tests/Browser/responsive.mjs http://127.0.0.1:8899 /super/login
           node tests/Browser/responsive.mjs http://demo.localhost:8899 /login
           GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
-            node tests/Browser/responsive.mjs http://demo.localhost:8899 /admin/dashboard /admin/users /admin/users/create
+            node tests/Browser/responsive.mjs http://demo.localhost:8899 /admin/dashboard /admin/users /admin/users/create $(php -r 'foreach(array_keys(require "config/settings-groups.php") as $k) echo "/admin/settings/$k ";')
           GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
             node tests/Browser/responsive.mjs http://fresh.localhost:8899 /onboarding/mode
           GATE_EMAIL=gate@platform.test GATE_PASSWORD=gate-password GATE_LOGIN_PATH=/super/login \
@@ -90,7 +90,7 @@ jobs:
           node tests/Browser/contrast.mjs http://127.0.0.1:8899 /super/login
           node tests/Browser/contrast.mjs http://demo.localhost:8899 /login
           GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
-            node tests/Browser/contrast.mjs http://demo.localhost:8899 /admin/dashboard /admin/users /admin/users/create
+            node tests/Browser/contrast.mjs http://demo.localhost:8899 /admin/dashboard /admin/users /admin/users/create $(php -r 'foreach(array_keys(require "config/settings-groups.php") as $k) echo "/admin/settings/$k ";')
           GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
             node tests/Browser/contrast.mjs http://fresh.localhost:8899 /onboarding/mode
           GATE_EMAIL=gate@platform.test GATE_PASSWORD=gate-password GATE_LOGIN_PATH=/super/login \

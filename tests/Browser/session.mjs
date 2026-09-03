@@ -8,16 +8,23 @@
  *   GATE_EMAIL · GATE_PASSWORD · GATE_LOGIN_PATH (افتراضياً /login)
  */
 
-export async function openContext(browser, base, options = {}) {
-    const context = await browser.newContext(options);
+// نسجّل الدخول مرة واحدة ونعيد استخدام الجلسة: تسجيل دخول لكل
+// مقاس ولكل صفحة يحوّل البوابة إلى اختبار بطيء لا يُشغَّل.
+let cachedState = null;
 
+export async function openContext(browser, base, options = {}) {
     const email = process.env.GATE_EMAIL;
     const password = process.env.GATE_PASSWORD;
 
     if (!email || !password) {
-        return context;
+        return browser.newContext(options);
     }
 
+    if (cachedState) {
+        return browser.newContext({ ...options, storageState: cachedState });
+    }
+
+    const context = await browser.newContext(options);
     const path = process.env.GATE_LOGIN_PATH || '/login';
     const page = await context.newPage();
 
@@ -36,6 +43,7 @@ export async function openContext(browser, base, options = {}) {
         throw new Error(`تعذّر تسجيل الدخول إلى ${base}${path}\n${error.slice(0, 400)}`);
     }
 
+    cachedState = await context.storageState();
     await page.close();
 
     return context;
