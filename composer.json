@@ -12,6 +12,7 @@
         "php": "^8.3",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
+        "minishlink/web-push": "^11.0",
         "stancl/tenancy": "^3.10"
     },
     "require-dev": {
@@ -32,7 +33,8 @@
         },
         "files": [
             "app/Core/Settings/helpers.php",
-            "app/Core/Modules/helpers.php"
+            "app/Core/Modules/helpers.php",
+            "app/Core/Notifications/helpers.php"
         ]
     },
     "autoload-dev": {

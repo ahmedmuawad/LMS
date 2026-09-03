@@ -50,6 +50,16 @@ final class RecordOrderPayment
 
             // العمولة تُقيَّد عند البيع كي يراها المدرّس فوراً
             $this->earnings->handle($order->refresh());
+
+            if ($order->user !== null) {
+                notify('commerce.payment_received', $order->user, [
+                    'order_number' => (string) $order->number,
+                    'amount' => $amount->format(),
+                    'method' => __($gateway),
+                    'invoice_url' => url('/orders/'.$order->number),
+                    'url' => url('/orders/'.$order->number),
+                ]);
+            }
         }
 
         return $payment;
@@ -57,6 +67,16 @@ final class RecordOrderPayment
 
     public function fail(Order $order, string $gateway, string $reason, ?array $response = null): Payment
     {
+        if ($order->user !== null) {
+            notify('commerce.payment_failed', $order->user, [
+                'order_number' => (string) $order->number,
+                'amount' => $order->total()->format(),
+                'reason' => $reason,
+                'retry_url' => url('/orders/'.$order->number),
+                'url' => url('/orders/'.$order->number),
+            ]);
+        }
+
         return Payment::create([
             'order_id' => $order->getKey(),
             'gateway' => $gateway,

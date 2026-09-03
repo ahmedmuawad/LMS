@@ -44,7 +44,7 @@ final class BookService
              */
             $auto = (string) setting('services.confirmation', 'manual') === 'auto';
 
-            return Booking::create([
+            $booking = Booking::create([
                 'reference' => $this->reference(),
                 'service_id' => $service->getKey(),
                 'provider_id' => $provider?->getKey(),
@@ -63,6 +63,10 @@ final class BookService
                 'intake' => $input['intake'] ?? null,
                 'notes' => $input['notes'] ?? null,
             ]);
+
+            $this->announce($booking, $auto ? 'services.booking_confirmed' : 'services.booking_placed');
+
+            return $booking;
         });
     }
 
@@ -75,6 +79,8 @@ final class BookService
         ])->save();
 
         $booking->service?->increment('bookings_count');
+
+        $this->announce($booking, 'services.booking_confirmed');
 
         return $booking;
     }
@@ -91,6 +97,8 @@ final class BookService
             'cancel_reason' => $reason,
         ])->save();
 
+        $this->announce($booking, 'services.booking_cancelled');
+
         return $booking;
     }
 
@@ -103,6 +111,41 @@ final class BookService
         ])->save();
 
         return $booking;
+    }
+
+    /**
+     * إخبار العميل ومقدّم الخدمة.
+     *
+     * الحجز بلا إخبار وعدٌ لا يعرف به أحد: العميل ينتظر تأكيداً،
+     * والمقدّم لا يعرف أن وقته حُجز حتى يفتح اللوحة صدفةً.
+     */
+    private function announce(Booking $booking, string $event): void
+    {
+        $service = $booking->service;
+        $start = $booking->startsAtCarbon();
+
+        $data = [
+            'service_title' => (string) ($service?->title ?? ''),
+            'booking_reference' => (string) $booking->reference,
+            'booking_url' => url('/bookings/'.$booking->token),
+            'booking_at' => $start?->translatedFormat('l j F Y — H:i') ?? '',
+            'meeting_url' => (string) ($booking->meeting_url ?? ''),
+            'reason' => (string) ($booking->cancel_reason ?? ''),
+            'customer_name' => $booking->customerName(),
+            'url' => url('/bookings/'.$booking->token),
+        ];
+
+        if ($booking->user !== null) {
+            notify($event, $booking->user, $data);
+        }
+
+        $provider = $booking->provider?->user;
+
+        if ($provider !== null && $event !== 'services.booking_cancelled') {
+            notify('services.booking_for_provider', $provider, $data + [
+                'url' => url('/admin/bookings/'.$booking->getKey().'/edit'),
+            ]);
+        }
     }
 
     /** حدّ الحجوزات المفتوحة يحمي التقويم من حاجز يحجز كل المواعيد. */

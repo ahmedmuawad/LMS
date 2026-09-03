@@ -39,6 +39,18 @@ final class GradeAssignment
             }
         }
 
+        $student = $submission->enrollment?->user;
+
+        if ($student !== null) {
+            notify('lms.assignment_graded', $student, [
+                'assignment_title' => (string) $assignment->title,
+                'score' => $final.' / '.$max,
+                'feedback' => (string) (is_array($feedback) ? ($feedback[$student->locale ?? 'ar'] ?? '') : ($feedback ?? '')),
+                'submission_url' => url('/my-courses'),
+                'url' => url('/my-courses'),
+            ]);
+        }
+
         return $submission;
     }
 

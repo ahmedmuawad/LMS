@@ -10,6 +10,9 @@
         ['url' => url('/services'), 'label' => __('الخدمات'), 'on' => module_enabled('services')],
         ['url' => url('/blog'), 'label' => __('المدونة'), 'on' => module_enabled('blog')],
     ], fn (array $l): bool => $l['on']));
+
+    $unread = $me === null ? 0 : App\Core\Notifications\Models\Notification::where('user_id', $me->getKey())
+        ->whereNull('read_at')->count();
 @endphp
 <header class="sticky top-0 z-30 bg-surface/95 backdrop-blur border-b border-line" x-data="{ open: false }">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
@@ -28,6 +31,17 @@
         <div class="flex items-center gap-2 ms-auto shrink-0">
             {{-- مبدّل الوضع ثلاثي الأزرار أعرض من أن يشارك الشاشة الصغيرة؛ مكانه القائمة --}}
             <span class="hidden sm:block"><x-ui.theme-toggle /></span>
+
+            @if($me)
+                <a href="{{ url('/notifications') }}" class="relative size-10 grid place-items-center rounded-md text-muted hover:bg-surface-sunken hover:text-content transition-colors"
+                   aria-label="{{ trans_choice('{0} لا إشعارات جديدة|{1} إشعار واحد غير مقروء|{2} إشعاران غير مقروءين|[3,10] :count إشعارات غير مقروءة|[11,*] :count إشعاراً غير مقروء', $unread, ['count' => $unread]) }}">
+                    <span aria-hidden="true">◔</span>
+                    @if($unread > 0)
+                        <span class="absolute -top-0.5 -end-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-danger text-danger-on
+                                     text-[10px] font-bold grid place-items-center font-mono" aria-hidden="true">{{ min($unread, 99) }}</span>
+                    @endif
+                </a>
+            @endif
 
             <a href="{{ url('/cart') }}" class="relative size-10 grid place-items-center rounded-md text-muted hover:bg-surface-sunken hover:text-content transition-colors"
                aria-label="{{ trans_choice('{0} سلتك فارغة|{1} في سلتك عنصر واحد|{2} في سلتك عنصران|[3,10] في سلتك :count عناصر|[11,*] في سلتك :count عنصراً', $cartCount, ['count' => $cartCount]) }}">
@@ -60,6 +74,7 @@
                 <a href="{{ url('/my-bookings') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('حجوزاتي') }}</a>
             @endif
             <a href="{{ url('/wallet') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('محفظتي') }}</a>
+            <a href="{{ url('/account/notifications') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('تفضيلات الإشعارات') }}</a>
         @endif
         <div class="px-3 py-2 sm:hidden"><x-ui.theme-toggle /></div>
     </nav>

@@ -45,6 +45,13 @@ final class EnrollStudent
         $course->increment('students_count');
         $course->instructor?->increment('students_count');
 
+        notify('lms.enrolled', $user, [
+            'course_title' => (string) $course->title,
+            'course_url' => url('/learn/'.$course->slug),
+            'instructor_name' => (string) ($course->instructor?->name() ?? ''),
+            'url' => url('/learn/'.$course->slug),
+        ]);
+
         return $enrollment;
     }
 

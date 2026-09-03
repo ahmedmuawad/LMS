@@ -100,6 +100,17 @@ final class GradeQuizAttempt
 
         $this->markItemComplete($attempt->refresh());
 
+        // لا نُخبر الطالب ونصف السؤال بلا تصحيح: الدرجة الناقصة تُقلق
+        if (! $stillPending && $attempt->enrollment?->user !== null) {
+            notify('lms.quiz_graded', $attempt->enrollment->user, [
+                'quiz_title' => (string) ($attempt->quiz?->title ?? ''),
+                'score' => $score.' / '.$max,
+                'passed' => $attempt->passed ? __('ناجح') : __('راسب'),
+                'attempt_url' => url('/my-courses'),
+                'url' => url('/my-courses'),
+            ]);
+        }
+
         return $attempt;
     }
 

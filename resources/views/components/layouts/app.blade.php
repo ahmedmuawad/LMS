@@ -21,6 +21,16 @@
             } catch (e) {}
         })();
     </script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    @if(tenant())
+        {{-- البيان يُولَّد لكل مشترك: الاسم واللون والأيقونة تخصّه --}}
+        <link rel="manifest" href="{{ url('/manifest.webmanifest') }}">
+        <link rel="icon" href="{{ url('/icon.svg') }}" type="image/svg+xml">
+        <link rel="apple-touch-icon" href="{{ url('/icon.svg') }}">
+        <meta name="theme-color" content="{{ setting('appearance.brand_color') ?: '#0f766e' }}">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-title" content="{{ mb_substr((string) (setting()->translated('general.site_name') ?: tenant('name')), 0, 12) }}">
+    @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     {{-- تخصيص المشترك: يعيد تعريف الطبقة الدلالية وحدها، وبدرجات مضبوطة التباين --}}
     @php $brand = app(App\Core\Theming\BrandCss::class)->render(); @endphp

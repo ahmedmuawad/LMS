@@ -62,7 +62,59 @@ final class TakeAttendance
             ])->save();
         });
 
+        $this->tellGuardians($session, $statuses);
+
         return $summary;
+    }
+
+    /**
+     * إخبار ولي الأمر بغياب ابنه أو تأخّره.
+     *
+     * هذا هو الفارق الذي يشتريه صاحب السنتر فعلاً: الرسالة تصل
+     * وقت الحصة لا في نهاية الشهر، فيسأل الأب ابنه اليوم لا بعد شهر.
+     *
+     * @param  array<int, string>  $statuses
+     */
+    private function tellGuardians(Session $session, array $statuses): void
+    {
+        $notable = array_filter($statuses, fn (string $status): bool => in_array($status, ['absent', 'late'], true));
+
+        if ($notable === []) {
+            return;
+        }
+
+        $students = Student::with(['guardians.user'])->whereIn('id', array_keys($notable))->get()->keyBy('id');
+        $groupName = (string) ($session->group?->name ?? '');
+        // التاريخ عمود والوقت عمود آخر: الجمع هنا لا في القالب
+        $sessionAt = trim(($session->date?->translatedFormat('l j F') ?? '').' — '.$session->timeLabel());
+
+        foreach ($notable as $studentId => $status) {
+            $student = $students->get($studentId);
+
+            if ($student === null) {
+                continue;
+            }
+
+            $event = $status === 'absent' ? 'center.absence' : 'center.late';
+
+            $recipients = $student->guardians
+                ->filter(fn ($guardian): bool => $guardian->wants($event) && $guardian->user !== null)
+                ->map(fn ($guardian) => $guardian->user);
+
+            if ($recipients->isEmpty()) {
+                continue;
+            }
+
+            notify($event, $recipients->values(), [
+                'student_name' => (string) $student->name,
+                'group_name' => $groupName,
+                'session_at' => $sessionAt,
+                'late_minutes' => (string) (Attendance::where('session_id', $session->getKey())
+                    ->where('student_id', $studentId)->value('late_minutes') ?? 0),
+                'absence_rate' => (string) round((float) ($this->rateFor((int) $studentId, (int) $session->group_id) ?? 0), 1),
+                'url' => url('/guardian'),
+            ]);
+        }
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Content;
 
+use App\Models\User;
 use App\Modules\Content\Actions\StoreMedia;
 use App\Modules\Content\Models\Comment;
 use App\Modules\Content\Models\Form;
@@ -127,6 +128,20 @@ final class ContentController
             'ip' => $request->ip(),
         ]);
 
+        if ($moderate && ! ($firstOnly && $approvedBefore)) {
+            $moderators = User::whereIn('role', ['owner', 'admin'])->where('status', 'active')->get();
+
+            if ($moderators->isNotEmpty()) {
+                notify('content.comment_pending', $moderators, [
+                    'post_title' => (string) $post->title,
+                    'author_name' => (string) ($request->user()?->name ?? $input['author_name'] ?? __('زائر')),
+                    'excerpt' => mb_substr($input['body'], 0, 200),
+                    'moderation_url' => url('/admin/comments'),
+                    'url' => url('/admin/comments'),
+                ]);
+            }
+        }
+
         return back()->with('status', $moderate && ! ($firstOnly && $approvedBefore)
             ? __('وصل تعليقك وسيظهر بعد المراجعة.')
             : __('نُشر تعليقك.'));
@@ -155,8 +170,42 @@ final class ContentController
             ]);
         }
 
+        $this->tellTheTeam($form, $validated['data'] ?? []);
+
         return back()->with('status', setting()->translated('forms.'.$key.'.success')
             ?: ($form->success_message[app()->getLocale()] ?? __('وصلتنا رسالتك. شكراً لك.')));
+    }
+
+    /**
+     * تنبيه الفريق برسالة وصلت.
+     *
+     * نموذج «اتصل بنا» يمتلئ بلا أن يعلم أحد هو أسوأ من ألّا يكون
+     * في الموقع نموذج أصلاً: العميل ينتظر ردّاً لن يأتي.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function tellTheTeam(Form $form, array $data): void
+    {
+        $recipients = User::whereIn('role', ['owner', 'admin'])
+            ->where('status', 'active')
+            ->when(filled($form->notify_email), fn ($q) => $q->orWhere('email', $form->notify_email))
+            ->get();
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        $summary = collect($data)
+            ->map(fn ($value, string $field): string => $field.': '.(is_scalar($value) ? (string) $value : '—'))
+            ->take(5)
+            ->implode("\n");
+
+        notify('content.form_submitted', $recipients, [
+            'form_name' => (string) $form->name,
+            'summary' => mb_substr($summary, 0, 500),
+            'submission_url' => url('/admin/forms/'.$form->getKey().'/edit'),
+            'url' => url('/admin/forms/'.$form->getKey().'/edit'),
+        ]);
     }
 
     /**

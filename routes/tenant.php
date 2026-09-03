@@ -25,6 +25,9 @@ use App\Http\Controllers\Lms\GradingController;
 use App\Http\Controllers\Lms\LearnController;
 use App\Http\Controllers\Lms\MyCoursesController;
 use App\Http\Controllers\Lms\QuizController;
+use App\Http\Controllers\Notifications\InboxController;
+use App\Http\Controllers\Notifications\NotificationAdminController;
+use App\Http\Controllers\Pwa\PwaController;
 use App\Http\Controllers\Services\ServiceController;
 use App\Http\Controllers\Tenant\AuthController;
 use App\Http\Controllers\Tenant\BillingController;
@@ -50,6 +53,11 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 $tenantRoutes = function (): void {
     Route::get('/', fn () => view('tenant.home'))->name('tenant.home');
+
+    // ---------- تطبيق الويب التقدّمي ----------
+    Route::get('/manifest.webmanifest', [PwaController::class, 'manifest'])->name('pwa.manifest');
+    Route::get('/icon.svg', [PwaController::class, 'icon'])->name('pwa.icon');
+    Route::get('/offline', [PwaController::class, 'offline'])->name('pwa.offline');
 
     // استلام تذكرة «الدخول كمشترك» القادمة من لوحتنا العليا
     Route::get('/impersonate/{token}', ImpersonationController::class)
@@ -90,6 +98,16 @@ $tenantRoutes = function (): void {
     // ---------- غرفة التعلّم ----------
     Route::middleware('auth')->group(function (): void {
         Route::get('/my-courses', MyCoursesController::class)->name('my-courses');
+
+        // ---------- الإشعارات ----------
+        Route::get('/notifications', [InboxController::class, 'index'])->name('notifications');
+        Route::post('/notifications/read-all', [InboxController::class, 'readAll'])->name('notifications.read-all');
+        Route::post('/notifications/{id}/read', [InboxController::class, 'read'])->name('notifications.read');
+        Route::get('/account/notifications', [InboxController::class, 'preferences'])->name('account.notifications');
+        Route::put('/account/notifications', [InboxController::class, 'savePreferences'])->name('account.notifications.save');
+        Route::post('/account/push', [InboxController::class, 'subscribe'])->name('account.push.subscribe');
+        Route::delete('/account/push', [InboxController::class, 'unsubscribe'])->name('account.push.unsubscribe');
+
         Route::get('/wallet', [WalletController::class, 'show'])->name('wallet');
         Route::post('/wallet/redeem', [WalletController::class, 'redeem'])->name('wallet.redeem');
         Route::post('/courses/{slug}/enroll', [LearnController::class, 'enroll'])->name('courses.enroll');
@@ -223,6 +241,18 @@ $tenantRoutes = function (): void {
             Route::delete('/media/{id}', [MediaController::class, 'destroy'])->name('media.destroy');
         });
 
+    // الإشعارات: المصفوفة والقوالب والسجلّ — قبل مسار الموارد العام
+    Route::prefix('admin/notifications')
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->name('admin.notifications.')->group(function (): void {
+            Route::get('/', [NotificationAdminController::class, 'matrix'])->name('matrix');
+            Route::put('/', [NotificationAdminController::class, 'saveMatrix'])->name('matrix.save');
+            Route::get('/logs', [NotificationAdminController::class, 'logs'])->name('logs');
+            Route::get('/{event}', [NotificationAdminController::class, 'edit'])->name('edit');
+            Route::put('/{event}', [NotificationAdminController::class, 'update'])->name('update');
+            Route::post('/{event}/test', [NotificationAdminController::class, 'test'])->name('test');
+        });
+
     // نواة الإدارة: متحكّم واحد يخدم كل الموارد
     Route::prefix('admin/{resource}')
         ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
@@ -259,6 +289,12 @@ Route::middleware([
     ApplyTenantTheme::class,      // بعد تهيئة المشترك، لا قبلها
 ])->group(function () use ($tenantRoutes): void {
     $tenantRoutes();
+
+    /*
+     | عامل الخدمة خارج بادئات اللغة: نطاقه هو مساره، وتكراره تحت
+     | /en يعني عاملَين لا يعرف أحدهما ما خزّنه الآخر.
+     */
+    Route::get('/service-worker.js', [PwaController::class, 'serviceWorker'])->name('pwa.service-worker');
 
     foreach (config('locales.prefixed') as $prefix) {
         Route::prefix($prefix)->name($prefix.'.')->group($tenantRoutes);

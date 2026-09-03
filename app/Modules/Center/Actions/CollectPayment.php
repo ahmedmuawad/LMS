@@ -35,7 +35,7 @@ final class CollectPayment
             throw new RuntimeException(__('المبلغ يجب أن يكون أكبر من صفر.'));
         }
 
-        return DB::transaction(function () use ($student, $amount, $invoice, $cashbox, $method, $receiver, $reference): Payment {
+        $payment = DB::transaction(function () use ($student, $amount, $invoice, $cashbox, $method, $receiver, $reference): Payment {
             $payment = Payment::create([
                 'receipt_no' => $this->nextReceipt(),
                 'invoice_id' => $invoice?->getKey(),
@@ -69,6 +69,40 @@ final class CollectPayment
 
             return $payment;
         });
+
+        $this->sendReceipt($student, $amount, $payment, $invoice);
+
+        return $payment;
+    }
+
+    /**
+     * إيصال على واتساب لولي الأمر.
+     *
+     * «دفعت ومحدش سجّل» شكوى تتكرّر في السناتر، والإيصال الفوري
+     * على هاتف ولي الأمر ينهيها قبل أن تبدأ.
+     */
+    private function sendReceipt(Student $student, Money $amount, Payment $payment, ?Invoice $invoice): void
+    {
+        $recipients = $student->guardians()->with('user')->get()
+            ->filter(fn ($guardian): bool => $guardian->wants('center.payment_receipt') && $guardian->user !== null)
+            ->map(fn ($guardian) => $guardian->user)
+            ->values();
+
+        if ($recipients->isEmpty()) {
+            return;
+        }
+
+        $balance = $invoice === null
+            ? 0
+            : max(0, (int) $invoice->total_minor - (int) $invoice->refresh()->paid_minor);
+
+        notify('center.payment_receipt', $recipients, [
+            'student_name' => (string) $student->name,
+            'amount' => $amount->format(),
+            'receipt_number' => (string) $payment->receipt_no,
+            'balance' => Money::fromMinor($balance, $amount->currency)->format(),
+            'url' => url('/guardian'),
+        ]);
     }
 
     private function recordMovement(Cashbox $cashbox, Money $amount, string $reference, ?User $recorder): void
