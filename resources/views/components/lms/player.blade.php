@@ -4,6 +4,8 @@
         ->where('item_id', $item->getKey())->first();
     $resume = setting('lms.resume', true) ? (int) ($progress?->last_position_seconds ?? 0) : 0;
     $watermark = setting('security.video_watermark', true) ? auth()->user()?->email : null;
+    // الرابط يُوقَّع هنا لكل طلب ولا يُخزَّن؛ الرابط الثابت يُوزَّع خلال دقائق
+    $src = app(App\Modules\Lms\VideoUrl::class)->for($lesson, auth()->id());
 @endphp
 
 <div class="grid gap-4">
@@ -15,18 +17,18 @@
                  resume: {{ $resume }},
              })">
             {{-- الأسود للفيديو وحده؛ نصّ فوق أسود بلون خافت لا يُقرأ --}}
-            <div class="aspect-video relative {{ $lesson->video_id ? 'bg-[#000]' : 'bg-surface-sunken' }}">
+            <div class="aspect-video relative {{ $src ? 'bg-[#000]' : 'bg-surface-sunken' }}">
                 @if($lesson->video_provider === 'youtube' && $lesson->video_id)
                     <iframe class="absolute inset-0 size-full" title="{{ $lesson->title }}"
                             src="https://www.youtube-nocookie.com/embed/{{ $lesson->video_id }}"
                             allow="accelerometer; autoplay; encrypted-media; picture-in-picture"
                             allowfullscreen loading="lazy"></iframe>
-                @elseif($lesson->video_id)
+                @elseif($src)
                     <video x-ref="video" class="absolute inset-0 size-full" controls preload="metadata"
                            controlsList="{{ $lesson->is_downloadable ? '' : 'nodownload' }}"
                            @loadedmetadata="restore()" @timeupdate.throttle.10s="report()" @pause="report()"
                            @ended="report()">
-                        <source src="{{ $lesson->video_id }}">
+                        <source src="{{ $src }}">
                         {{ __('متصفّحك لا يدعم تشغيل الفيديو.') }}
                     </video>
                 @else

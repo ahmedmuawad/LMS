@@ -33,6 +33,7 @@ return [
                 ['key' => 'quizzes', 'label' => 'الاختبارات', 'icon' => '◫', 'module' => 'quizzes'],
                 ['key' => 'questions', 'label' => 'بنك الأسئلة', 'icon' => '❓', 'module' => 'quizzes'],
                 ['key' => 'assignments', 'label' => 'الواجبات', 'icon' => '✎', 'module' => 'assignments'],
+                ['key' => 'grading', 'label' => 'التصحيح', 'icon' => '✔', 'module' => 'lms', 'route' => 'admin.grading.index'],
                 ['key' => 'certificates', 'label' => 'الشهادات', 'icon' => '◈', 'module' => 'certificates'],
                 ['key' => 'live', 'label' => 'الحصص المباشرة', 'icon' => '◉', 'module' => 'live'],
                 ['key' => 'enrollments', 'label' => 'التسجيلات', 'icon' => '☑', 'module' => 'lms'],

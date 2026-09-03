@@ -267,3 +267,46 @@ it('refuses a curriculum item that points at nothing', function () {
         'itemable_id' => 999999,
     ])->assertNotFound();
 });
+
+it('shows a student their shelf: learning, finished and certificates', function () {
+    $tenant = provision();
+
+    $student = $tenant->run(function (): User {
+        $learning = seedCourse(['title' => ['ar' => 'كورس جارٍ']]);
+        $finished = seedCourse(['title' => ['ar' => 'كورس منتهٍ']]);
+        $student = seedStudent();
+
+        app(EnrollStudent::class)->handle($student, $learning);
+        $done = app(EnrollStudent::class)->handle($student, $finished);
+
+        foreach ($finished->items()->get() as $item) {
+            app(TrackProgress::class)->complete($done, $item);
+        }
+
+        return $student;
+    });
+
+    tenancy()->initialize($tenant);
+    $this->actingAs($student);
+
+    tenantGet($tenant, '/my-courses')
+        ->assertOk()
+        ->assertSee('تتعلّمه الآن')
+        ->assertSee('كورس جارٍ')
+        ->assertSee('أنهيته')
+        ->assertSee('كورس منتهٍ')
+        ->assertSee('شهاداتك');
+});
+
+it('invites a student with no enrollments to browse instead of showing an empty shelf', function () {
+    $tenant = provision();
+    $student = $tenant->run(fn () => seedStudent());
+
+    tenancy()->initialize($tenant);
+    $this->actingAs($student);
+
+    tenantGet($tenant, '/my-courses')
+        ->assertOk()
+        ->assertSee('لم تسجّل في كورس بعد')
+        ->assertSee('تصفّح الكورسات');
+});

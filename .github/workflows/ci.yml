@@ -76,11 +76,11 @@ jobs:
           node tests/Browser/responsive.mjs http://127.0.0.1:8899 /super/login
           node tests/Browser/responsive.mjs http://demo.localhost:8899 /login /courses /courses/php-from-zero
           GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
-            node tests/Browser/responsive.mjs http://demo.localhost:8899 /admin/dashboard /admin/billing /admin/users /admin/users/create /admin/courses /admin/lessons /admin/quizzes /admin/questions /admin/enrollments /admin/certificates /admin/taxonomies /admin/courses/1/curriculum $(php -r 'foreach(array_keys(require "config/settings-groups.php") as $k) echo "/admin/settings/$k ";')
+            node tests/Browser/responsive.mjs http://demo.localhost:8899 /admin/dashboard /admin/billing /admin/users /admin/users/create /admin/courses /admin/lessons /admin/quizzes /admin/questions /admin/enrollments /admin/certificates /admin/taxonomies /admin/courses/1/curriculum /admin/grading $(php -r 'foreach(array_keys(require "config/settings-groups.php") as $k) echo "/admin/settings/$k ";')
           GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
             node tests/Browser/responsive.mjs http://fresh.localhost:8899 /onboarding/mode
           GATE_EMAIL=sara@t.test GATE_PASSWORD=password \
-            node tests/Browser/responsive.mjs http://demo.localhost:8899 /learn/php-from-zero
+            node tests/Browser/responsive.mjs http://demo.localhost:8899 /learn/php-from-zero /my-courses
           GATE_EMAIL=gate@platform.test GATE_PASSWORD=gate-password GATE_LOGIN_PATH=/super/login \
             node tests/Browser/responsive.mjs http://127.0.0.1:8899 /admin /admin/tenants /admin/plans /admin/usage /admin/health /admin/audit /admin/subscriptions /admin/invoices
 
@@ -92,11 +92,11 @@ jobs:
           node tests/Browser/contrast.mjs http://127.0.0.1:8899 /super/login
           node tests/Browser/contrast.mjs http://demo.localhost:8899 /login /courses /courses/php-from-zero
           GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
-            node tests/Browser/contrast.mjs http://demo.localhost:8899 /admin/dashboard /admin/billing /admin/users /admin/users/create /admin/courses /admin/lessons /admin/quizzes /admin/questions /admin/enrollments /admin/certificates /admin/taxonomies /admin/courses/1/curriculum $(php -r 'foreach(array_keys(require "config/settings-groups.php") as $k) echo "/admin/settings/$k ";')
+            node tests/Browser/contrast.mjs http://demo.localhost:8899 /admin/dashboard /admin/billing /admin/users /admin/users/create /admin/courses /admin/lessons /admin/quizzes /admin/questions /admin/enrollments /admin/certificates /admin/taxonomies /admin/courses/1/curriculum /admin/grading $(php -r 'foreach(array_keys(require "config/settings-groups.php") as $k) echo "/admin/settings/$k ";')
           GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
             node tests/Browser/contrast.mjs http://fresh.localhost:8899 /onboarding/mode
           GATE_EMAIL=sara@t.test GATE_PASSWORD=password \
-            node tests/Browser/contrast.mjs http://demo.localhost:8899 /learn/php-from-zero
+            node tests/Browser/contrast.mjs http://demo.localhost:8899 /learn/php-from-zero /my-courses
           GATE_EMAIL=gate@platform.test GATE_PASSWORD=gate-password GATE_LOGIN_PATH=/super/login \
             node tests/Browser/contrast.mjs http://127.0.0.1:8899 /admin /admin/tenants /admin/plans /admin/usage /admin/health /admin/audit /admin/subscriptions /admin/invoices
 

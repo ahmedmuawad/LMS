@@ -3,10 +3,13 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\ResourceController;
+use App\Http\Controllers\Lms\AssignmentController;
 use App\Http\Controllers\Lms\CatalogController;
 use App\Http\Controllers\Lms\CertificateController;
 use App\Http\Controllers\Lms\CurriculumController;
+use App\Http\Controllers\Lms\GradingController;
 use App\Http\Controllers\Lms\LearnController;
+use App\Http\Controllers\Lms\MyCoursesController;
 use App\Http\Controllers\Lms\QuizController;
 use App\Http\Controllers\Tenant\AuthController;
 use App\Http\Controllers\Tenant\BillingController;
@@ -44,12 +47,14 @@ $tenantRoutes = function (): void {
 
     // ---------- غرفة التعلّم ----------
     Route::middleware('auth')->group(function (): void {
+        Route::get('/my-courses', MyCoursesController::class)->name('my-courses');
         Route::post('/courses/{slug}/enroll', [LearnController::class, 'enroll'])->name('courses.enroll');
 
         Route::get('/learn/{slug}', [LearnController::class, 'room'])->name('learn');
         Route::get('/learn/{slug}/quiz/{item}/attempt/{attempt}', [QuizController::class, 'attempt'])->name('learn.quiz.attempt');
         Route::post('/learn/{slug}/quiz/{item}/attempt/{attempt}', [QuizController::class, 'submit']);
         Route::post('/learn/{slug}/quiz/{item}/start', [QuizController::class, 'start'])->name('learn.quiz.start');
+        Route::post('/learn/{slug}/{item}/assignment', [AssignmentController::class, 'submit'])->name('learn.assignment');
         Route::get('/learn/{slug}/{item}', [LearnController::class, 'room'])->name('learn.item');
         Route::post('/learn/{slug}/{item}/heartbeat', [LearnController::class, 'heartbeat'])->name('learn.heartbeat');
         Route::post('/learn/{slug}/{item}/complete', [LearnController::class, 'complete'])->name('learn.complete');
@@ -74,6 +79,17 @@ $tenantRoutes = function (): void {
     Route::get('/admin/dashboard', DashboardController::class)
         ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
         ->name('admin.dashboard');
+
+    // طاولة التصحيح
+    Route::prefix('admin/grading')
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->name('admin.grading.')->group(function (): void {
+            Route::get('/', [GradingController::class, 'index'])->name('index');
+            Route::get('/attempts/{attempt}', [GradingController::class, 'attempt'])->name('attempt');
+            Route::put('/attempts/{attempt}/answers/{answer}', [GradingController::class, 'gradeAnswer'])->name('attempt.answer');
+            Route::get('/submissions/{submission}', [GradingController::class, 'submission'])->name('submission');
+            Route::put('/submissions/{submission}', [GradingController::class, 'gradeSubmission'])->name('submission.grade');
+        });
 
     // باني المنهج — قبل مسار الموارد العام
     Route::prefix('admin/courses/{course}')

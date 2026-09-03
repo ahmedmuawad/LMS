@@ -33,6 +33,7 @@
             @endif
 
             @error('quiz')<x-ui.alert tone="danger" class="mb-4">{{ $message }}</x-ui.alert>@enderror
+            @error('assignment')<x-ui.alert tone="danger" class="mb-4">{{ $message }}</x-ui.alert>@enderror
 
             <div class="max-w-[900px] mx-auto">
                 @if($kind === 'lesson')
@@ -53,16 +54,7 @@
                         </form>
                     </x-ui.card>
                 @else
-                    <x-ui.card :title="$itemable->title">
-                        @if($itemable->instructions)
-                            <div class="text-muted leading-relaxed whitespace-pre-line mb-4">{{ $itemable->instructions }}</div>
-                        @endif
-                        <x-ui.description-list :items="[
-                            __('الدرجة العظمى') => $itemable->max_marks,
-                            __('درجة النجاح') => $itemable->passing_marks,
-                            __('التسليم المتأخر') => $itemable->allow_late ? __('مقبول') : __('غير مقبول'),
-                        ]" />
-                    </x-ui.card>
+                    <x-lms.assignment :item="$item" :assignment="$itemable" :course="$course" :enrollment="$enrollment" />
                 @endif
 
                 <div class="flex flex-wrap items-center justify-between gap-3 mt-6">
