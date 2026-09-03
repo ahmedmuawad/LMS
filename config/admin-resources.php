@@ -15,6 +15,11 @@ use App\Core\Admin\Resources\Commerce\PayoutResource;
 use App\Core\Admin\Resources\Commerce\ProductResource;
 use App\Core\Admin\Resources\Commerce\RechargeCodeResource;
 use App\Core\Admin\Resources\Commerce\RefundResource;
+use App\Core\Admin\Resources\Content\CommentResource;
+use App\Core\Admin\Resources\Content\FormResource;
+use App\Core\Admin\Resources\Content\PageResource;
+use App\Core\Admin\Resources\Content\PostResource;
+use App\Core\Admin\Resources\Content\RedirectResource;
 use App\Core\Admin\Resources\Lms\CertificateResource;
 use App\Core\Admin\Resources\Lms\CourseResource;
 use App\Core\Admin\Resources\Lms\EnrollmentResource;
@@ -22,6 +27,8 @@ use App\Core\Admin\Resources\Lms\LessonResource;
 use App\Core\Admin\Resources\Lms\QuestionResource;
 use App\Core\Admin\Resources\Lms\QuizResource;
 use App\Core\Admin\Resources\Lms\TaxonomyResource;
+use App\Core\Admin\Resources\Services\BookingResource;
+use App\Core\Admin\Resources\Services\ServiceResource;
 use App\Core\Admin\Resources\UserResource;
 
 /*
@@ -51,6 +58,17 @@ return [
         'recharge-codes' => RechargeCodeResource::class,
         'refunds' => RefundResource::class,
         'payouts' => PayoutResource::class,
+
+        // الخدمات
+        'services' => ServiceResource::class,
+        'bookings' => BookingResource::class,
+
+        // المحتوى
+        'posts' => PostResource::class,
+        'pages' => PageResource::class,
+        'comments' => CommentResource::class,
+        'forms' => FormResource::class,
+        'redirects' => RedirectResource::class,
 
         // السنتر
         'groups' => GroupResource::class,

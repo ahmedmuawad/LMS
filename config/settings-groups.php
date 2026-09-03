@@ -16,6 +16,7 @@ use App\Core\Settings\Groups\PaymentSettings;
 use App\Core\Settings\Groups\PerformanceSettings;
 use App\Core\Settings\Groups\SecuritySettings;
 use App\Core\Settings\Groups\SeoSettings;
+use App\Core\Settings\Groups\ServiceSettings;
 use App\Core\Settings\Groups\UserSettings;
 
 /*
@@ -32,6 +33,7 @@ return [
     'users' => UserSettings::class,
     'lms' => LmsSettings::class,
     'commerce' => CommerceSettings::class,
+    'services' => ServiceSettings::class,
     'payments' => PaymentSettings::class,
     'seo' => SeoSettings::class,
     'analytics' => AnalyticsSettings::class,

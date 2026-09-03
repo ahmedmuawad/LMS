@@ -3,6 +3,13 @@
     $me = auth()->user();
     $cart = app(App\Modules\Commerce\Actions\CartManager::class)->current(request(), create: false);
     $cartCount = $cart?->loadMissing('items')->count() ?? 0;
+
+    // القائمة تتبع الموديولات المفعّلة: رابط لقسم مطفأ يقود إلى 404
+    $links = array_values(array_filter([
+        ['url' => url('/courses'), 'label' => __('الكورسات'), 'on' => module_enabled('lms')],
+        ['url' => url('/services'), 'label' => __('الخدمات'), 'on' => module_enabled('services')],
+        ['url' => url('/blog'), 'label' => __('المدونة'), 'on' => module_enabled('blog')],
+    ], fn (array $l): bool => $l['on']));
 @endphp
 <header class="sticky top-0 z-30 bg-surface/95 backdrop-blur border-b border-line" x-data="{ open: false }">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
@@ -13,8 +20,9 @@
         </a>
 
         <nav class="hidden md:flex items-center gap-1 ms-4 flex-1" aria-label="{{ __('القائمة الرئيسية') }}">
-            <a href="{{ url('/courses') }}" class="px-3 py-2 rounded-md text-sm text-muted hover:bg-surface-sunken hover:text-content transition-colors">{{ __('الكورسات') }}</a>
-            <a href="{{ url('/blog') }}" class="px-3 py-2 rounded-md text-sm text-muted hover:bg-surface-sunken hover:text-content transition-colors">{{ __('المدونة') }}</a>
+            @foreach($links as $link)
+                <a href="{{ $link['url'] }}" class="px-3 py-2 rounded-md text-sm text-muted hover:bg-surface-sunken hover:text-content transition-colors">{{ $link['label'] }}</a>
+            @endforeach
         </nav>
 
         <div class="flex items-center gap-2 ms-auto shrink-0">
@@ -43,10 +51,14 @@
     </div>
 
     <nav x-show="open" x-cloak class="md:hidden border-t border-line px-4 py-2 grid gap-1" aria-label="{{ __('قائمة الموبايل') }}">
-        <a href="{{ url('/courses') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('الكورسات') }}</a>
-        <a href="{{ url('/blog') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('المدونة') }}</a>
+        @foreach($links as $link)
+            <a href="{{ $link['url'] }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ $link['label'] }}</a>
+        @endforeach
         @if($me)
             <a href="{{ url('/my-courses') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('كورساتي') }}</a>
+            @if(module_enabled('bookings'))
+                <a href="{{ url('/my-bookings') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('حجوزاتي') }}</a>
+            @endif
             <a href="{{ url('/wallet') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('محفظتي') }}</a>
         @endif
         <div class="px-3 py-2 sm:hidden"><x-ui.theme-toggle /></div>

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Core\Admin\Navigation;
+use App\Core\Modules\ModuleState;
 use App\Core\Settings\SettingsRepository;
 use App\Core\Theming\ThemeManager;
 use App\Modules\Commerce\Observers\CourseObserver;
@@ -26,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
         // مفردة لكل طلب: تحمل الكاش المحلي للإعدادات.
         // tenancy تُفرغها عند تبديل سياق المشترك.
         $this->app->scoped(SettingsRepository::class);
+
+        // كذلك حالة الموديولات: تُقرأ مرة في الطلب وتُفرغ مع تبديل السياق.
+        $this->app->scoped(ModuleState::class);
 
         /*
          | القائمة تُبنى من حالة المشترك الحالي، ولا تُحفظ في الحاوية:

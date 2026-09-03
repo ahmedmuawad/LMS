@@ -65,6 +65,7 @@ return [
                 ['key' => 'orders', 'label' => 'الطلبات', 'icon' => '◨', 'module' => 'commerce'],
                 ['key' => 'products', 'label' => 'المنتجات', 'icon' => '◪', 'module' => 'commerce'],
                 ['key' => 'services', 'label' => 'الخدمات', 'icon' => '◇', 'module' => 'services', 'feature' => 'services_module'],
+                ['key' => 'bookings', 'label' => 'الحجوزات', 'icon' => '◷', 'module' => 'bookings', 'feature' => 'services_module'],
                 ['key' => 'coupons', 'label' => 'الكوبونات', 'icon' => '％', 'module' => 'coupons'],
                 ['key' => 'recharge-codes', 'label' => 'أكواد الشحن', 'icon' => '⌗', 'module' => 'commerce', 'feature' => 'recharge_codes'],
                 ['key' => 'refunds', 'label' => 'طلبات الاسترداد', 'icon' => '↩', 'module' => 'commerce'],
@@ -76,9 +77,12 @@ return [
             'label' => 'المحتوى',
             'items' => [
                 ['key' => 'posts', 'label' => 'المدونة', 'icon' => '✎', 'module' => 'blog', 'feature' => 'blog'],
+                ['key' => 'comments', 'label' => 'التعليقات', 'icon' => '❝', 'module' => 'blog', 'feature' => 'blog'],
                 ['key' => 'pages', 'label' => 'الصفحات', 'icon' => '▭', 'module' => 'content'],
-                ['key' => 'page-builder', 'label' => 'محرّر الصفحات', 'icon' => '◫', 'module' => 'page-builder', 'feature' => 'page_builder'],
-                ['key' => 'media', 'label' => 'الوسائط', 'icon' => '◲', 'module' => 'media'],
+                ['key' => 'page-builder', 'label' => 'محرّر الصفحات', 'icon' => '◫', 'module' => 'page-builder', 'feature' => 'page_builder', 'route' => 'admin.page-builder.index'],
+                ['key' => 'media', 'label' => 'الوسائط', 'icon' => '◲', 'module' => 'media', 'route' => 'admin.media.index'],
+                ['key' => 'forms', 'label' => 'النماذج', 'icon' => '▤', 'module' => 'forms'],
+                ['key' => 'redirects', 'label' => 'تحويلات الروابط', 'icon' => '↪', 'module' => 'content'],
             ],
         ],
 

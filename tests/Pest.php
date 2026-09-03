@@ -16,6 +16,7 @@ use Tests\TestCase;
 require_once __DIR__.'/LmsHelpers.php';
 require_once __DIR__.'/CommerceHelpers.php';
 require_once __DIR__.'/CenterHelpers.php';
+require_once __DIR__.'/ContentHelpers.php';
 
 pest()->extend(TestCase::class)->in('Unit');
 pest()->extend(TestCase::class)->use(RefreshDatabase::class)->in('Feature');

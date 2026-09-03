@@ -1,4 +1,27 @@
-@php $siteName = setting()->translated('general.site_name') ?: (tenant('name') ?? config('app.name')); @endphp
+@php
+    $siteName = setting()->translated('general.site_name') ?: (tenant('name') ?? config('app.name'));
+
+    $explore = array_values(array_filter([
+        ['url' => url('/courses'), 'label' => __('الكورسات'), 'on' => module_enabled('lms')],
+        ['url' => url('/services'), 'label' => __('الخدمات'), 'on' => module_enabled('services')],
+        ['url' => url('/blog'), 'label' => __('المدونة'), 'on' => module_enabled('blog')],
+        ['url' => url('/about'), 'label' => __('من نحن'), 'on' => true],
+        ['url' => url('/contact'), 'label' => __('اتصل بنا'), 'on' => true],
+    ], fn (array $l): bool => $l['on']));
+
+    /*
+     | السياسات تُعرض بروابطها الحقيقية: الصفحة الإلزامية رابطها
+     | مفتاحها نفسه، ورابط لا يفتح شيئاً في التذييل يوقف الدفع
+     | عند مراجعة البوابة قبل أن يوقفه أي شيء آخر.
+     */
+    $policies = tenant() === null
+        ? collect()
+        : App\Modules\Content\Models\Page::where('is_system', true)
+            ->where('status', 'published')
+            ->whereIn('system_key', ['terms', 'privacy', 'refund', 'faq'])
+            ->get(['slug', 'title', 'published_at', 'status'])
+            ->filter(fn ($page): bool => $page->isLive());
+@endphp
 <footer class="border-t border-line mt-12">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 py-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 text-sm">
         <div class="min-w-0">
@@ -9,19 +32,22 @@
         <nav aria-label="{{ __('روابط') }}">
             <p class="font-semibold text-xs text-subtle mb-2">{{ __('استكشف') }}</p>
             <ul class="grid gap-1.5">
-                <li><a href="{{ url('/courses') }}" class="tap-link text-muted hover:text-content transition-colors">{{ __('الكورسات') }}</a></li>
-                <li><a href="{{ url('/blog') }}" class="tap-link text-muted hover:text-content transition-colors">{{ __('المدونة') }}</a></li>
+                @foreach($explore as $link)
+                    <li><a href="{{ $link['url'] }}" class="tap-link text-muted hover:text-content transition-colors">{{ $link['label'] }}</a></li>
+                @endforeach
             </ul>
         </nav>
 
-        <nav aria-label="{{ __('السياسات') }}">
-            <p class="font-semibold text-xs text-subtle mb-2">{{ __('السياسات') }}</p>
-            <ul class="grid gap-1.5">
-                <li><a href="{{ url('/page/terms') }}" class="tap-link text-muted hover:text-content transition-colors">{{ __('الشروط والأحكام') }}</a></li>
-                <li><a href="{{ url('/page/privacy') }}" class="tap-link text-muted hover:text-content transition-colors">{{ __('سياسة الخصوصية') }}</a></li>
-                <li><a href="{{ url('/page/refund') }}" class="tap-link text-muted hover:text-content transition-colors">{{ __('سياسة الاسترداد') }}</a></li>
-            </ul>
-        </nav>
+        @if($policies->isNotEmpty())
+            <nav aria-label="{{ __('السياسات') }}">
+                <p class="font-semibold text-xs text-subtle mb-2">{{ __('السياسات') }}</p>
+                <ul class="grid gap-1.5">
+                    @foreach($policies as $page)
+                        <li><a href="{{ url('/'.$page->slug) }}" class="tap-link text-muted hover:text-content transition-colors">{{ $page->title }}</a></li>
+                    @endforeach
+                </ul>
+            </nav>
+        @endif
 
         <div class="min-w-0">
             <p class="font-semibold text-xs text-subtle mb-2">{{ __('تواصل') }}</p>

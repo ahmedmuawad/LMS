@@ -25,6 +25,11 @@ use App\Modules\Center\Models\Session as CenterSession;
 use App\Modules\Center\Models\Stage as CenterStage;
 use App\Modules\Center\Models\Student as CenterStudent;
 use App\Modules\Center\Models\Subject as CenterSubject;
+use App\Modules\Content\Actions\InstallSystemPages;
+use App\Modules\Content\Models\Form;
+use App\Modules\Content\Models\Page;
+use App\Modules\Content\Models\Post;
+use App\Modules\Content\Models\Redirect;
 use App\Modules\Lms\Actions\EnrollStudent;
 use App\Modules\Lms\Actions\TrackProgress;
 use App\Modules\Lms\Models\Course;
@@ -35,6 +40,10 @@ use App\Modules\Lms\Models\Lesson;
 use App\Modules\Lms\Models\Question;
 use App\Modules\Lms\Models\Quiz;
 use App\Modules\Lms\Models\Taxonomy;
+use App\Modules\Services\Models\Availability;
+use App\Modules\Services\Models\Booking;
+use App\Modules\Services\Models\Service;
+use App\Modules\Services\Models\ServiceProvider;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -112,6 +121,8 @@ final class SeedDemoTenant extends Command
             }
 
             $this->seedLms();
+            $this->seedContent();
+            $this->seedServices();
 
             if (tenant()->managesCenter()) {
                 $this->seedCenter();
@@ -252,6 +263,194 @@ final class SeedDemoTenant extends Command
     }
 
     /** محتوى تعليمي حقيقي بما يكفي لتُقاس عليه الشاشات والبوابات. */
+    /** محتوى: صفحات إلزامية ومدونة ونموذج تواصل وتحويل رابط قديم. */
+    private function seedContent(): void
+    {
+        app(InstallSystemPages::class)->handle();
+
+        $landing = Page::create([
+            'slug' => 'start-here',
+            'title' => ['ar' => 'ابدأ من هنا', 'en' => 'Start here'],
+            'status' => 'published',
+            'published_at' => now(),
+            'blocks' => [
+                [
+                    'type' => 'hero',
+                    'content' => [
+                        'heading' => ['ar' => 'تعلّم البرمجة بالعربية', 'en' => 'Learn to code in Arabic'],
+                        'subheading' => ['ar' => 'كورسات عملية تبني فيها مشروعاً كاملاً، لا محاضرات نظرية.'],
+                        'cta_label' => ['ar' => 'تصفّح الكورسات', 'en' => 'Browse courses'],
+                        'cta_url' => '/courses',
+                        'align' => 'center',
+                    ],
+                    'settings' => ['background' => 'primary', 'width' => 'wide'],
+                ],
+                [
+                    'type' => 'features',
+                    'content' => [
+                        'heading' => ['ar' => 'لماذا نحن؟'],
+                        'items' => "مشروع في كل كورس\nتصحيح بشري للواجبات\nشهادة قابلة للتحقق",
+                        'columns' => '3',
+                    ],
+                    'settings' => ['width' => 'wide'],
+                ],
+                [
+                    'type' => 'courses',
+                    'content' => ['heading' => ['ar' => 'أحدث الكورسات'], 'source' => 'latest', 'limit' => 3, 'columns' => '3'],
+                    'settings' => ['background' => 'sunken'],
+                ],
+                [
+                    'type' => 'faq',
+                    'content' => [
+                        'heading' => ['ar' => 'أسئلة متكرّرة'],
+                        'items' => "هل الشهادة معتمدة؟|شهادتنا قابلة للتحقق برقمها على الموقع.\nكم مدة الوصول للكورس؟|سنة كاملة من تاريخ الشراء.",
+                        'schema' => true,
+                    ],
+                    'settings' => ['width' => 'narrow'],
+                ],
+            ],
+        ]);
+
+        $category = Taxonomy::firstOrCreate(
+            ['type' => 'category', 'slug' => 'articles'],
+            ['name' => ['ar' => 'مقالات', 'en' => 'Articles'], 'position' => 2],
+        );
+
+        $author = User::where('role', 'owner')->first();
+
+        $posts = [
+            ['kayfa-tabda', 'كيف تبدأ في البرمجة من الصفر', 'How to start programming'],
+            ['akhtaa-shaia', 'خمسة أخطاء شائعة عند تعلّم لارافيل', 'Five common Laravel mistakes'],
+            ['mashroo-awal', 'مشروعك الأول: من الفكرة إلى النشر', 'Your first project'],
+        ];
+
+        foreach ($posts as $index => [$slug, $ar, $en]) {
+            $post = Post::create([
+                'slug' => $slug,
+                'title' => ['ar' => $ar, 'en' => $en],
+                'excerpt' => ['ar' => 'خلاصة عملية مبنية على تجربة تدريس آلاف الطلاب.'],
+                'body' => ['ar' => "لا تبدأ بحفظ الأوامر.\n\nابدأ بمشكلة صغيرة تريد حلّها، ثم ابحث عن الأداة التي تحلّها. الطريق العكسي — أن تتعلّم الأداة ثم تبحث لها عن مشكلة — هو ما يجعل معظم الناس يتوقّفون في الشهر الثاني."],
+                'category_id' => $category->id,
+                'author_id' => $author?->getKey(),
+                'status' => 'published',
+                'published_at' => now()->subDays(20 - $index * 6),
+                'views_count' => random_int(40, 900),
+                'featured' => $index === 0,
+            ]);
+
+            $post->forceFill(['reading_minutes' => $post->estimateReadingMinutes()])->save();
+        }
+
+        $first = Post::where('slug', 'kayfa-tabda')->firstOrFail();
+
+        $first->comments()->createMany([
+            [
+                'user_id' => User::where('email', 'sara@t.test')->value('id'),
+                'body' => 'مقال عملي فعلاً. النقطة الثانية غيّرت طريقتي في المذاكرة.',
+                'status' => 'approved',
+            ],
+            [
+                'author_name' => 'زائر',
+                'author_email' => 'guest@example.test',
+                'body' => 'هل تنصح بالبدء بلغة بعينها؟',
+                'status' => 'pending',
+            ],
+        ]);
+
+        Form::create([
+            'key' => 'contact',
+            'name' => ['ar' => 'اتصل بنا', 'en' => 'Contact us'],
+            'fields' => [
+                ['name' => 'name', 'label' => ['ar' => 'الاسم', 'en' => 'Name'], 'type' => 'text', 'required' => true],
+                ['name' => 'email', 'label' => ['ar' => 'البريد', 'en' => 'Email'], 'type' => 'email', 'required' => true],
+                ['name' => 'message', 'label' => ['ar' => 'رسالتك', 'en' => 'Message'], 'type' => 'textarea', 'required' => true],
+            ],
+            'success_message' => ['ar' => 'وصلتنا رسالتك، نردّ خلال يوم عمل.'],
+            'notify_email' => 'ahmed@example.test',
+        ]);
+
+        // رابط من الموقع القديم: شرط ترحيل لا رفاهية
+        Redirect::create(['from' => '/old-blog/start-here', 'to' => '/'.$landing->slug, 'code' => 301]);
+    }
+
+    /** خدمات تُباع بالوقت: استشارة وجلسة تقوية ومراجعة ملف. */
+    private function seedServices(): void
+    {
+        $owner = User::where('role', 'owner')->first();
+
+        $services = [
+            ['consultation', 'استشارة مسار مهني', 'Career consultation', 'appointment', 50000, 45],
+            ['code-review', 'مراجعة كود مشروعك', 'Code review', 'delivery', 120000, 0],
+            ['private-session', 'جلسة تقوية خاصة', 'Private session', 'appointment', 35000, 60],
+        ];
+
+        foreach ($services as [$slug, $ar, $en, $type, $price, $duration]) {
+            $service = Service::create([
+                'slug' => $slug,
+                'title' => ['ar' => $ar, 'en' => $en],
+                'excerpt' => ['ar' => 'جلسة مركّزة تخرج منها بخطة مكتوبة لا بانطباع.'],
+                'description' => ['ar' => "نبدأ بأسئلة عن وضعك الحالي، ثم نضع خطة أسبوعية قابلة للتنفيذ.\n\nتصلك الخطة مكتوبة بعد الجلسة."],
+                'type' => $type,
+                'currency' => (string) (tenant('currency') ?? 'EGP'),
+                'price_minor' => $price,
+                'price_type' => 'fixed',
+                'duration_minutes' => $duration ?: 60,
+                'buffer_minutes' => $type === 'appointment' ? 15 : 0,
+                'lead_hours' => 12,
+                'cancel_hours' => 24,
+                'max_per_slot' => 1,
+                'delivery_days' => $type === 'delivery' ? 3 : 0,
+                'requirements' => ['ما الذي جرّبته حتى الآن؟', 'ما هدفك خلال ستة أشهر؟'],
+                'deliverables' => ['خطة أسبوعية مكتوبة', 'قائمة مصادر مختارة'],
+                'location' => 'online',
+                'status' => 'published',
+            ]);
+
+            if ($owner === null || $type !== 'appointment') {
+                continue;
+            }
+
+            $provider = ServiceProvider::create([
+                'service_id' => $service->getKey(),
+                'user_id' => $owner->getKey(),
+                'is_active' => true,
+            ]);
+
+            // أحد إلى خميس، من العاشرة إلى الرابعة
+            foreach ([0, 1, 2, 3, 4] as $weekday) {
+                Availability::create([
+                    'provider_id' => $provider->getKey(),
+                    'weekday' => $weekday,
+                    'starts_at' => '10:00:00',
+                    'ends_at' => '16:00:00',
+                ]);
+            }
+        }
+
+        $service = Service::where('slug', 'consultation')->firstOrFail();
+        $provider = $service->providers()->first();
+        $student = User::where('email', 'sara@t.test')->first();
+
+        if ($provider !== null && $student !== null) {
+            Booking::create([
+                'reference' => 'BK-'.now()->format('Ym').'-0001',
+                'service_id' => $service->getKey(),
+                'provider_id' => $provider->getKey(),
+                'user_id' => $student->getKey(),
+                'customer_name' => $student->name,
+                'customer_email' => $student->email,
+                'date' => now()->addDays(3)->toDateString(),
+                'starts_at' => '11:00:00',
+                'ends_at' => '11:45:00',
+                'timezone' => tenant('timezone'),
+                'status' => 'confirmed',
+                'confirmed_at' => now(),
+                'currency' => $service->currency,
+                'price_minor' => $service->price_minor,
+            ]);
+        }
+    }
+
     private function seedLms(): void
     {
         $category = Taxonomy::create([

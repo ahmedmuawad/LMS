@@ -13,6 +13,10 @@ use App\Http\Controllers\Commerce\CartController;
 use App\Http\Controllers\Commerce\CheckoutController;
 use App\Http\Controllers\Commerce\WalletController;
 use App\Http\Controllers\Commerce\WebhookController;
+use App\Http\Controllers\Content\ContentController;
+use App\Http\Controllers\Content\MediaController;
+use App\Http\Controllers\Content\PageBuilderController;
+use App\Http\Controllers\Content\RedirectController;
 use App\Http\Controllers\Lms\AssignmentController;
 use App\Http\Controllers\Lms\CatalogController;
 use App\Http\Controllers\Lms\CertificateController;
@@ -21,6 +25,7 @@ use App\Http\Controllers\Lms\GradingController;
 use App\Http\Controllers\Lms\LearnController;
 use App\Http\Controllers\Lms\MyCoursesController;
 use App\Http\Controllers\Lms\QuizController;
+use App\Http\Controllers\Services\ServiceController;
 use App\Http\Controllers\Tenant\AuthController;
 use App\Http\Controllers\Tenant\BillingController;
 use App\Http\Controllers\Tenant\DashboardController;
@@ -54,6 +59,20 @@ $tenantRoutes = function (): void {
     Route::get('/courses', [CatalogController::class, 'index'])->name('courses.index');
     Route::get('/courses/{slug}', [CatalogController::class, 'show'])->name('courses.show');
     Route::get('/certificate/{code}', [CertificateController::class, 'verify'])->name('certificate.verify');
+
+    // ---------- المدونة والنماذج ----------
+    Route::get('/blog', [ContentController::class, 'blog'])->name('blog');
+    Route::get('/blog/{slug}', [ContentController::class, 'post'])->name('blog.post');
+    Route::post('/blog/{slug}/comments', [ContentController::class, 'comment'])->name('blog.comment');
+    Route::post('/forms/{key}', [ContentController::class, 'submitForm'])->name('forms.submit');
+
+    // ---------- الخدمات والحجوزات ----------
+    Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
+    Route::get('/services/{slug}', [ServiceController::class, 'show'])->name('services.show');
+    Route::post('/services/{slug}/book', [ServiceController::class, 'book'])->name('services.book');
+    Route::get('/my-bookings', [ServiceController::class, 'mine'])->middleware('auth')->name('bookings.mine');
+    Route::get('/bookings/{token}', [ServiceController::class, 'booking'])->name('bookings.show');
+    Route::post('/bookings/{token}/cancel', [ServiceController::class, 'cancel'])->name('bookings.cancel');
 
     // ---------- السلة والدفع ----------
     Route::get('/cart', [CartController::class, 'show'])->name('cart');
@@ -189,6 +208,21 @@ $tenantRoutes = function (): void {
             Route::put('/{group}', [SettingsController::class, 'update'])->name('update');
         });
 
+    // المحتوى: باني الصفحات والوسائط — قبل مسار الموارد العام
+    Route::prefix('admin')
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->name('admin.')->group(function (): void {
+            Route::get('/page-builder', [PageBuilderController::class, 'index'])->name('page-builder.index');
+            Route::post('/page-builder', [PageBuilderController::class, 'store'])->name('page-builder.store');
+            Route::get('/page-builder/{id}', [PageBuilderController::class, 'edit'])->name('page-builder.edit');
+            Route::put('/page-builder/{id}', [PageBuilderController::class, 'update'])->name('page-builder.update');
+
+            Route::get('/media', [MediaController::class, 'index'])->name('media.index');
+            Route::post('/media', [MediaController::class, 'store'])->name('media.store');
+            Route::put('/media/{id}', [MediaController::class, 'update'])->name('media.update');
+            Route::delete('/media/{id}', [MediaController::class, 'destroy'])->name('media.destroy');
+        });
+
     // نواة الإدارة: متحكّم واحد يخدم كل الموارد
     Route::prefix('admin/{resource}')
         ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
@@ -200,6 +234,14 @@ $tenantRoutes = function (): void {
             Route::put('/{id}', [ResourceController::class, 'update'])->name('update');
             Route::delete('/{id}', [ResourceController::class, 'destroy'])->name('destroy');
         });
+
+    /*
+     | الصفحة الحرّة آخر المسارات: ما لم يلتقطه مسار معلوم قد يكون
+     | صفحة أنشأها المشترك. بادئات اللغة مستثناة كي لا تُقرأ سلugاً.
+     */
+    Route::get('/{slug}', [ContentController::class, 'page'])
+        ->where('slug', '(?!(?:'.implode('|', config('locales.prefixed')).')$)[A-Za-z0-9_-]+')
+        ->name('page');
 };
 
 /*
@@ -221,4 +263,7 @@ Route::middleware([
     foreach (config('locales.prefixed') as $prefix) {
         Route::prefix($prefix)->name($prefix.'.')->group($tenantRoutes);
     }
+
+    // آخر محطة قبل الـ404: جدول تحويلات الموقع القديم
+    Route::fallback(RedirectController::class);
 });

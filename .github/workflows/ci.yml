@@ -68,6 +68,10 @@ jobs:
           php artisan demo:tenant --slug=center --mode=center --plan=center --fresh
           php artisan super-admin:create --name="فريق الفحص" --email=gate@platform.test --password=gate-password
 
+      # رابط الحجز يحمل رمزاً عشوائياً لا رقماً متسلسلاً — نقرأه للفحص
+      - name: قراءة رمز الحجز التجريبي
+        run: echo "BOOKING_TOKEN=$(php artisan demo:booking-token --slug=demo)" >> "$GITHUB_ENV"
+
       # الشاشات المحمية تُفحص بجلسة حقيقية، وإلا فُحصت صفحة الدخول بدلاً منها
       - name: فحص الاستجابة (6 مقاسات × لغتين)
         env:
@@ -75,13 +79,13 @@ jobs:
         run: |
           node tests/Browser/responsive.mjs
           node tests/Browser/responsive.mjs http://127.0.0.1:8899 /super/login
-          node tests/Browser/responsive.mjs http://demo.localhost:8899 /login /courses /courses/php-from-zero /cart
+          node tests/Browser/responsive.mjs http://demo.localhost:8899 /login /courses /courses/php-from-zero /cart /blog /blog/kayfa-tabda /services /services/consultation /start-here
           GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
-            node tests/Browser/responsive.mjs http://demo.localhost:8899 /admin/dashboard /admin/billing /admin/users /admin/users/create /admin/courses /admin/lessons /admin/quizzes /admin/questions /admin/enrollments /admin/certificates /admin/taxonomies /admin/courses/1/curriculum /admin/grading /admin/orders /admin/products /admin/coupons /admin/recharge-codes /admin/recharge-codes/generate /admin/refunds $(php -r 'foreach(array_keys(require "config/settings-groups.php") as $k) echo "/admin/settings/$k ";')
+            node tests/Browser/responsive.mjs http://demo.localhost:8899 /admin/dashboard /admin/billing /admin/users /admin/users/create /admin/courses /admin/lessons /admin/quizzes /admin/questions /admin/enrollments /admin/certificates /admin/taxonomies /admin/courses/1/curriculum /admin/grading /admin/orders /admin/products /admin/coupons /admin/recharge-codes /admin/recharge-codes/generate /admin/refunds /admin/services /admin/services/1/edit /admin/bookings /admin/posts /admin/pages /admin/comments /admin/forms /admin/redirects /admin/media /admin/page-builder /admin/page-builder/1 $(php -r 'foreach(array_keys(require "config/settings-groups.php") as $k) echo "/admin/settings/$k ";')
           GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
             node tests/Browser/responsive.mjs http://fresh.localhost:8899 /onboarding/mode
           GATE_EMAIL=sara@t.test GATE_PASSWORD=password \
-            node tests/Browser/responsive.mjs http://demo.localhost:8899 /learn/php-from-zero /my-courses /wallet /checkout
+            node tests/Browser/responsive.mjs http://demo.localhost:8899 /learn/php-from-zero /my-courses /wallet /checkout /my-bookings "/bookings/$BOOKING_TOKEN"
           GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
             node tests/Browser/responsive.mjs http://center.localhost:8899 /admin/attendance /admin/attendance/1 /admin/schedule /admin/fees /admin/cashboxes /admin/groups /admin/center-students /admin/center-students/1 /admin/center-students/1/report /admin/branches /admin/rooms /admin/center-invoices
           GATE_EMAIL=gate@platform.test GATE_PASSWORD=gate-password GATE_LOGIN_PATH=/super/login \
@@ -93,13 +97,13 @@ jobs:
         run: |
           node tests/Browser/contrast.mjs
           node tests/Browser/contrast.mjs http://127.0.0.1:8899 /super/login
-          node tests/Browser/contrast.mjs http://demo.localhost:8899 /login /courses /courses/php-from-zero /cart
+          node tests/Browser/contrast.mjs http://demo.localhost:8899 /login /courses /courses/php-from-zero /cart /blog /blog/kayfa-tabda /services /services/consultation /start-here
           GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
-            node tests/Browser/contrast.mjs http://demo.localhost:8899 /admin/dashboard /admin/billing /admin/users /admin/users/create /admin/courses /admin/lessons /admin/quizzes /admin/questions /admin/enrollments /admin/certificates /admin/taxonomies /admin/courses/1/curriculum /admin/grading /admin/orders /admin/products /admin/coupons /admin/recharge-codes /admin/recharge-codes/generate /admin/refunds $(php -r 'foreach(array_keys(require "config/settings-groups.php") as $k) echo "/admin/settings/$k ";')
+            node tests/Browser/contrast.mjs http://demo.localhost:8899 /admin/dashboard /admin/billing /admin/users /admin/users/create /admin/courses /admin/lessons /admin/quizzes /admin/questions /admin/enrollments /admin/certificates /admin/taxonomies /admin/courses/1/curriculum /admin/grading /admin/orders /admin/products /admin/coupons /admin/recharge-codes /admin/recharge-codes/generate /admin/refunds /admin/services /admin/services/1/edit /admin/bookings /admin/posts /admin/pages /admin/comments /admin/forms /admin/redirects /admin/media /admin/page-builder /admin/page-builder/1 $(php -r 'foreach(array_keys(require "config/settings-groups.php") as $k) echo "/admin/settings/$k ";')
           GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
             node tests/Browser/contrast.mjs http://fresh.localhost:8899 /onboarding/mode
           GATE_EMAIL=sara@t.test GATE_PASSWORD=password \
-            node tests/Browser/contrast.mjs http://demo.localhost:8899 /learn/php-from-zero /my-courses /wallet /checkout
+            node tests/Browser/contrast.mjs http://demo.localhost:8899 /learn/php-from-zero /my-courses /wallet /checkout /my-bookings "/bookings/$BOOKING_TOKEN"
           GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
             node tests/Browser/contrast.mjs http://center.localhost:8899 /admin/attendance /admin/attendance/1 /admin/schedule /admin/fees /admin/cashboxes /admin/groups /admin/center-students /admin/center-students/1 /admin/center-students/1/report /admin/branches /admin/rooms /admin/center-invoices
           GATE_EMAIL=gate@platform.test GATE_PASSWORD=gate-password GATE_LOGIN_PATH=/super/login \
@@ -109,6 +113,14 @@ jobs:
         env:
           PLAYWRIGHT_CHROMIUM: ''
         run: node tests/Browser/behaviour.mjs
+
+      # الباني يحرّر بنية تُرسل نصّاً واحداً — لا يكشف خللها إلا متصفّح
+      - name: فحص باني الصفحات
+        env:
+          PLAYWRIGHT_CHROMIUM: ''
+          GATE_EMAIL: ahmed@example.test
+          GATE_PASSWORD: password
+        run: node tests/Browser/builder.mjs http://demo.localhost:8899
 
       # بوابة ADR-006: ميزانية الأداء تُفرض هنا فور توفّر الصفحات العامة.
       # - name: Lighthouse CI
