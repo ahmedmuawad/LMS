@@ -29,7 +29,7 @@ pest()->extend(TestCase::class)
             tenancy()->end();
         }
 
-        foreach (glob(database_path('tenant*.sqlite')) ?: [] as $file) {
+        foreach (glob(database_path('test_tenant*.sqlite')) ?: [] as $file) {
             @unlink($file);
         }
     })

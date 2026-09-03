@@ -11,9 +11,13 @@
 <div class="max-w-[1400px]">
 
     <x-ui.page-header :title="$resource->label()"
-                      :subtitle="trans_choice(':count سجل|:count سجلات', $records->total(), ['count' => $records->total()])">
+                      :subtitle="trans_choice('{0} لا توجد سجلات|{1} سجل واحد|{2} سجلان|[3,10] :count سجلات|[11,*] :count سجلاً', $records->total(), ['count' => $records->total()])">
         <x-slot:actions>
-            <x-ui.button size="sm">{{ __('إضافة') }} {{ $resource->singularLabel() }}</x-ui.button>
+            @if($resource->canCreate())
+                <x-ui.button size="sm" :href="url('/admin/'.$key.'/create')">
+                    {{ __('إضافة') }} {{ $resource->singularLabel() }}
+                </x-ui.button>
+            @endif
         </x-slot:actions>
     </x-ui.page-header>
 
@@ -54,8 +58,10 @@
             <x-slot:action>
                 @if($hasQuery)
                     <x-ui.button size="sm" variant="secondary" :href="url()->current()">{{ __('مسح الفلاتر') }}</x-ui.button>
-                @else
-                    <x-ui.button size="sm">{{ __('إضافة') }} {{ $resource->singularLabel() }}</x-ui.button>
+                @elseif($resource->canCreate())
+                    <x-ui.button size="sm" :href="url('/admin/'.$key.'/create')">
+                        {{ __('إضافة') }} {{ $resource->singularLabel() }}
+                    </x-ui.button>
                 @endif
             </x-slot:action>
         </x-ui.empty>
@@ -91,9 +97,15 @@
                                         'whitespace-nowrap' => ! $column->shouldWrap()])>
                                 @php
                                     $cellProps = ['value' => $column->value($record)] + $column->props($record);
+                                    $isFirst   = $loop->first && $resource->canCreate();
                                 @endphp
+                                @if($isFirst)
+                                    <a href="{{ url('/admin/'.$key.'/'.$record->getKey().'/edit') }}"
+                                       class="block hover:text-primary transition-colors">
+                                @endif
                                 <x-dynamic-component :component="$column->component()"
                                                      :attributes="new Illuminate\View\ComponentAttributeBag($cellProps)" />
+                                @if($isFirst)</a>@endif
                             </td>
                         @endforeach
                     </tr>

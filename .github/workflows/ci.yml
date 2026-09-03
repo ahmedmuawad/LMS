@@ -61,15 +61,22 @@ jobs:
       - name: تثبيت متصفّح الفحص
         run: npx playwright install --with-deps chromium
 
+      - name: تجهيز مشترك تجريبي للفحوص
+        run: php artisan demo:tenant --fresh
+
       - name: فحص الاستجابة (6 مقاسات × لغتين)
         env:
           PLAYWRIGHT_CHROMIUM: ''
-        run: node tests/Browser/responsive.mjs
+        run: |
+          node tests/Browser/responsive.mjs
+          node tests/Browser/responsive.mjs http://demo.localhost:8899 /admin/users /admin/users/create
 
       - name: فحص التباين (WCAG AA · فاتح وداكن)
         env:
           PLAYWRIGHT_CHROMIUM: ''
-        run: node tests/Browser/contrast.mjs
+        run: |
+          node tests/Browser/contrast.mjs
+          node tests/Browser/contrast.mjs http://demo.localhost:8899 /admin/users /admin/users/create
 
       - name: فحص السلوك والوصولية
         env:

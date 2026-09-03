@@ -33,6 +33,7 @@
              وتبديل سياق المشترك يعيد الاتصال فتضيع الهجرات -->
         <env name="DB_DATABASE" value="database/testing.sqlite"/>
         <env name="DB_URL" value=""/>
+        <env name="TENANCY_DB_PREFIX" value="test_tenant"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

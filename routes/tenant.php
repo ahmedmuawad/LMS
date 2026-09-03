@@ -21,8 +21,14 @@ $tenantRoutes = function (): void {
     Route::get('/', fn () => view('tenant.home'))->name('tenant.home');
 
     // نواة الإدارة: متحكّم واحد يخدم كل الموارد
-    Route::get('/admin/{resource}', [ResourceController::class, 'index'])
-        ->name('admin.resource.index');
+    Route::prefix('admin/{resource}')->name('admin.resource.')->group(function (): void {
+        Route::get('/', [ResourceController::class, 'index'])->name('index');
+        Route::get('/create', [ResourceController::class, 'create'])->name('create');
+        Route::post('/', [ResourceController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [ResourceController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [ResourceController::class, 'update'])->name('update');
+        Route::delete('/{id}', [ResourceController::class, 'destroy'])->name('destroy');
+    });
 };
 
 Route::middleware([

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Core\Admin;
 
 use App\Core\Admin\Columns\Column;
+use App\Core\Admin\Fields\Field;
+use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Filters\Filter;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -30,6 +32,83 @@ abstract class Resource
     public function filters(): array
     {
         return [];
+    }
+
+    /** @return list<Section> أقسام النموذج */
+    public function form(): array
+    {
+        return [];
+    }
+
+    /** @return list<Field> كل حقول النموذج مسطّحة */
+    public function fields(string $context = 'create'): array
+    {
+        $fields = [];
+
+        foreach ($this->form() as $section) {
+            foreach ($section->getFields() as $field) {
+                if ($field->showsOn($context)) {
+                    $fields[] = $field;
+                }
+            }
+        }
+
+        return $fields;
+    }
+
+    /** @return array<string, list<string>> قواعد التحقق مشتقّة من الحقول نفسها */
+    public function validationRules(string $context, mixed $record = null): array
+    {
+        $rules = [];
+
+        foreach ($this->fields($context) as $field) {
+            $rules[$field->name] = $this->contextualise($field->validationRules($context), $record);
+        }
+
+        return $rules;
+    }
+
+    /**
+     * @param  array<string, mixed>  $input
+     * @return array<string, mixed>
+     */
+    public function fillable(array $input, string $context): array
+    {
+        $data = [];
+
+        foreach ($this->fields($context) as $field) {
+            // مفتاح غائب: لا نلمس القيمة القائمة إطلاقاً
+            if (! array_key_exists($field->name, $input)) {
+                continue;
+            }
+
+            $value = $input[$field->name];
+
+            // حقل يُترك فارغاً عمداً (كلمة المرور) لا يمحو القيمة القائمة
+            if ($field->shouldSkipWhenEmpty() && ($value === null || $value === '')) {
+                continue;
+            }
+
+            $data[$field->name] = $field->fill($value);
+        }
+
+        return $data;
+    }
+
+    public function canCreate(): bool
+    {
+        return $this->form() !== [];
+    }
+
+    /** @param  list<string>  $rules */
+    private function contextualise(array $rules, mixed $record): array
+    {
+        return array_map(
+            fn (string $rule): string => $record !== null && str_starts_with($rule, 'unique:')
+                ? $rule.','.$record->getKey()
+                : $rule,
+            $rules,
+        );
     }
 
     public function label(): string

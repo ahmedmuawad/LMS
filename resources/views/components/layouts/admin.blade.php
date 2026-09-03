@@ -82,9 +82,15 @@
             </div>
         @elseif($trial > 0)
             <div class="px-4 sm:px-6 pt-4">
-                <x-ui.alert tone="info" :title="trans_choice('بقي :count يوم في تجربتك المجانية|بقيت :count أيام في تجربتك المجانية', $trial, ['count' => $trial])">
+                <x-ui.alert tone="info" :title="trans_choice('{1} بقي يوم واحد في تجربتك المجانية|{2} بقي يومان في تجربتك المجانية|[3,10] بقيت :count أيام في تجربتك المجانية|[11,*] بقي :count يوماً في تجربتك المجانية', $trial, ['count' => $trial])">
                     {{ __('اختر باقتك قبل انتهاء التجربة حتى لا تتوقّف لوحة التحكم.') }}
                 </x-ui.alert>
+            </div>
+        @endif
+
+        @if(session('status'))
+            <div class="px-4 sm:px-6 pt-4">
+                <x-ui.alert tone="success">{{ session('status') }}</x-ui.alert>
             </div>
         @endif
 

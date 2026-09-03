@@ -28,3 +28,4 @@ Thumbs.db
 /database/database.sqlite
 /database/tenant*
 /database/testing.sqlite
+/database/test_tenant*

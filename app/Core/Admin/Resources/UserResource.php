@@ -8,6 +8,10 @@ use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\BooleanColumn;
 use App\Core\Admin\Columns\DateColumn;
 use App\Core\Admin\Columns\TextColumn;
+use App\Core\Admin\Fields\Section;
+use App\Core\Admin\Fields\SelectField;
+use App\Core\Admin\Fields\SwitchField;
+use App\Core\Admin\Fields\TextField;
 use App\Core\Admin\Filters\BooleanFilter;
 use App\Core\Admin\Filters\SelectFilter;
 use App\Core\Admin\Resource;
@@ -91,6 +95,67 @@ final class UserResource extends Resource
 
             BooleanFilter::make('legacy_hash')
                 ->label(__('مُرحَّل من ووردبريس')),
+        ];
+    }
+
+    public function form(): array
+    {
+        return [
+            Section::make(__('بيانات الحساب'))
+                ->description(__('البريد أو الهاتف هو ما يسجّل به الدخول.'))
+                ->fields([
+                    TextField::make('name')
+                        ->label(__('الاسم'))
+                        ->required()
+                        ->rules(['string', 'max:120'])
+                        ->half(),
+
+                    TextField::make('email')
+                        ->label(__('البريد الإلكتروني'))
+                        ->email()
+                        ->required()
+                        ->rules(['unique:users,email'])
+                        ->half(),
+
+                    TextField::make('phone')
+                        ->label(__('الهاتف'))
+                        ->tel()
+                        ->rules(['string', 'max:32', 'unique:users,phone'])
+                        ->hint(__('بالصيغة الدولية، مثل 201000000000+'))
+                        ->half(),
+
+                    TextField::make('password')
+                        ->label(__('كلمة المرور'))
+                        ->password()
+                        ->required()
+                        ->rules(['string', 'min:8'])
+                        ->hint(__('٨ أحرف على الأقل. تُترك فارغة عند التعديل للإبقاء على القديمة.'))
+                        ->half(),
+                ]),
+
+            Section::make(__('الحالة والتفضيلات'))
+                ->fields([
+                    SelectField::make('status')
+                        ->label(__('الحالة'))
+                        ->options([
+                            'active' => __('نشط'),
+                            'pending' => __('بانتظار التفعيل'),
+                            'suspended' => __('موقوف'),
+                        ])
+                        ->required()
+                        ->default('active')
+                        ->half(),
+
+                    SelectField::make('locale')
+                        ->label(__('لغة الواجهة'))
+                        ->options(['ar' => __('العربية'), 'en' => __('English')])
+                        ->default('ar')
+                        ->half(),
+
+                    SwitchField::make('legacy_hash')
+                        ->label(__('حساب مُرحَّل من ووردبريس'))
+                        ->hint(__('تُعاد تجزئة كلمة مروره تلقائياً عند أول دخول ناجح.')),
+                ]),
         ];
     }
 

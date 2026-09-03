@@ -66,7 +66,11 @@ return [
          * Tenant database names are created like this:
          * prefix + tenant_id + suffix.
          */
-        'prefix' => 'tenant',
+        /*
+         | بادئة مختلفة في الاختبارات حتى لا يمحو تنظيفها
+         | قواعد المشتركين في بيئة التطوير.
+         */
+        'prefix' => env('TENANCY_DB_PREFIX', 'tenant'),
         'suffix' => '.sqlite',   // قواعد SQLite في التطوير تحتاج امتداداً
 
         /**
