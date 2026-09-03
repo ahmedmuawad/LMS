@@ -1,0 +1,100 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ | قوائم لوحة المشترك.
+ |
+ | كل عنصر مرتبط بموديول و/أو ميزة باقة:
+ |   module  → لا يظهر إن كان الموديول غير مفعّل لهذا النمط (ADR-010)
+ |   feature → يظهر مقفولاً مع زر ترقية إن كان خارج الباقة (ADR-011)
+ |
+ | الفرق مقصود: ما لا يخصّ نمطه يُخفى، وما تمنعه باقته يُعرض مقفولاً —
+ | الميزة المخفية لا تُباع.
+ */
+
+return [
+
+    'groups' => [
+
+        [
+            'label' => 'نظرة عامة',
+            'items' => [
+                ['key' => 'dashboard', 'label' => 'اللوحة', 'icon' => '◧', 'route' => 'admin.dashboard'],
+                ['key' => 'reports', 'label' => 'التقارير', 'icon' => '◔', 'module' => 'reports'],
+            ],
+        ],
+
+        [
+            'label' => 'التعليم',
+            'items' => [
+                ['key' => 'courses', 'label' => 'الكورسات', 'icon' => '▤', 'module' => 'lms'],
+                ['key' => 'quizzes', 'label' => 'الاختبارات', 'icon' => '◫', 'module' => 'quizzes'],
+                ['key' => 'assignments', 'label' => 'الواجبات', 'icon' => '✎', 'module' => 'assignments'],
+                ['key' => 'certificates', 'label' => 'الشهادات', 'icon' => '◈', 'module' => 'certificates'],
+                ['key' => 'live', 'label' => 'الحصص المباشرة', 'icon' => '◉', 'module' => 'live'],
+                ['key' => 'standards', 'label' => 'SCORM و H5P', 'icon' => '◩', 'module' => 'lms', 'feature' => 'scorm'],
+            ],
+        ],
+
+        [
+            'label' => 'السنتر',
+            'items' => [
+                ['key' => 'groups', 'label' => 'المجموعات', 'icon' => '▩', 'module' => 'center'],
+                ['key' => 'schedule', 'label' => 'جدول الحصص', 'icon' => '▦', 'module' => 'center'],
+                ['key' => 'attendance', 'label' => 'الحضور', 'icon' => '✓', 'module' => 'attendance'],
+                ['key' => 'fees', 'label' => 'الأقساط والخزنة', 'icon' => '⛁', 'module' => 'center-finance'],
+                ['key' => 'guardians', 'label' => 'أولياء الأمور', 'icon' => '☗', 'module' => 'parent-portal'],
+                ['key' => 'inventory', 'label' => 'المخزون', 'icon' => '◰', 'module' => 'inventory'],
+            ],
+        ],
+
+        [
+            'label' => 'التجارة',
+            'items' => [
+                ['key' => 'orders', 'label' => 'الطلبات', 'icon' => '◨', 'module' => 'commerce'],
+                ['key' => 'products', 'label' => 'المنتجات', 'icon' => '◪', 'module' => 'commerce'],
+                ['key' => 'services', 'label' => 'الخدمات', 'icon' => '◇', 'module' => 'services', 'feature' => 'services_module'],
+                ['key' => 'coupons', 'label' => 'الكوبونات', 'icon' => '％', 'module' => 'coupons'],
+                ['key' => 'recharge-codes', 'label' => 'أكواد الشحن', 'icon' => '⌗', 'module' => 'commerce', 'feature' => 'recharge_codes'],
+                ['key' => 'payouts', 'label' => 'تحويلات المدرّسين', 'icon' => '⇄', 'module' => 'payouts'],
+            ],
+        ],
+
+        [
+            'label' => 'المحتوى',
+            'items' => [
+                ['key' => 'posts', 'label' => 'المدونة', 'icon' => '✎', 'module' => 'blog', 'feature' => 'blog'],
+                ['key' => 'pages', 'label' => 'الصفحات', 'icon' => '▭', 'module' => 'content'],
+                ['key' => 'page-builder', 'label' => 'محرّر الصفحات', 'icon' => '◫', 'module' => 'page-builder', 'feature' => 'page_builder'],
+                ['key' => 'media', 'label' => 'الوسائط', 'icon' => '◲', 'module' => 'media'],
+            ],
+        ],
+
+        [
+            'label' => 'الناس',
+            'items' => [
+                ['key' => 'users', 'label' => 'المستخدمون', 'icon' => '☺', 'module' => 'users'],
+                ['key' => 'instructors', 'label' => 'المدرّسون', 'icon' => '✦', 'module' => 'instructors', 'feature' => 'multi_instructor'],
+            ],
+        ],
+
+        [
+            'label' => 'النمو',
+            'items' => [
+                ['key' => 'funnels', 'label' => 'القمع التسويقي', 'icon' => '⌄', 'module' => 'funnels', 'feature' => 'funnels'],
+                ['key' => 'affiliates', 'label' => 'التسويق بالعمولة', 'icon' => '⇢', 'module' => 'affiliates', 'feature' => 'affiliates'],
+                ['key' => 'community', 'label' => 'المجتمع', 'icon' => '◍', 'module' => 'community', 'feature' => 'community'],
+            ],
+        ],
+
+        [
+            'label' => 'النظام',
+            'items' => [
+                ['key' => 'settings', 'label' => 'الإعدادات', 'icon' => '⚙', 'route' => 'admin.settings'],
+                ['key' => 'appearance', 'label' => 'المظهر والثيم', 'icon' => '◐', 'route' => 'admin.appearance'],
+                ['key' => 'modules', 'label' => 'الموديولات', 'icon' => '◱', 'route' => 'admin.modules'],
+            ],
+        ],
+    ],
+];

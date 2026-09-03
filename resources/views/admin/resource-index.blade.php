@@ -7,8 +7,8 @@
     $hasQuery = filled(request('q')) || collect($filters)->contains(fn ($f) => filled(request($f->name)));
 @endphp
 
-<x-layouts.app :title="$resource->label()">
-<div class="min-h-screen p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto">
+<x-layouts.admin :title="$resource->label()" :current="$key">
+<div class="max-w-[1400px]">
 
     <x-ui.page-header :title="$resource->label()"
                       :subtitle="trans_choice(':count سجل|:count سجلات', $records->total(), ['count' => $records->total()])">
@@ -109,4 +109,4 @@
         @endif
     @endif
 </div>
-</x-layouts.app>
+</x-layouts.admin>

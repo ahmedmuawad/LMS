@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Core\Admin\Navigation;
 use App\Core\Settings\SettingsRepository;
 use App\Core\Theming\ThemeManager;
 use Illuminate\Support\Facades\Event;
@@ -23,6 +24,13 @@ class AppServiceProvider extends ServiceProvider
         // مفردة لكل طلب: تحمل الكاش المحلي للإعدادات.
         // tenancy تُفرغها عند تبديل سياق المشترك.
         $this->app->scoped(SettingsRepository::class);
+
+        /*
+         | القائمة تُبنى من حالة المشترك الحالي، ولا تُحفظ في الحاوية:
+         | نسخة مشتركة تحمل قائمة موديولات قديمة بعد تبديل السياق أو
+         | تغيير النمط، فتعرض قوائم لا تخصّ المشترك المعروض.
+         */
+        $this->app->bind(Navigation::class, fn (): Navigation => new Navigation(tenant()));
     }
 
     /**
