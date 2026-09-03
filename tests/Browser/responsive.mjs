@@ -22,15 +22,36 @@ const VIEWPORTS = [
 const audit = () => {
     const de = document.documentElement;
     const viewport = de.clientWidth;
-    const overflow = de.scrollWidth - viewport;
 
+    /*
+     | نقيس التمرير الفعلي لا scrollWidth: في RTL مع حاوية تمرير
+     | أفقية داخلية، يبلّغ scrollWidth عن عرض المحتوى المقصوص
+     | فيعطي إنذاراً كاذباً. ما يهمّ المستخدم هو: هل تتحرّك الصفحة؟
+     */
+    const startX = window.scrollX;
+    window.scrollTo(viewport * 4, window.scrollY);
+    const overflow = Math.max(0, Math.round(Math.abs(window.scrollX - startX)) - 1);
+    window.scrollTo(startX, window.scrollY);
+
+    /*
+     | نقيس عرض العنصر لا موضعه: في RTL مع حاوية تمرير داخلية،
+     | تُحسب إحداثيات كل العناصر على لوحة أعرض من الشاشة فتبدو
+     | جميعها «خارجة» بينما لا يتحرّك شيء فعلياً. العرض هو المقياس
+     | الصادق: كتلة أعرض من الشاشة ولا حاوية تمرير لها = عيب حقيقي.
+     */
     const escapes = [];
     document.querySelectorAll('body *').forEach((el) => {
         const r = el.getBoundingClientRect();
         if (r.width === 0 || r.height === 0) return;
-        if (el.closest('[class*="overflow-x-auto"]')) return;               // مسموح: يمرّر داخل حاويته
         if (getComputedStyle(el).position === 'fixed') return;
-        const over = Math.max(r.right - viewport, -r.left);
+
+        // مسموح: عنصر عريض داخل حاوية تمرير أفقية خاصة به
+        for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) {
+            const ox = getComputedStyle(n).overflowX;
+            if (ox === 'auto' || ox === 'scroll') return;
+        }
+
+        const over = r.width - viewport;
         if (over > 4) {
             escapes.push({ tag: el.tagName.toLowerCase(), cls: String(el.className).slice(0, 60), over: Math.round(over) });
         }

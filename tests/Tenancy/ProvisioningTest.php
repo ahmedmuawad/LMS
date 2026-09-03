@@ -3,8 +3,6 @@
 declare(strict_types=1);
 
 use App\Core\Tenancy\Actions\ApplyPlatformMode;
-use App\Core\Tenancy\Actions\ProvisionTenant;
-use App\Core\Tenancy\Models\Tenant;
 use Database\Seeders\CountrySeeder;
 use Database\Seeders\CurrencySeeder;
 use Database\Seeders\FeatureSeeder;
@@ -19,17 +17,6 @@ beforeEach(function () {
     $this->seed(FeatureSeeder::class);
     $this->seed(PlanSeeder::class);
 });
-
-function provision(array $overrides = []): Tenant
-{
-    return app(ProvisionTenant::class)->handle([
-        'name' => 'أكاديمية الاختبار',
-        'owner_email' => 'owner@example.test',
-        'owner_name' => 'مالك الأكاديمية',
-        'plan_key' => 'growth',
-        ...$overrides,
-    ]);
-}
 
 it('provisions a working tenant end to end', function () {
     $tenant = provision();

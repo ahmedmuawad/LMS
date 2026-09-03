@@ -151,7 +151,12 @@ return [
          * disable asset() helper tenancy and explicitly use tenant_asset() calls in places
          * where you want to use tenant-specific assets (product images, avatars, etc).
          */
-        'asset_helper_tenancy' => true,
+        /*
+         | مخرجات Vite تعيش في public/build وتُخدَم مباشرةً من CDN،
+         | فلا يجوز إعادة كتابة روابطها عبر مسار أصول المشترك.
+         | ملفات المشترك (الوسائط المرفوعة) تُخدَم بمنطقها الخاص.
+         */
+        'asset_helper_tenancy' => false,
     ],
 
     /**

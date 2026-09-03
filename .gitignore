@@ -27,3 +27,4 @@ Homestead.yaml
 Thumbs.db
 /database/database.sqlite
 /database/tenant*
+/database/testing.sqlite

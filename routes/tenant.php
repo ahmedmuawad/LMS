@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\ResourceController;
 use App\Http\Middleware\ApplyTenantTheme;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
@@ -18,6 +19,10 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 
 $tenantRoutes = function (): void {
     Route::get('/', fn () => view('tenant.home'))->name('tenant.home');
+
+    // نواة الإدارة: متحكّم واحد يخدم كل الموارد
+    Route::get('/admin/{resource}', [ResourceController::class, 'index'])
+        ->name('admin.resource.index');
 };
 
 Route::middleware([

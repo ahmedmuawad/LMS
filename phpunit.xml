@@ -11,6 +11,11 @@
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
+        <!-- اختبارات تعدّد المستأجرين: تبديل السياق يعيد اتصال القاعدة،
+             فلا تصلح معها معاملة RefreshDatabase — تُهاجر من الصفر بدلها -->
+        <testsuite name="Tenancy">
+            <directory>tests/Tenancy</directory>
+        </testsuite>
     </testsuites>
     <source>
         <include>
@@ -24,7 +29,9 @@
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
         <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
+        <!-- ملف حقيقي لا :memory: — قاعدة الذاكرة تُمحى عند إعادة الاتصال،
+             وتبديل سياق المشترك يعيد الاتصال فتضيع الهجرات -->
+        <env name="DB_DATABASE" value="database/testing.sqlite"/>
         <env name="DB_URL" value=""/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
