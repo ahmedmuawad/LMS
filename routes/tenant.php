@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 use App\Core\Access\Ability;
 use App\Http\Controllers\Admin\ResourceController;
+use App\Http\Controllers\Auth\EmailVerificationController;
+use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\Auth\ProfileController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Center\AttendanceController;
 use App\Http\Controllers\Center\FinanceController;
 use App\Http\Controllers\Center\GuardianPortalController;
@@ -151,12 +156,47 @@ $tenantRoutes = function (): void {
         Route::post('/learn/{slug}/{item}/complete', [LearnController::class, 'complete'])->name('learn.complete');
     });
 
-    // المصادقة
+    /*
+     | المصادقة — وثيقة 11 §ب.
+     |
+     | كانت شاشة الدخول وحدها: لا تسجيل ولا تحقّق بريد ولا استعادة
+     | كلمة مرور ولا توثيق بخطوتين.
+     */
     Route::middleware('guest')->group(function (): void {
         Route::get('/login', [AuthController::class, 'show'])->name('login');
         Route::post('/login', [AuthController::class, 'login']);
+
+        Route::get('/register', [RegisterController::class, 'show'])->name('register');
+        Route::post('/register', [RegisterController::class, 'store']);
+
+        Route::get('/forgot-password', [PasswordResetController::class, 'request'])->name('password.request');
+        Route::post('/forgot-password', [PasswordResetController::class, 'send'])->name('password.email');
+        Route::get('/reset-password/{token}', [PasswordResetController::class, 'edit'])->name('password.reset');
+        Route::post('/reset-password', [PasswordResetController::class, 'update'])->name('password.update');
+
+        // تحدّي التوثيق: الجلسة لم تُنشأ بعد، فالزائر هو من يصلها
+        Route::get('/two-factor', [TwoFactorController::class, 'challenge'])->name('two-factor.challenge');
+        Route::post('/two-factor', [TwoFactorController::class, 'verify']);
     });
+
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
+
+    Route::middleware('auth')->group(function (): void {
+        Route::get('/verify-email', [EmailVerificationController::class, 'notice'])->name('verification.notice');
+        Route::get('/verify-email/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+            ->middleware('signed')->name('verification.verify');
+        Route::post('/verify-email/resend', [EmailVerificationController::class, 'resend'])->name('verification.send');
+
+        // حساب المستخدم — وثيقة 11 §ج
+        Route::get('/account', [ProfileController::class, 'show'])->name('account');
+        Route::put('/account', [ProfileController::class, 'update'])->name('account.update');
+        Route::put('/account/password', [ProfileController::class, 'updatePassword'])->name('account.password');
+        Route::delete('/account', [ProfileController::class, 'destroy'])->name('account.destroy');
+
+        Route::get('/account/two-factor', [TwoFactorController::class, 'setup'])->name('account.two-factor');
+        Route::post('/account/two-factor', [TwoFactorController::class, 'enable']);
+        Route::delete('/account/two-factor', [TwoFactorController::class, 'disable']);
+    });
 
     // معالج التهيئة — يسبق اللوحة
     Route::prefix('onboarding')->middleware(EnsurePanelAccess::class)->name('onboarding.')->group(function (): void {

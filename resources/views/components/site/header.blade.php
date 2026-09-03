@@ -55,7 +55,10 @@
             @if($me)
                 <x-ui.button size="sm" variant="secondary" :href="url('/my-courses')">{{ __('كورساتي') }}</x-ui.button>
             @else
-                <x-ui.button size="sm" variant="ghost" :href="url('/login')">{{ __('دخول') }}</x-ui.button>
+                <x-ui.button size="sm" variant="ghost" :href="url('/login')" class="hidden sm:inline-flex">{{ __('دخول') }}</x-ui.button>
+                @if(setting('users.registration_open', true))
+                    <x-ui.button size="sm" :href="url('/register')">{{ __('أنشئ حساباً') }}</x-ui.button>
+                @endif
             @endif
 
             <button type="button" @click="open = !open"
@@ -68,6 +71,12 @@
         @foreach($links as $link)
             <a href="{{ $link['url'] }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ $link['label'] }}</a>
         @endforeach
+        @unless($me)
+            <a href="{{ url('/login') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('دخول') }}</a>
+            @if(setting('users.registration_open', true))
+                <a href="{{ url('/register') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('أنشئ حساباً') }}</a>
+            @endif
+        @endunless
         @if($me)
             <a href="{{ url('/my-courses') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('كورساتي') }}</a>
             @if(module_enabled('bookings'))
@@ -78,6 +87,7 @@
             @if(setting('growth.affiliates_enabled', false))
                 <a href="{{ url('/affiliate') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('التسويق بالعمولة') }}</a>
             @endif
+            <a href="{{ url('/account') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('حسابي') }}</a>
             <a href="{{ url('/account/notifications') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('تفضيلات الإشعارات') }}</a>
         @endif
         <div class="px-3 py-2 sm:hidden"><x-ui.theme-toggle /></div>

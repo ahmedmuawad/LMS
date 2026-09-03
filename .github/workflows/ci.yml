@@ -67,6 +67,7 @@ jobs:
           php artisan demo:tenant --slug=fresh --fresh --onboarding
           php artisan demo:tenant --slug=center --mode=center --plan=center --fresh
           php artisan super-admin:create --name="فريق الفحص" --email=gate@platform.test --password=gate-password
+          php artisan demo:two-factor --slug=demo
 
       # رابط الحجز يحمل رمزاً عشوائياً لا رقماً متسلسلاً — نقرأه للفحص
       - name: قراءة رمز الحجز التجريبي
@@ -79,7 +80,7 @@ jobs:
         run: |
           node tests/Browser/responsive.mjs
           node tests/Browser/responsive.mjs http://127.0.0.1:8899 /super/login
-          node tests/Browser/responsive.mjs http://demo.localhost:8899 /login /courses /courses/php-from-zero /cart /blog /blog/kayfa-tabda /services /services/consultation /start-here /offline /discussions /discussions/1
+          node tests/Browser/responsive.mjs http://demo.localhost:8899 /login /courses /courses/php-from-zero /cart /blog /blog/kayfa-tabda /services /services/consultation /start-here /offline /discussions /discussions/1 /register /forgot-password /reset-password/gate-token
           GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
             node tests/Browser/responsive.mjs http://demo.localhost:8899 /admin/dashboard /admin/billing /admin/users /admin/users/create /admin/courses /admin/lessons /admin/quizzes /admin/questions /admin/assignments /admin/enrollments /admin/certificates /admin/taxonomies /admin/courses/1/curriculum /admin/grading /admin/orders /admin/products /admin/coupons /admin/recharge-codes /admin/recharge-codes/generate /admin/refunds /admin/services /admin/services/1/edit /admin/bookings /admin/posts /admin/pages /admin/comments /admin/forms /admin/redirects /admin/media /admin/page-builder /admin/page-builder/1 /admin/notifications /admin/notifications/lms.enrolled /admin/notifications/logs /admin/reviews /admin/badges /admin/affiliates /admin/campaigns /admin/campaigns/1 /admin/reports "/admin/reports?tab=financial" "/admin/reports?tab=marketing" $(php -r 'foreach(array_keys(require "config/settings-groups.php") as $k) echo "/admin/settings/$k ";')
           GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
@@ -90,6 +91,10 @@ jobs:
             node tests/Browser/responsive.mjs http://center.localhost:8899 /admin/attendance /admin/attendance/1 /admin/schedule /admin/fees /admin/cashboxes /admin/groups /admin/center-students /admin/center-students/1 /admin/center-students/1/report /admin/branches /admin/rooms /admin/center-invoices
           GATE_EMAIL=gate@platform.test GATE_PASSWORD=gate-password GATE_LOGIN_PATH=/super/login \
             node tests/Browser/responsive.mjs http://127.0.0.1:8899 /admin /admin/tenants /admin/plans /admin/usage /admin/health /admin/audit /admin/subscriptions /admin/invoices
+          GATE_EMAIL=heba@t.test GATE_PASSWORD=password \
+            node tests/Browser/responsive.mjs http://demo.localhost:8899 /verify-email /account /account/two-factor
+          GATE_EMAIL=karim@t.test GATE_PASSWORD=password \
+            node tests/Browser/responsive.mjs http://demo.localhost:8899 /two-factor
 
       - name: فحص التباين (WCAG AA · فاتح وداكن)
         env:
@@ -97,7 +102,7 @@ jobs:
         run: |
           node tests/Browser/contrast.mjs
           node tests/Browser/contrast.mjs http://127.0.0.1:8899 /super/login
-          node tests/Browser/contrast.mjs http://demo.localhost:8899 /login /courses /courses/php-from-zero /cart /blog /blog/kayfa-tabda /services /services/consultation /start-here /offline /discussions /discussions/1
+          node tests/Browser/contrast.mjs http://demo.localhost:8899 /login /courses /courses/php-from-zero /cart /blog /blog/kayfa-tabda /services /services/consultation /start-here /offline /discussions /discussions/1 /register /forgot-password /reset-password/gate-token
           GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
             node tests/Browser/contrast.mjs http://demo.localhost:8899 /admin/dashboard /admin/billing /admin/users /admin/users/create /admin/courses /admin/lessons /admin/quizzes /admin/questions /admin/assignments /admin/enrollments /admin/certificates /admin/taxonomies /admin/courses/1/curriculum /admin/grading /admin/orders /admin/products /admin/coupons /admin/recharge-codes /admin/recharge-codes/generate /admin/refunds /admin/services /admin/services/1/edit /admin/bookings /admin/posts /admin/pages /admin/comments /admin/forms /admin/redirects /admin/media /admin/page-builder /admin/page-builder/1 /admin/notifications /admin/notifications/lms.enrolled /admin/notifications/logs /admin/reviews /admin/badges /admin/affiliates /admin/campaigns /admin/campaigns/1 /admin/reports "/admin/reports?tab=financial" "/admin/reports?tab=marketing" $(php -r 'foreach(array_keys(require "config/settings-groups.php") as $k) echo "/admin/settings/$k ";')
           GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
@@ -108,6 +113,10 @@ jobs:
             node tests/Browser/contrast.mjs http://center.localhost:8899 /admin/attendance /admin/attendance/1 /admin/schedule /admin/fees /admin/cashboxes /admin/groups /admin/center-students /admin/center-students/1 /admin/center-students/1/report /admin/branches /admin/rooms /admin/center-invoices
           GATE_EMAIL=gate@platform.test GATE_PASSWORD=gate-password GATE_LOGIN_PATH=/super/login \
             node tests/Browser/contrast.mjs http://127.0.0.1:8899 /admin /admin/tenants /admin/plans /admin/usage /admin/health /admin/audit /admin/subscriptions /admin/invoices
+          GATE_EMAIL=heba@t.test GATE_PASSWORD=password \
+            node tests/Browser/contrast.mjs http://demo.localhost:8899 /verify-email /account /account/two-factor
+          GATE_EMAIL=karim@t.test GATE_PASSWORD=password \
+            node tests/Browser/contrast.mjs http://demo.localhost:8899 /two-factor
 
       - name: فحص السلوك والوصولية
         env:
