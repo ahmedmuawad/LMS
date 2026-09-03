@@ -7,6 +7,10 @@ namespace App\Modules\Commerce\Actions;
 use App\Core\Support\Money;
 use App\Modules\Commerce\Models\Order;
 use App\Modules\Commerce\Models\Payment;
+use App\Modules\Growth\Actions\RecordConversion;
+use App\Modules\Growth\Actions\RunCampaigns;
+use App\Modules\Growth\Actions\TrackAffiliate;
+use App\Modules\Growth\Models\Campaign;
 
 /**
  * تسجيل دفعة على طلب.
@@ -51,6 +55,9 @@ final class RecordOrderPayment
             // العمولة تُقيَّد عند البيع كي يراها المدرّس فوراً
             $this->earnings->handle($order->refresh());
 
+            $this->attributeToAffiliate($order);
+            $this->leaveCartCampaigns($order);
+
             if ($order->user !== null) {
                 notify('commerce.payment_received', $order->user, [
                     'order_number' => (string) $order->number,
@@ -63,6 +70,46 @@ final class RecordOrderPayment
         }
 
         return $payment;
+    }
+
+    /**
+     * من اشترى يخرج من «السلة المتروكة» فوراً.
+     *
+     * رسالة «أكمل شراءك» بعد الشراء لا تُزعج وحدها بل تُفقد الثقة
+     * في كل رسالة بعدها.
+     */
+    private function leaveCartCampaigns(Order $order): void
+    {
+        if ($order->user === null) {
+            return;
+        }
+
+        $campaigns = Campaign::active()->where('trigger', 'cart_abandoned')->get();
+
+        foreach ($campaigns as $campaign) {
+            app(RunCampaigns::class)->convert($campaign, $order->user);
+        }
+    }
+
+    /**
+     * نسب الطلب إلى المسوّق عند الدفع لا عند وضع الطلب.
+     *
+     * الطلب الذي لم يُدفع ليس بيعاً، ونسبُه يجعل لوحة المسوّق تعد
+     * ما لم يقع — ثم تنقص فجأة حين يُلغى، وهذا أسوأ من ألّا تعدّه.
+     */
+    private function attributeToAffiliate(Order $order): void
+    {
+        if (! (bool) setting('growth.affiliates_enabled', false)) {
+            return;
+        }
+
+        $affiliate = app(TrackAffiliate::class)->current(request());
+
+        if ($affiliate === null) {
+            return;
+        }
+
+        app(RecordConversion::class)->handle($order, $affiliate);
     }
 
     public function fail(Order $order, string $gateway, string $reason, ?array $response = null): Payment

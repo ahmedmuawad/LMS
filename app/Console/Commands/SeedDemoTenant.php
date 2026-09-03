@@ -33,6 +33,10 @@ use App\Modules\Content\Models\Page;
 use App\Modules\Content\Models\Post;
 use App\Modules\Content\Models\Redirect;
 use App\Modules\Gamification\Actions\AwardBadges;
+use App\Modules\Growth\Models\Affiliate;
+use App\Modules\Growth\Models\AffiliateConversion;
+use App\Modules\Growth\Models\Campaign;
+use App\Modules\Growth\Models\CampaignStep;
 use App\Modules\Lms\Actions\EnrollStudent;
 use App\Modules\Lms\Actions\TrackProgress;
 use App\Modules\Lms\Models\Course;
@@ -128,6 +132,7 @@ final class SeedDemoTenant extends Command
             $this->seedContent();
             $this->seedServices();
             $this->seedCommunity();
+            $this->seedGrowth();
 
             if (tenant()->managesCenter()) {
                 $this->seedCenter();
@@ -268,6 +273,81 @@ final class SeedDemoTenant extends Command
     }
 
     /** محتوى تعليمي حقيقي بما يكفي لتُقاس عليه الشاشات والبوابات. */
+    /** نمو: مسوّق بنقرات وتحويلات، وتسلسل سلة متروكة جاهز. */
+    private function seedGrowth(): void
+    {
+        setting()->setMany([
+            'growth.affiliates_enabled' => true,
+            'growth.affiliates_default_rate' => 15,
+        ]);
+
+        $marketer = User::where('email', 'karim@t.test')->first();
+
+        if ($marketer !== null) {
+            $affiliate = Affiliate::create([
+                'user_id' => $marketer->getKey(),
+                'code' => 'karim101',
+                'status' => 'active',
+                'approved_at' => now(),
+                'payout_method' => 'bank',
+                'clicks_count' => 142,
+                'conversions_count' => 9,
+                'earned_minor' => 187000,
+                'paid_minor' => 90000,
+            ]);
+
+            foreach (range(1, 4) as $month) {
+                AffiliateConversion::create([
+                    'affiliate_id' => $affiliate->getKey(),
+                    'currency' => (string) (tenant('currency') ?? 'EGP'),
+                    'amount_minor' => 149900,
+                    'commission_minor' => 22485,
+                    'status' => $month === 1 ? 'pending' : 'approved',
+                    'matured_at' => now()->subMonths($month)->addDays(14),
+                    'created_at' => now()->subMonths($month),
+                    'updated_at' => now()->subMonths($month),
+                ]);
+            }
+        }
+
+        $campaign = Campaign::create([
+            'key' => 'abandoned-cart',
+            'name' => ['ar' => 'استعادة السلة المتروكة', 'en' => 'Abandoned cart recovery'],
+            'trigger' => 'cart_abandoned',
+            'status' => 'active',
+        ]);
+
+        // ساعة ثم يوم ثم ثلاثة: الإلحاح يقلّ والرسالة تتغيّر
+        foreach ([
+            [1, 60, 'commerce.abandoned_cart'],
+            [2, 1440, 'commerce.abandoned_cart'],
+            [3, 4320, 'commerce.abandoned_cart'],
+        ] as [$position, $minutes, $event]) {
+            CampaignStep::create([
+                'campaign_id' => $campaign->getKey(),
+                'position' => $position - 1,
+                'delay_minutes' => $minutes,
+                'event' => $event,
+                'is_active' => true,
+            ]);
+        }
+
+        $idle = Campaign::create([
+            'key' => 'idle-learner',
+            'name' => ['ar' => 'إعادة الخاملين', 'en' => 'Re-engage idle learners'],
+            'trigger' => 'course_idle',
+            'status' => 'active',
+        ]);
+
+        CampaignStep::create([
+            'campaign_id' => $idle->getKey(),
+            'position' => 0,
+            'delay_minutes' => 60,
+            'event' => 'lms.idle_reminder',
+            'is_active' => true,
+        ]);
+    }
+
     /** مجتمع بأسئلة وتقييمات ونقاط — لتُقاس عليه الشاشات بحالة حقيقية. */
     private function seedCommunity(): void
     {

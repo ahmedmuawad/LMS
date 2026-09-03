@@ -20,6 +20,8 @@ use App\Http\Controllers\Content\ContentController;
 use App\Http\Controllers\Content\MediaController;
 use App\Http\Controllers\Content\PageBuilderController;
 use App\Http\Controllers\Content\RedirectController;
+use App\Http\Controllers\Growth\AffiliateController;
+use App\Http\Controllers\Growth\CampaignController;
 use App\Http\Controllers\Lms\AssignmentController;
 use App\Http\Controllers\Lms\CatalogController;
 use App\Http\Controllers\Lms\CertificateController;
@@ -41,6 +43,7 @@ use App\Http\Controllers\Tenant\SettingsController;
 use App\Http\Middleware\ApplyTenantTheme;
 use App\Http\Middleware\EnsurePanelAccess;
 use App\Http\Middleware\RequireOnboarding;
+use App\Http\Middleware\TrackAffiliateReferral;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
 use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
@@ -117,6 +120,8 @@ $tenantRoutes = function (): void {
         Route::post('/services/{slug}/reviews', [ReviewController::class, 'storeService'])->name('reviews.service');
 
         Route::get('/my-progress', [ProgressController::class, 'show'])->name('progress');
+        Route::get('/affiliate', [AffiliateController::class, 'dashboard'])->name('affiliate');
+        Route::post('/affiliate/join', [AffiliateController::class, 'join'])->name('affiliate.join');
         Route::get('/leaderboard', [ProgressController::class, 'leaderboard'])->name('leaderboard');
 
         // ---------- الإشعارات ----------
@@ -261,6 +266,20 @@ $tenantRoutes = function (): void {
             Route::delete('/media/{id}', [MediaController::class, 'destroy'])->name('media.destroy');
         });
 
+    // النمو: المسوّقون والتسلسلات — قبل مسار الموارد العام
+    Route::prefix('admin')
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->name('admin.')->group(function (): void {
+            Route::get('/affiliates', [AffiliateController::class, 'index'])->name('affiliates.index');
+            Route::put('/affiliates/{id}', [AffiliateController::class, 'update'])->name('affiliates.update');
+            Route::put('/affiliate-conversions/{id}/reject', [AffiliateController::class, 'rejectConversion'])->name('affiliates.reject');
+
+            Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
+            Route::post('/campaigns', [CampaignController::class, 'store'])->name('campaigns.store');
+            Route::get('/campaigns/{id}', [CampaignController::class, 'edit'])->name('campaigns.edit');
+            Route::put('/campaigns/{id}', [CampaignController::class, 'update'])->name('campaigns.update');
+        });
+
     // مراجعة التقييمات — قبل مسار الموارد العام
     Route::prefix('admin/reviews')
         ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
@@ -315,6 +334,7 @@ Route::middleware([
     InitializeTenancyByDomain::class,
     PreventAccessFromCentralDomains::class,
     ApplyTenantTheme::class,      // بعد تهيئة المشترك، لا قبلها
+    TrackAffiliateReferral::class,
 ])->group(function () use ($tenantRoutes): void {
     $tenantRoutes();
 

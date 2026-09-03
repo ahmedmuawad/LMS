@@ -10,6 +10,7 @@ use App\Core\Settings\Groups\ContentSettings;
 use App\Core\Settings\Groups\CurrencySettings;
 use App\Core\Settings\Groups\GamificationSettings;
 use App\Core\Settings\Groups\GeneralSettings;
+use App\Core\Settings\Groups\GrowthSettings;
 use App\Core\Settings\Groups\IntegrationSettings;
 use App\Core\Settings\Groups\LmsSettings;
 use App\Core\Settings\Groups\LocaleSettings;
@@ -44,6 +45,7 @@ return [
     'content' => ContentSettings::class,
     'community' => CommunitySettings::class,
     'gamification' => GamificationSettings::class,
+    'growth' => GrowthSettings::class,
     'security' => SecuritySettings::class,
     'performance' => PerformanceSettings::class,
     'integrations' => IntegrationSettings::class,

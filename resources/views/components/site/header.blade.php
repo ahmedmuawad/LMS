@@ -74,6 +74,10 @@
                 <a href="{{ url('/my-bookings') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('حجوزاتي') }}</a>
             @endif
             <a href="{{ url('/wallet') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('محفظتي') }}</a>
+            <a href="{{ url('/my-progress') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('تقدّمي') }}</a>
+            @if(setting('growth.affiliates_enabled', false))
+                <a href="{{ url('/affiliate') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('التسويق بالعمولة') }}</a>
+            @endif
             <a href="{{ url('/account/notifications') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('تفضيلات الإشعارات') }}</a>
         @endif
         <div class="px-3 py-2 sm:hidden"><x-ui.theme-toggle /></div>

@@ -7,6 +7,8 @@ namespace App\Modules\Commerce\Actions;
 use App\Models\User;
 use App\Modules\Commerce\Models\Order;
 use App\Modules\Commerce\Models\Refund;
+use App\Modules\Growth\Actions\RecordConversion;
+use App\Modules\Growth\Models\AffiliateConversion;
 use App\Modules\Lms\Models\Course;
 use App\Modules\Lms\Models\Enrollment;
 use Illuminate\Support\Facades\DB;
@@ -62,10 +64,28 @@ final class RefundOrder
             if ($order->status === 'refunded') {
                 $this->revokeAccess($order);
                 app(RecordEarnings::class)->reverse($order);
+                $this->reverseCommission($order);
             }
 
             return $refund->refresh();
         });
+    }
+
+    /**
+     * الاسترداد يسحب عمولة المسوّق.
+     *
+     * البيع الذي رُدّ ثمنه لم يحدث، والعمولة عليه خسارة مضاعفة:
+     * ردّ المال ودفع نسبة عليه.
+     */
+    private function reverseCommission(Order $order): void
+    {
+        $conversions = AffiliateConversion::where('order_id', $order->getKey())
+            ->whereIn('status', ['pending', 'approved'])
+            ->get();
+
+        foreach ($conversions as $conversion) {
+            app(RecordConversion::class)->reject($conversion, __('استُرد ثمن الطلب.'));
+        }
     }
 
     public function reject(Refund $refund, ?User $handler = null, ?string $note = null): Refund
