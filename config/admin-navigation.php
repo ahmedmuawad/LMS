@@ -100,6 +100,8 @@ return [
                 ['key' => 'funnels', 'label' => 'القمع التسويقي', 'icon' => '⌄', 'module' => 'funnels', 'feature' => 'funnels'],
                 ['key' => 'affiliates', 'label' => 'التسويق بالعمولة', 'icon' => '⇢', 'module' => 'affiliates', 'feature' => 'affiliates'],
                 ['key' => 'community', 'label' => 'المجتمع', 'icon' => '◍', 'module' => 'community', 'feature' => 'community'],
+                ['key' => 'reviews', 'label' => 'التقييمات', 'icon' => '★', 'module' => 'reviews', 'route' => 'admin.reviews.queue'],
+                ['key' => 'badges', 'label' => 'الشارات', 'icon' => '◆', 'module' => 'gamification', 'feature' => 'gamification'],
             ],
         ],
 

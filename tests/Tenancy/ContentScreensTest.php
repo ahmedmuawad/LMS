@@ -59,9 +59,8 @@ it('يحفظ كتل الصفحة كما يرسلها المحرّر', function (
 it('يمنع تغيير رابط الصفحة الإلزامية', function (): void {
     $tenant = provision();
 
-    $page = $tenant->run(fn () => seedPage([
-        'is_system' => true, 'system_key' => 'about', 'slug' => 'about',
-    ]));
+    // «من نحن» تُنشأ عند التهيئة — نستعملها كما هي بدل إنشاء ثانية
+    $page = $tenant->run(fn () => Page::where('system_key', 'about')->firstOrFail());
 
     actingAsOwner($tenant);
 

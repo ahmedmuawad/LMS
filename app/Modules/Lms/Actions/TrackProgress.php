@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Lms\Actions;
 
+use App\Modules\Gamification\Actions\AwardPoints;
 use App\Modules\Lms\Models\CourseItem;
 use App\Modules\Lms\Models\Enrollment;
 use App\Modules\Lms\Models\LessonProgress;
@@ -16,7 +17,10 @@ use App\Modules\Lms\Models\LessonProgress;
  */
 final class TrackProgress
 {
-    public function __construct(private readonly IssueCertificate $certificates) {}
+    public function __construct(
+        private readonly IssueCertificate $certificates,
+        private readonly AwardPoints $points,
+    ) {}
 
     public function watch(Enrollment $enrollment, CourseItem $item, int $positionSeconds, int $watchedSeconds = 0): LessonProgress
     {
@@ -43,6 +47,12 @@ final class TrackProgress
         }
 
         $this->recalculate($enrollment);
+
+        // النقاط تُمنح مرة واحدة لكل عنصر: إعادة فتح الدرس لا تُعيدها
+        if ($enrollment->user !== null) {
+            $this->points->handle($enrollment->user, 'lesson.completed', $item);
+            $this->points->touchStreak($enrollment->user);
+        }
 
         return $progress;
     }
@@ -75,6 +85,16 @@ final class TrackProgress
 
         if ($finished) {
             $this->certificates->handle($enrollment->refresh());
+
+            if ($enrollment->user !== null) {
+                $this->points->handle($enrollment->user, 'course.completed', $enrollment);
+
+                notify('lms.course_completed', $enrollment->user, [
+                    'course_title' => (string) ($enrollment->course?->title ?? ''),
+                    'certificate_url' => url('/my-courses'),
+                    'url' => url('/my-courses'),
+                ]);
+            }
         }
 
         return $percent;

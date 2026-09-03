@@ -7,6 +7,8 @@ namespace App\Core\Onboarding;
 use App\Core\Tenancy\Actions\ApplyPlatformMode;
 use App\Core\Tenancy\Models\Tenant;
 use App\Core\Theming\ThemeManager;
+use App\Modules\Content\Actions\InstallSystemPages;
+use App\Modules\Gamification\Actions\AwardBadges;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -143,6 +145,14 @@ final class OnboardingWizard
             'onboarding.step' => 'done',
             'onboarding.completed_at' => now()->toIso8601String(),
         ]);
+
+        /*
+         | ما لا معنى لموقع بدونه يُنشأ هنا لا يُترك للمشترك:
+         | صفحات السياسات شرط بوابات الدفع، والشارات بلا شارات
+         | معرّفة تجعل شاشة التقدّم فارغة يوم الإطلاق.
+         */
+        app(InstallSystemPages::class)->handle();
+        app(AwardBadges::class)->install();
     }
 
     private function advance(string $step): void

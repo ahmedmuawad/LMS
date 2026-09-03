@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Modules\Lms\Actions;
 
+use App\Modules\Gamification\Actions\AwardPoints;
 use App\Modules\Lms\Models\AssignmentSubmission;
 use InvalidArgumentException;
 
 final class GradeAssignment
 {
-    public function __construct(private readonly TrackProgress $progress) {}
+    public function __construct(
+        private readonly TrackProgress $progress,
+        private readonly AwardPoints $points,
+    ) {}
 
     public function handle(AssignmentSubmission $submission, float $marks, ?array $feedback = null, ?int $graderId = null): AssignmentSubmission
     {
@@ -42,6 +46,8 @@ final class GradeAssignment
         $student = $submission->enrollment?->user;
 
         if ($student !== null) {
+            $this->points->handle($student, 'assignment.submitted', $submission);
+
             notify('lms.assignment_graded', $student, [
                 'assignment_title' => (string) $assignment->title,
                 'score' => $final.' / '.$max,

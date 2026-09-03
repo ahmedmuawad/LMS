@@ -113,7 +113,83 @@
                         @endforeach
                     </ul>
                 @endif
+
+                {{-- نموذج التقييم لمن يحقّ له: الأهلية تُفحص في الخادم أيضاً --}}
+                @auth
+                    @if($enrollment !== null && setting('community.reviews', true))
+                        <form method="POST" action="{{ url('/courses/'.$course->slug.'/reviews') }}"
+                              class="mt-5 pt-5 border-t border-default flex flex-col gap-3"
+                              x-data="{ rating: {{ (int) old('rating', 0) }} }">
+                            @csrf
+
+                            <p class="text-sm font-semibold">{{ __('قيّم الكورس') }}</p>
+
+                            @if($errors->has('review'))
+                                <x-ui.alert tone="danger">{{ $errors->first('review') }}</x-ui.alert>
+                            @endif
+
+                            <div class="flex items-center gap-1" role="radiogroup" aria-label="{{ __('التقييم من خمس') }}">
+                                @foreach(range(1, 5) as $star)
+                                    <button type="button" @click="rating = {{ $star }}"
+                                            :class="rating >= {{ $star }} ? 'text-warning' : 'text-subtle'"
+                                            class="size-11 grid place-items-center text-xl transition-colors"
+                                            :aria-checked="rating === {{ $star }}" role="radio"
+                                            aria-label="{{ trans_choice('{1} نجمة واحدة|{2} نجمتان|[3,10] :count نجوم', $star, ['count' => $star]) }}">★</button>
+                                @endforeach
+                            </div>
+
+                            <input type="hidden" name="rating" :value="rating">
+
+                            <x-ui.textarea name="body" rows="3" :placeholder="__('ما الذي أفادك؟ وما الذي ينقصه؟')" />
+
+                            <x-ui.button type="submit" size="sm" class="self-start" x-bind:disabled="rating === 0">
+                                {{ __('أرسل التقييم') }}
+                            </x-ui.button>
+                        </form>
+                    @endif
+                @endauth
             </x-ui.card>
+
+            {{-- سؤال المدرّس: من يجد من يسأله يكمل الكورس --}}
+            @if(setting('community.discussions', true))
+                <x-ui.card :title="__('اسأل المدرّس')" class="mt-4">
+                    @auth
+                        @if($enrollment !== null)
+                            <form method="POST" action="{{ url('/courses/'.$course->slug.'/discussions') }}" class="flex flex-col gap-3">
+                                @csrf
+
+                                @if($errors->has('discussion'))
+                                    <x-ui.alert tone="danger">{{ $errors->first('discussion') }}</x-ui.alert>
+                                @endif
+
+                                <x-ui.field :label="__('عنوان السؤال')" for="q-title" class="mb-0" :error="$errors->first('title')">
+                                    <x-ui.input name="title" id="q-title" required minlength="5" maxlength="200"
+                                                :placeholder="__('ما الذي لم يتّضح لك؟')" />
+                                </x-ui.field>
+
+                                <x-ui.field :label="__('تفاصيل')" for="q-body" class="mb-0" :error="$errors->first('body')">
+                                    <x-ui.textarea name="body" id="q-body" rows="4" required minlength="10" />
+                                </x-ui.field>
+
+                                <x-ui.button type="submit" size="sm" class="self-start">{{ __('اطرح السؤال') }}</x-ui.button>
+                            </form>
+                        @else
+                            <p class="text-sm text-muted">{{ __('سجّل في الكورس لتسأل المدرّس وترى أسئلة زملائك.') }}</p>
+                        @endif
+                    @else
+                        <p class="text-sm text-muted">
+                            {{ __('سجّل دخولك لتسأل.') }}
+                            <a href="{{ url('/login') }}" class="tap-link text-primary font-semibold">{{ __('تسجيل الدخول') }}</a>
+                        </p>
+                    @endauth
+
+                    <p class="mt-4 pt-4 border-t border-default">
+                        <a href="{{ url('/discussions?course='.$course->id) }}" class="tap-link text-sm text-primary font-semibold">
+                            {{ __('كل أسئلة هذا الكورس') }}
+                        </a>
+                    </p>
+                </x-ui.card>
+            @endif
         </div>
 
         {{-- بطاقة الشراء --}}

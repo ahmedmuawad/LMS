@@ -51,16 +51,16 @@ it('يحصر إعدادات الكتلة في المسموح ولا يمرّر �
     });
 });
 
-it('ينشئ الصفحات الإلزامية مرة واحدة فقط', function (): void {
+it('ينشئ الصفحات الإلزامية عند التهيئة ولا يكرّرها', function (): void {
     $tenant = provision();
 
     $tenant->run(function (): void {
-        $first = app(InstallSystemPages::class)->handle();
-        $again = app(InstallSystemPages::class)->handle();
+        // التهيئة أنشأتها فعلاً: موقع بلا سياسة خصوصية تُرفضه بوابات الدفع
+        $existing = Page::where('is_system', true)->count();
 
-        expect($first)->toBeGreaterThan(0)
-            ->and($again)->toBe(0)
-            ->and(Page::where('is_system', true)->count())->toBe($first);
+        expect($existing)->toBeGreaterThan(0)
+            ->and(app(InstallSystemPages::class)->handle())->toBe(0)
+            ->and(Page::where('is_system', true)->count())->toBe($existing);
     });
 });
 

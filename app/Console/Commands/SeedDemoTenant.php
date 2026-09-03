@@ -25,16 +25,20 @@ use App\Modules\Center\Models\Session as CenterSession;
 use App\Modules\Center\Models\Stage as CenterStage;
 use App\Modules\Center\Models\Student as CenterStudent;
 use App\Modules\Center\Models\Subject as CenterSubject;
+use App\Modules\Community\Actions\PostDiscussion;
+use App\Modules\Community\Actions\SubmitReview;
 use App\Modules\Content\Actions\InstallSystemPages;
 use App\Modules\Content\Models\Form;
 use App\Modules\Content\Models\Page;
 use App\Modules\Content\Models\Post;
 use App\Modules\Content\Models\Redirect;
+use App\Modules\Gamification\Actions\AwardBadges;
 use App\Modules\Lms\Actions\EnrollStudent;
 use App\Modules\Lms\Actions\TrackProgress;
 use App\Modules\Lms\Models\Course;
 use App\Modules\Lms\Models\CourseItem;
 use App\Modules\Lms\Models\CourseSection;
+use App\Modules\Lms\Models\Enrollment;
 use App\Modules\Lms\Models\Instructor;
 use App\Modules\Lms\Models\Lesson;
 use App\Modules\Lms\Models\Question;
@@ -123,6 +127,7 @@ final class SeedDemoTenant extends Command
             $this->seedLms();
             $this->seedContent();
             $this->seedServices();
+            $this->seedCommunity();
 
             if (tenant()->managesCenter()) {
                 $this->seedCenter();
@@ -263,6 +268,64 @@ final class SeedDemoTenant extends Command
     }
 
     /** محتوى تعليمي حقيقي بما يكفي لتُقاس عليه الشاشات والبوابات. */
+    /** مجتمع بأسئلة وتقييمات ونقاط — لتُقاس عليه الشاشات بحالة حقيقية. */
+    private function seedCommunity(): void
+    {
+        app(AwardBadges::class)->install();
+
+        $course = Course::where('slug', 'php-from-zero')->firstOrFail();
+        $student = User::where('email', 'sara@t.test')->first();
+        $peer = User::where('email', 'omar@t.test')->first();
+        $owner = User::where('role', 'owner')->first();
+
+        if ($student === null || $owner === null) {
+            return;
+        }
+
+        $ask = app(PostDiscussion::class);
+
+        $answered = $ask->ask($student, $course, [
+            'title' => 'ما الفرق بين include و require؟',
+            'body' => 'قرأت أن الاثنين يُدرجان ملفاً، فمتى أستعمل كلاً منهما؟',
+        ]);
+
+        $reply = $ask->reply($owner, $answered, [
+            'body' => "الفرق في التعامل مع الفشل: require يوقف التنفيذ إن لم يجد الملف، وinclude يكمل بتحذير.\n\nالقاعدة العملية: ما لا يعمل البرنامج بدونه require، وما هو إضافة اختيارية include.",
+        ]);
+
+        $ask->accept($student, $reply);
+
+        if ($peer !== null) {
+            app(EnrollStudent::class)->handle($peer, $course, 'free');
+        }
+
+        $ask->ask($peer ?? $student, $course, [
+            'title' => 'أفضل محرّر للبدء؟',
+            'body' => 'أستعمل Notepad حالياً وأشعر أنني أضيّع وقتاً. بم تنصحون؟',
+        ]);
+
+        // تقييمات: منشور ومعلَّق — ليظهر طابور المراجعة بحالة حقيقية
+        $reviews = app(SubmitReview::class);
+        $enrollment = Enrollment::where('user_id', $student->getKey())
+            ->where('course_id', $course->getKey())->first();
+
+        if ($enrollment !== null) {
+            $review = $reviews->forCourse($student, $course, [
+                'rating' => 5,
+                'body' => 'شرح عملي وواضح، والمشروع في النهاية ثبّت كل ما سبق.',
+            ]);
+
+            $reviews->moderate($review, 'approved', 'شكراً لكِ — بالتوفيق في الكورس التالي.');
+        }
+
+        if ($peer !== null) {
+            $reviews->forCourse($peer, $course, [
+                'rating' => 4,
+                'body' => 'ممتاز، وكنت أتمنى تمارين أكثر على الفصل الثالث.',
+            ]);
+        }
+    }
+
     /** محتوى: صفحات إلزامية ومدونة ونموذج تواصل وتحويل رابط قديم. */
     private function seedContent(): void
     {

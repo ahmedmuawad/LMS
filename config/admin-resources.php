@@ -15,6 +15,7 @@ use App\Core\Admin\Resources\Commerce\PayoutResource;
 use App\Core\Admin\Resources\Commerce\ProductResource;
 use App\Core\Admin\Resources\Commerce\RechargeCodeResource;
 use App\Core\Admin\Resources\Commerce\RefundResource;
+use App\Core\Admin\Resources\Community\BadgeResource;
 use App\Core\Admin\Resources\Content\CommentResource;
 use App\Core\Admin\Resources\Content\FormResource;
 use App\Core\Admin\Resources\Content\PageResource;
@@ -69,6 +70,9 @@ return [
         'comments' => CommentResource::class,
         'forms' => FormResource::class,
         'redirects' => RedirectResource::class,
+
+        // المجتمع والتحفيز
+        'badges' => BadgeResource::class,
 
         // السنتر
         'groups' => GroupResource::class,

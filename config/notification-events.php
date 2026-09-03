@@ -232,6 +232,18 @@ return [
         'variables' => [...$person, 'course_title', 'review_url'],
     ],
 
+    // ---------- التحفيز والمجتمع ----------
+    'gamification.badge_earned' => [
+        'group' => 'community', 'label' => 'شارة جديدة', 'audience' => 'student', 'module' => 'gamification',
+        'channels' => ['mail', 'database', 'web_push'], 'default' => ['database'],
+        'variables' => [...$person, 'badge_name', 'badge_description'],
+    ],
+    'gamification.level_up' => [
+        'group' => 'community', 'label' => 'مستوى جديد', 'audience' => 'student', 'module' => 'gamification',
+        'channels' => ['mail', 'database', 'web_push'], 'default' => ['database'],
+        'variables' => [...$person, 'level', 'points'],
+    ],
+
     // ---------- التسويق بالعمولة ----------
     'affiliate.conversion' => [
         'group' => 'affiliate', 'label' => 'تحويل ناجح', 'audience' => 'staff', 'module' => 'affiliates',

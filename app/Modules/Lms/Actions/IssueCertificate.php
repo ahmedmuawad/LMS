@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Lms\Actions;
 
+use App\Modules\Gamification\Actions\AwardPoints;
 use App\Modules\Lms\Models\Certificate;
 use App\Modules\Lms\Models\CertificateTemplate;
 use App\Modules\Lms\Models\Enrollment;
@@ -61,6 +62,8 @@ final class IssueCertificate
         ]);
 
         if ($enrollment->user !== null) {
+            app(AwardPoints::class)->handle($enrollment->user, 'certificate.earned', $certificate);
+
             notify('lms.certificate_issued', $enrollment->user, [
                 'course_title' => (string) $course->title,
                 'certificate_code' => $certificate->code,

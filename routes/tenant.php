@@ -13,6 +13,9 @@ use App\Http\Controllers\Commerce\CartController;
 use App\Http\Controllers\Commerce\CheckoutController;
 use App\Http\Controllers\Commerce\WalletController;
 use App\Http\Controllers\Commerce\WebhookController;
+use App\Http\Controllers\Community\DiscussionController;
+use App\Http\Controllers\Community\ProgressController;
+use App\Http\Controllers\Community\ReviewController;
 use App\Http\Controllers\Content\ContentController;
 use App\Http\Controllers\Content\MediaController;
 use App\Http\Controllers\Content\PageBuilderController;
@@ -74,6 +77,10 @@ $tenantRoutes = function (): void {
     Route::post('/blog/{slug}/comments', [ContentController::class, 'comment'])->name('blog.comment');
     Route::post('/forms/{key}', [ContentController::class, 'submitForm'])->name('forms.submit');
 
+    // ---------- المجتمع ----------
+    Route::get('/discussions', [DiscussionController::class, 'index'])->name('discussions');
+    Route::get('/discussions/{id}', [DiscussionController::class, 'show'])->name('discussions.show');
+
     // ---------- الخدمات والحجوزات ----------
     Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
     Route::get('/services/{slug}', [ServiceController::class, 'show'])->name('services.show');
@@ -98,6 +105,19 @@ $tenantRoutes = function (): void {
     // ---------- غرفة التعلّم ----------
     Route::middleware('auth')->group(function (): void {
         Route::get('/my-courses', MyCoursesController::class)->name('my-courses');
+
+        // ---------- المجتمع والتحفيز ----------
+        Route::post('/courses/{slug}/discussions', [DiscussionController::class, 'store'])->name('discussions.store');
+        Route::post('/discussions/{id}/replies', [DiscussionController::class, 'reply'])->name('discussions.reply');
+        Route::post('/discussions/{id}/vote', [DiscussionController::class, 'vote'])->name('discussions.vote');
+        Route::post('/discussions/{id}/replies/{replyId}/vote', [DiscussionController::class, 'vote'])->name('discussions.reply.vote');
+        Route::post('/discussions/{id}/replies/{replyId}/accept', [DiscussionController::class, 'accept'])->name('discussions.accept');
+
+        Route::post('/courses/{slug}/reviews', [ReviewController::class, 'storeCourse'])->name('reviews.course');
+        Route::post('/services/{slug}/reviews', [ReviewController::class, 'storeService'])->name('reviews.service');
+
+        Route::get('/my-progress', [ProgressController::class, 'show'])->name('progress');
+        Route::get('/leaderboard', [ProgressController::class, 'leaderboard'])->name('leaderboard');
 
         // ---------- الإشعارات ----------
         Route::get('/notifications', [InboxController::class, 'index'])->name('notifications');
@@ -239,6 +259,14 @@ $tenantRoutes = function (): void {
             Route::post('/media', [MediaController::class, 'store'])->name('media.store');
             Route::put('/media/{id}', [MediaController::class, 'update'])->name('media.update');
             Route::delete('/media/{id}', [MediaController::class, 'destroy'])->name('media.destroy');
+        });
+
+    // مراجعة التقييمات — قبل مسار الموارد العام
+    Route::prefix('admin/reviews')
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->name('admin.reviews.')->group(function (): void {
+            Route::get('/', [ReviewController::class, 'queue'])->name('queue');
+            Route::put('/{type}/{id}', [ReviewController::class, 'moderate'])->name('moderate');
         });
 
     // الإشعارات: المصفوفة والقوالب والسجلّ — قبل مسار الموارد العام

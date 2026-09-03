@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Lms\Actions;
 
+use App\Modules\Gamification\Actions\AwardPoints;
 use App\Modules\Lms\Models\Question;
 use App\Modules\Lms\Models\QuizAnswer;
 use App\Modules\Lms\Models\QuizAttempt;
@@ -16,7 +17,10 @@ use App\Modules\Lms\Models\QuizAttempt;
  */
 final class GradeQuizAttempt
 {
-    public function __construct(private readonly TrackProgress $progress) {}
+    public function __construct(
+        private readonly TrackProgress $progress,
+        private readonly AwardPoints $points,
+    ) {}
 
     /** @param  array<int|string, mixed>  $answers  إجابات الطالب بمفتاح رقم السؤال */
     public function handle(QuizAttempt $attempt, array $answers): QuizAttempt
@@ -70,8 +74,31 @@ final class GradeQuizAttempt
         ])->save();
 
         $this->markItemComplete($attempt);
+        $this->awardQuizPoints($attempt, $percentage);
 
         return $attempt->refresh();
+    }
+
+    /**
+     * نقاط الاختبار: نقطة للاجتياز وأخرى للدرجة الكاملة.
+     *
+     * الاثنتان بمصدر واحد (المحاولة) وقاعدتين مختلفتين، فمن أعاد
+     * الاختبار ونجح ثانيةً لا يُمنح مرتين على نفس المحاولة.
+     */
+    private function awardQuizPoints(QuizAttempt $attempt, float $percentage): void
+    {
+        $student = $attempt->enrollment?->user;
+
+        if ($student === null || ! $attempt->passed) {
+            return;
+        }
+
+        $this->points->handle($student, 'quiz.passed', $attempt);
+        $this->points->touchStreak($student);
+
+        if ($percentage >= 100.0) {
+            $this->points->handle($student, 'quiz.perfect', $attempt);
+        }
     }
 
     /** درجة يدوية لسؤال مقالي، ثم إعادة جمع الدرجة كلها. */

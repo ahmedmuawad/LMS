@@ -5,8 +5,10 @@ declare(strict_types=1);
 use App\Core\Settings\Groups\AnalyticsSettings;
 use App\Core\Settings\Groups\AppearanceSettings;
 use App\Core\Settings\Groups\CommerceSettings;
+use App\Core\Settings\Groups\CommunitySettings;
 use App\Core\Settings\Groups\ContentSettings;
 use App\Core\Settings\Groups\CurrencySettings;
+use App\Core\Settings\Groups\GamificationSettings;
 use App\Core\Settings\Groups\GeneralSettings;
 use App\Core\Settings\Groups\IntegrationSettings;
 use App\Core\Settings\Groups\LmsSettings;
@@ -40,6 +42,8 @@ return [
     'notifications' => NotificationSettings::class,
     'appearance' => AppearanceSettings::class,
     'content' => ContentSettings::class,
+    'community' => CommunitySettings::class,
+    'gamification' => GamificationSettings::class,
     'security' => SecuritySettings::class,
     'performance' => PerformanceSettings::class,
     'integrations' => IntegrationSettings::class,
