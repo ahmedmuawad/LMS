@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\ResourceController;
+use App\Http\Controllers\Lms\CatalogController;
+use App\Http\Controllers\Lms\CertificateController;
+use App\Http\Controllers\Lms\CurriculumController;
+use App\Http\Controllers\Lms\LearnController;
+use App\Http\Controllers\Lms\QuizController;
 use App\Http\Controllers\Tenant\AuthController;
 use App\Http\Controllers\Tenant\BillingController;
 use App\Http\Controllers\Tenant\DashboardController;
@@ -32,6 +37,24 @@ $tenantRoutes = function (): void {
     Route::get('/impersonate/{token}', ImpersonationController::class)
         ->name('impersonate');
 
+    // ---------- الكتالوج العام ----------
+    Route::get('/courses', [CatalogController::class, 'index'])->name('courses.index');
+    Route::get('/courses/{slug}', [CatalogController::class, 'show'])->name('courses.show');
+    Route::get('/certificate/{code}', [CertificateController::class, 'verify'])->name('certificate.verify');
+
+    // ---------- غرفة التعلّم ----------
+    Route::middleware('auth')->group(function (): void {
+        Route::post('/courses/{slug}/enroll', [LearnController::class, 'enroll'])->name('courses.enroll');
+
+        Route::get('/learn/{slug}', [LearnController::class, 'room'])->name('learn');
+        Route::get('/learn/{slug}/quiz/{item}/attempt/{attempt}', [QuizController::class, 'attempt'])->name('learn.quiz.attempt');
+        Route::post('/learn/{slug}/quiz/{item}/attempt/{attempt}', [QuizController::class, 'submit']);
+        Route::post('/learn/{slug}/quiz/{item}/start', [QuizController::class, 'start'])->name('learn.quiz.start');
+        Route::get('/learn/{slug}/{item}', [LearnController::class, 'room'])->name('learn.item');
+        Route::post('/learn/{slug}/{item}/heartbeat', [LearnController::class, 'heartbeat'])->name('learn.heartbeat');
+        Route::post('/learn/{slug}/{item}/complete', [LearnController::class, 'complete'])->name('learn.complete');
+    });
+
     // المصادقة
     Route::middleware('guest')->group(function (): void {
         Route::get('/login', [AuthController::class, 'show'])->name('login');
@@ -51,6 +74,19 @@ $tenantRoutes = function (): void {
     Route::get('/admin/dashboard', DashboardController::class)
         ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
         ->name('admin.dashboard');
+
+    // باني المنهج — قبل مسار الموارد العام
+    Route::prefix('admin/courses/{course}')
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->name('admin.curriculum.')->group(function (): void {
+            Route::get('/curriculum', [CurriculumController::class, 'show'])->name('show');
+            Route::post('/sections', [CurriculumController::class, 'addSection'])->name('sections.store');
+            Route::delete('/sections/{section}', [CurriculumController::class, 'removeSection'])->name('sections.destroy');
+            Route::post('/items', [CurriculumController::class, 'addItem'])->name('items.store');
+            Route::put('/items/order', [CurriculumController::class, 'reorder'])->name('items.reorder');
+            Route::put('/items/{item}', [CurriculumController::class, 'updateItem'])->name('items.update');
+            Route::delete('/items/{item}', [CurriculumController::class, 'removeItem'])->name('items.destroy');
+        });
 
     // الاشتراك والفواتير
     Route::get('/admin/billing', BillingController::class)

@@ -11,6 +11,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
+require_once __DIR__.'/LmsHelpers.php';
+
 pest()->extend(TestCase::class)->in('Unit');
 pest()->extend(TestCase::class)->use(RefreshDatabase::class)->in('Feature');
 
@@ -137,4 +139,9 @@ function tenantPut(Tenant $tenant, string $path, array $data = [])
 function tenantPost(Tenant $tenant, string $path, array $data = [])
 {
     return test()->post(tenantUrl($tenant, $path), $data);
+}
+
+function tenantDelete(Tenant $tenant, string $path, array $data = [])
+{
+    return test()->delete(tenantUrl($tenant, $path), $data);
 }
