@@ -93,6 +93,11 @@ return [
         'channels' => ['mail', 'whatsapp', 'database'], 'default' => ['mail'],
         'variables' => [...$person, 'course_title', 'course_url', 'days_left'],
     ],
+    'lms.announcement' => [
+        'group' => 'lms', 'label' => 'إعلان من المدرّس', 'audience' => 'student', 'module' => 'lms',
+        'channels' => ['mail', 'whatsapp', 'database', 'web_push'], 'default' => ['database'],
+        'variables' => [...$person, 'course_title', 'title', 'excerpt', 'url'],
+    ],
 
     // ---------- التجارة ----------
     'commerce.order_placed' => [

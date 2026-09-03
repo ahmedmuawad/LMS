@@ -25,8 +25,10 @@ use App\Modules\Center\Models\Session as CenterSession;
 use App\Modules\Center\Models\Stage as CenterStage;
 use App\Modules\Center\Models\Student as CenterStudent;
 use App\Modules\Center\Models\Subject as CenterSubject;
+use App\Modules\Commerce\Models\InstructorEarning;
 use App\Modules\Community\Actions\PostDiscussion;
 use App\Modules\Community\Actions\SubmitReview;
+use App\Modules\Community\Models\Discussion;
 use App\Modules\Content\Actions\InstallSystemPages;
 use App\Modules\Content\Models\Form;
 use App\Modules\Content\Models\Page;
@@ -708,6 +710,88 @@ final class SeedDemoTenant extends Command
         if ($student !== null) {
             $enrollment = app(EnrollStudent::class)->handle($student, $first, 'free');
             app(TrackProgress::class)->complete($enrollment, $first->items()->first());
+        }
+
+        $this->seedSecondInstructor();
+    }
+
+    /**
+     * مدرّس ثانٍ بكورسه وطلابه وأرباحه.
+     *
+     * بغيره كان المدرّس الوحيد في البذرة هو صاحب المنصّة نفسه، فلا
+     * تُختبر لوحة المدرّس ولا يظهر حصر النطاق: من يملك كل شيء لا
+     * يكشف خللاً في حصر من لا يملك إلا كورسه.
+     */
+    private function seedSecondInstructor(): void
+    {
+        $user = User::create([
+            'name' => 'نور الدين حسن',
+            'email' => 'nour@t.test',
+            'phone' => '01000000010',
+            'password' => Hash::make('password'),
+            'role' => 'instructor',
+            'status' => 'active',
+            'email_verified_at' => now(),
+        ]);
+
+        $instructor = Instructor::create([
+            'user_id' => $user->id,
+            'headline' => ['ar' => 'مهندس واجهات أمامية'],
+            'bio' => ['ar' => 'أُدرّس جافاسكربت وأدواتها.'],
+            'approved_at' => now(),
+            'commission_rate' => 70,
+        ]);
+
+        $course = Course::where('slug', 'js-modern')->first();
+
+        if ($course === null) {
+            return;
+        }
+
+        $course->forceFill(['instructor_id' => $instructor->id])->save();
+
+        foreach (['omar@t.test', 'karim@t.test', 'heba@t.test'] as $email) {
+            $pupil = User::where('email', $email)->first();
+
+            if ($pupil !== null) {
+                app(EnrollStudent::class)->handle($pupil, $course, 'free');
+            }
+        }
+
+        // سؤال معلّق وإعلان منشور — لتفتح شاشتاهما بمحتوى لا بفراغ
+        $asker = User::where('email', 'omar@t.test')->first();
+
+        if ($asker !== null) {
+            Discussion::create([
+                'type' => 'question', 'course_id' => $course->id, 'user_id' => $asker->id,
+                'title' => 'ما الفرق بين let و const؟',
+                'body' => 'التبس عليّ الأمر في الدرس الثالث.',
+                'status' => 'open',
+            ]);
+        }
+
+        Discussion::create([
+            'type' => 'announcement', 'course_id' => $course->id, 'user_id' => $user->id,
+            'title' => 'موعد الجلسة المباشرة',
+            'body' => 'الجلسة المباشرة الأحد القادم الساعة الثامنة مساءً.',
+            'status' => 'open', 'is_pinned' => true,
+        ]);
+
+        // أرباح بثلاث حالات — لتظهر طبقات الرصيد كما هي في الواقع
+        foreach ([
+            ['pending', 42000, null],
+            ['available', 87500, '-3 days'],
+            ['paid', 120000, '-30 days'],
+        ] as [$status, $amount, $matured]) {
+            InstructorEarning::create([
+                'instructor_id' => $instructor->id,
+                'currency' => 'EGP',
+                'amount_minor' => $amount,
+                'rate' => 70,
+                'status' => $status,
+                'available_at' => $matured === null ? now()->addDays(14) : now()->modify($matured),
+                'created_at' => now()->subDays(random_int(1, 40)),
+            ]);
         }
     }
 }

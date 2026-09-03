@@ -53,6 +53,12 @@ return [
             Ability::REVIEWS_MODERATE,
             Ability::PAYOUTS_VIEW,
 
+            Ability::STUDENTS_VIEW,
+            Ability::DISCUSSIONS_MODERATE,
+            Ability::ANNOUNCEMENTS_MANAGE,
+            Ability::STATISTICS_VIEW,
+            Ability::EARNINGS_VIEW,
+
             /*
              | لا `REPORTS_VIEW`.
              |
@@ -81,6 +87,7 @@ return [
             Ability::USERS_VIEW,
             Ability::ORDERS_VIEW,
             Ability::CERTIFICATES_VIEW,
+            Ability::STUDENTS_VIEW,
         ],
 
         // الطالب وولي الأمر: لا صلاحية لوحة، ولهما بواباتهما العامة

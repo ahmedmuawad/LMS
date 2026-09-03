@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Core\Entitlements\Models\Feature;
 use App\Core\Entitlements\Models\Plan;
+use App\Http\Controllers\Instructor\DashboardController as InstructorDashboard;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -15,11 +16,20 @@ use Illuminate\View\View;
  *
  * تعرض حالته هو: نمطه، باقته، استهلاكه مقابل حدوده، وفريقه.
  * لا تعرض شيئاً عن أعمالنا نحن.
+ *
+ * ومن كان نطاقه محصوراً — المدرّس — فله لوحته: الباقة والاستهلاك
+ * قرارُ صاحب المنصّة لا قرارُه، وعرضها عليه ضجيج لا معلومة.
  */
 final class DashboardController
 {
     public function __invoke(): View
     {
+        $me = auth()->user();
+
+        if ($me instanceof User && $me->isScoped()) {
+            return app(InstructorDashboard::class)();
+        }
+
         $tenant = tenant();
 
         $byRole = User::query()

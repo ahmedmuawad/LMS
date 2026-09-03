@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Community;
 
+use App\Core\Access\Roles;
+use App\Core\Access\Scope;
+use App\Models\User;
 use App\Modules\Community\Actions\SubmitReview;
 use App\Modules\Community\Models\ServiceReview;
 use App\Modules\Lms\Models\Course;
 use App\Modules\Lms\Models\CourseReview;
 use App\Modules\Services\Models\Service;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -17,7 +21,10 @@ use RuntimeException;
 /** كتابة التقييمات ومراجعتها من اللوحة. */
 final class ReviewController
 {
-    public function __construct(private readonly SubmitReview $reviews) {}
+    public function __construct(
+        private readonly SubmitReview $reviews,
+        private readonly Scope $scope,
+    ) {}
 
     public function storeCourse(Request $request, string $slug): RedirectResponse
     {
@@ -59,16 +66,24 @@ final class ReviewController
             : __('وصل تقييمك وسيظهر بعد المراجعة.'));
     }
 
-    /** طابور المراجعة: المعلَّق أولاً لأن الشاشة عمل لا أرشيف. */
+    /**
+     * طابور المراجعة: المعلَّق أولاً لأن الشاشة عمل لا أرشيف.
+     *
+     * ومحصور بما يخصّ صاحبه: المدرّس يراجع تقييمات كورساته وخدماته
+     * هو — لا تقييمات المنصّة كلها، فتلك عين على أعمال زملائه.
+     */
     public function queue(Request $request): View
     {
         $status = (string) $request->input('status', 'pending');
+        $user = $this->user($request);
 
         return view('community.moderation', [
-            'courseReviews' => CourseReview::with(['user', 'course'])
+            'courseReviews' => $this->scope->byCourse(CourseReview::query(), $user)
+                ->with(['user', 'course'])
                 ->when($status !== 'all', fn ($q) => $q->where('status', $status))
                 ->latest('id')->paginate(20, ['*'], 'courses')->withQueryString(),
-            'serviceReviews' => ServiceReview::with(['user', 'service'])
+            'serviceReviews' => $this->serviceReviews($user)
+                ->with(['user', 'service'])
                 ->when($status !== 'all', fn ($q) => $q->where('status', $status))
                 ->latest('id')->paginate(20, ['*'], 'services')->withQueryString(),
             'status' => $status,
@@ -82,10 +97,13 @@ final class ReviewController
             'reply' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        // النوع من قائمة مغلقة: لا يصل اسم صنف من الطلب إلى الحاوية
+        $user = $this->user($request);
+
+        // النوع من قائمة مغلقة: لا يصل اسم صنف من الطلب إلى الحاوية،
+        // والنطاق مطبَّق على البحث نفسه فيتحوّل «ليس لك» إلى 404
         $review = match ($type) {
-            'course' => CourseReview::findOrFail($id),
-            'service' => ServiceReview::findOrFail($id),
+            'course' => $this->scope->byCourse(CourseReview::query(), $user)->findOrFail($id),
+            'service' => $this->serviceReviews($user)->findOrFail($id),
             default => abort(404),
         };
 
@@ -94,5 +112,27 @@ final class ReviewController
         $this->reviews->moderate($review, $input['status'], $reply);
 
         return back()->with('status', __('حُدّثت حالة التقييم.'));
+    }
+
+    /** تقييمات الخدمات التي يقدّمها صاحب الطلب. */
+    private function serviceReviews(?User $user): Builder
+    {
+        $query = ServiceReview::query();
+
+        if (! app(Roles::class)->isScoped($user)) {
+            return $query;
+        }
+
+        return $query->whereHas(
+            'service.providers',
+            fn ($q) => $q->where('user_id', $user?->getKey())->where('is_active', true),
+        );
+    }
+
+    private function user(Request $request): ?User
+    {
+        $user = $request->user();
+
+        return $user instanceof User ? $user : null;
     }
 }

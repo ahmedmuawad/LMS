@@ -95,6 +95,8 @@ jobs:
             node tests/Browser/responsive.mjs http://demo.localhost:8899 /verify-email /account /account/two-factor
           GATE_EMAIL=karim@t.test GATE_PASSWORD=password \
             node tests/Browser/responsive.mjs http://demo.localhost:8899 /two-factor
+          GATE_EMAIL=nour@t.test GATE_PASSWORD=password \
+            node tests/Browser/responsive.mjs http://demo.localhost:8899 /admin/dashboard /admin/students /admin/students/2 /admin/discussions /admin/discussions/1 /admin/announcements /admin/earnings /admin/statistics
 
       - name: فحص التباين (WCAG AA · فاتح وداكن)
         env:
@@ -117,6 +119,8 @@ jobs:
             node tests/Browser/contrast.mjs http://demo.localhost:8899 /verify-email /account /account/two-factor
           GATE_EMAIL=karim@t.test GATE_PASSWORD=password \
             node tests/Browser/contrast.mjs http://demo.localhost:8899 /two-factor
+          GATE_EMAIL=nour@t.test GATE_PASSWORD=password \
+            node tests/Browser/contrast.mjs http://demo.localhost:8899 /admin/dashboard /admin/students /admin/students/2 /admin/discussions /admin/discussions/1 /admin/announcements /admin/earnings /admin/statistics
 
       - name: فحص السلوك والوصولية
         env:

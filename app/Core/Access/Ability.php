@@ -44,6 +44,14 @@ final class Ability
 
     public const TAXONOMIES_MANAGE = 'taxonomies.manage';
 
+    public const STUDENTS_VIEW = 'students.view';
+
+    public const DISCUSSIONS_MODERATE = 'discussions.moderate';
+
+    public const ANNOUNCEMENTS_MANAGE = 'announcements.manage';
+
+    public const STATISTICS_VIEW = 'statistics.view';
+
     // ---------- التجارة ----------
     public const ORDERS_VIEW = 'orders.view';
 
@@ -62,6 +70,8 @@ final class Ability
     public const PAYOUTS_MANAGE = 'payouts.manage';
 
     public const FINANCE_VIEW = 'finance.view';
+
+    public const EARNINGS_VIEW = 'earnings.view';
 
     // ---------- الخدمات ----------
     public const SERVICES_MANAGE = 'services.manage';
@@ -144,6 +154,8 @@ final class Ability
             self::ENROLLMENTS_VIEW, self::CERTIFICATES_VIEW, self::GRADING,
             self::PAYOUTS_VIEW, self::SERVICES_MANAGE, self::BOOKINGS_MANAGE,
             self::REVIEWS_MODERATE, self::REPORTS_VIEW,
+            self::STUDENTS_VIEW, self::DISCUSSIONS_MODERATE,
+            self::ANNOUNCEMENTS_MANAGE, self::STATISTICS_VIEW, self::EARNINGS_VIEW,
         ];
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+use App\Core\Access\Ability;
 
 /*
  | قوائم لوحة المشترك.
@@ -32,6 +33,7 @@ return [
             'items' => [
                 ['key' => 'dashboard', 'label' => 'اللوحة', 'icon' => '◧', 'route' => 'admin.dashboard'],
                 ['key' => 'reports', 'label' => 'التقارير', 'icon' => '◔', 'module' => 'reports', 'route' => 'admin.reports.index'],
+                ['key' => 'statistics', 'label' => 'الإحصاءات', 'icon' => '◕', 'module' => 'lms', 'route' => 'admin.instructor.statistics', 'ability' => Ability::STATISTICS_VIEW],
             ],
         ],
 
@@ -47,6 +49,9 @@ return [
                 ['key' => 'certificates', 'label' => 'الشهادات', 'icon' => '◈', 'module' => 'certificates'],
                 ['key' => 'enrollments', 'label' => 'التسجيلات', 'icon' => '☑', 'module' => 'lms'],
                 ['key' => 'taxonomies', 'label' => 'التصنيفات', 'icon' => '◱', 'module' => 'lms'],
+                ['key' => 'students', 'label' => 'الطلاب', 'icon' => '☻', 'module' => 'lms', 'route' => 'admin.instructor.students', 'ability' => Ability::STUDENTS_VIEW],
+                ['key' => 'discussions', 'label' => 'الأسئلة والردود', 'icon' => '❓', 'module' => 'community', 'route' => 'admin.instructor.discussions', 'ability' => Ability::DISCUSSIONS_MODERATE],
+                ['key' => 'announcements', 'label' => 'الإعلانات', 'icon' => '◈', 'module' => 'lms', 'route' => 'admin.instructor.announcements', 'ability' => Ability::ANNOUNCEMENTS_MANAGE],
             ],
         ],
 
@@ -76,6 +81,7 @@ return [
                 ['key' => 'recharge-codes', 'label' => 'أكواد الشحن', 'icon' => '⌗', 'module' => 'commerce', 'feature' => 'recharge_codes'],
                 ['key' => 'refunds', 'label' => 'طلبات الاسترداد', 'icon' => '↩', 'module' => 'commerce'],
                 ['key' => 'payouts', 'label' => 'تحويلات المدرّسين', 'icon' => '⇄', 'module' => 'payouts'],
+                ['key' => 'earnings', 'label' => 'الأرباح والعمولات', 'icon' => '⛁', 'module' => 'payouts', 'route' => 'admin.instructor.earnings', 'ability' => Ability::EARNINGS_VIEW],
             ],
         ],
 

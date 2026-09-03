@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Lms;
 
+use App\Core\Access\Scope;
+use App\Models\User;
 use App\Modules\Lms\Actions\GradeAssignment;
 use App\Modules\Lms\Actions\GradeQuizAttempt;
 use App\Modules\Lms\Models\AssignmentSubmission;
@@ -19,22 +21,34 @@ use InvalidArgumentException;
  *
  * ما ينتظر إنساناً يُجمَع في مكان واحد مرتّباً بالأقدم: الطالب الذي
  * سلّم أولاً هو الأحقّ بأن يُصحَّح أولاً.
+ *
+ * والطاولة محصورة بكورسات صاحبها: المدرّس يصحّح لطلابه هو، ولا
+ * يقرأ اسم طالب في كورس غيره ولا يضع له درجة.
  */
 final class GradingController
 {
-    public function index(): View
+    public function __construct(private readonly Scope $scope) {}
+
+    public function index(Request $request): View
     {
         return view('lms.grading', [
-            'attempts' => QuizAttempt::query()
-                ->where('status', 'submitted')
-                ->whereHas('answers', fn ($q) => $q->whereNull('is_correct'))
+            'attempts' => $this->scope->byCourseVia(
+                QuizAttempt::query()
+                    ->where('status', 'submitted')
+                    ->whereHas('answers', fn ($q) => $q->whereNull('is_correct')),
+                $this->user($request),
+                'enrollment',
+            )
                 ->with(['quiz', 'enrollment.user', 'enrollment.course'])
                 ->oldest('submitted_at')
                 ->limit(50)
                 ->get(),
 
-            'submissions' => AssignmentSubmission::query()
-                ->where('status', 'pending')
+            'submissions' => $this->scope->byCourseVia(
+                AssignmentSubmission::query()->where('status', 'pending'),
+                $this->user($request),
+                'enrollment',
+            )
                 ->with(['assignment', 'enrollment.user', 'enrollment.course'])
                 ->oldest('submitted_at')
                 ->limit(50)
@@ -42,16 +56,18 @@ final class GradingController
         ]);
     }
 
-    public function attempt(string $attemptId): View
+    public function attempt(Request $request, string $attemptId): View
     {
         return view('lms.grade-attempt', [
-            'attempt' => QuizAttempt::with(['quiz', 'answers.question', 'enrollment.user', 'enrollment.course'])
-                ->findOrFail($attemptId),
+            'attempt' => $this->attemptFor($request, $attemptId)
+                ->load(['quiz', 'answers.question', 'enrollment.user', 'enrollment.course']),
         ]);
     }
 
     public function gradeAnswer(Request $request, string $attemptId, string $answerId, GradeQuizAttempt $action): RedirectResponse
     {
+        $this->attemptFor($request, $attemptId);
+
         $answer = QuizAnswer::where('attempt_id', $attemptId)->findOrFail($answerId);
 
         $max = (float) ($answer->attempt?->snapshot[array_search(
@@ -75,17 +91,17 @@ final class GradingController
         return back()->with('status', __('حُفظت الدرجة.'));
     }
 
-    public function submission(string $submissionId): View
+    public function submission(Request $request, string $submissionId): View
     {
         return view('lms.grade-submission', [
-            'submission' => AssignmentSubmission::with(['assignment', 'enrollment.user', 'enrollment.course'])
-                ->findOrFail($submissionId),
+            'submission' => $this->submissionFor($request, $submissionId)
+                ->load(['assignment', 'enrollment.user', 'enrollment.course']),
         ]);
     }
 
     public function gradeSubmission(Request $request, string $submissionId, GradeAssignment $action): RedirectResponse
     {
-        $submission = AssignmentSubmission::findOrFail($submissionId);
+        $submission = $this->submissionFor($request, $submissionId);
 
         $input = $request->validate([
             'marks' => ['nullable', 'numeric', 'min:0'],
@@ -108,5 +124,27 @@ final class GradingController
         }
 
         return redirect(url('/admin/grading'))->with('status', __('صُحّح الواجب.'));
+    }
+
+    /** محاولة داخل نطاق صاحب الطلب — وإلا 404، لا 403 يكشف وجودها. */
+    private function attemptFor(Request $request, string $attemptId): QuizAttempt
+    {
+        return $this->scope
+            ->byCourseVia(QuizAttempt::query(), $this->user($request), 'enrollment')
+            ->findOrFail($attemptId);
+    }
+
+    private function submissionFor(Request $request, string $submissionId): AssignmentSubmission
+    {
+        return $this->scope
+            ->byCourseVia(AssignmentSubmission::query(), $this->user($request), 'enrollment')
+            ->findOrFail($submissionId);
+    }
+
+    private function user(Request $request): ?User
+    {
+        $user = $request->user();
+
+        return $user instanceof User ? $user : null;
     }
 }

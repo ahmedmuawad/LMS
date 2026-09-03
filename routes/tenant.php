@@ -28,6 +28,11 @@ use App\Http\Controllers\Content\PageBuilderController;
 use App\Http\Controllers\Content\RedirectController;
 use App\Http\Controllers\Growth\AffiliateController;
 use App\Http\Controllers\Growth\CampaignController;
+use App\Http\Controllers\Instructor\AnnouncementController;
+use App\Http\Controllers\Instructor\DiscussionController as InstructorDiscussionController;
+use App\Http\Controllers\Instructor\EarningsController;
+use App\Http\Controllers\Instructor\StatisticsController;
+use App\Http\Controllers\Instructor\StudentController as InstructorStudentController;
 use App\Http\Controllers\Lms\AssignmentController;
 use App\Http\Controllers\Lms\CatalogController;
 use App\Http\Controllers\Lms\CertificateController;
@@ -314,6 +319,39 @@ $tenantRoutes = function (): void {
                 Route::put('/media/{id}', [MediaController::class, 'update'])->name('media.update');
                 Route::delete('/media/{id}', [MediaController::class, 'destroy'])->name('media.destroy');
             });
+        });
+
+    // ---------- شاشات المدرّس ----------
+    // قبل مسار الموارد العام، وإلا قُرئت «students» مورداً باسمها
+    Route::prefix('admin')
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->name('admin.instructor.')->group(function (): void {
+            Route::middleware(EnsureAbility::class.':'.Ability::STUDENTS_VIEW)->group(function (): void {
+                Route::get('/students', [InstructorStudentController::class, 'index'])->name('students');
+                Route::get('/students/{id}', [InstructorStudentController::class, 'show'])->name('student');
+            });
+
+            Route::middleware(EnsureAbility::class.':'.Ability::DISCUSSIONS_MODERATE)->group(function (): void {
+                Route::get('/discussions', [InstructorDiscussionController::class, 'index'])->name('discussions');
+                Route::get('/discussions/{id}', [InstructorDiscussionController::class, 'show'])->name('discussion');
+                Route::post('/discussions/{id}/replies', [InstructorDiscussionController::class, 'reply'])->name('discussion.reply');
+                Route::put('/discussions/{id}', [InstructorDiscussionController::class, 'update'])->name('discussion.update');
+            });
+
+            Route::middleware(EnsureAbility::class.':'.Ability::ANNOUNCEMENTS_MANAGE)->group(function (): void {
+                Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements');
+                Route::post('/announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
+                Route::delete('/announcements/{id}', [AnnouncementController::class, 'destroy'])->name('announcements.destroy');
+            });
+
+            Route::middleware(EnsureAbility::class.':'.Ability::EARNINGS_VIEW)->group(function (): void {
+                Route::get('/earnings', [EarningsController::class, 'index'])->name('earnings');
+                Route::post('/earnings/payout', [EarningsController::class, 'request'])->name('earnings.payout');
+            });
+
+            Route::get('/statistics', StatisticsController::class)
+                ->middleware(EnsureAbility::class.':'.Ability::STATISTICS_VIEW)
+                ->name('statistics');
         });
 
     // التقارير — قبل مسار الموارد العام

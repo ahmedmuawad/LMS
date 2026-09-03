@@ -100,6 +100,18 @@ final class CommerceSettings extends SettingsGroup
                 NumberField::make('free_shipping_over')->label(__('شحن مجاني فوق'))->range(0, 1000000)->half()->default(0)
                     ->hint(__('صفر يعني بلا شحن مجاني.')),
             ]),
+
+            Section::make(__('عمولات المدرّسين والسحب'))
+                ->description(__('المدرّس يطلب السحب من لوحته، وأنت تعتمد وتحوّل.'))
+                ->fields([
+                    NumberField::make('commission_rate')->label(__('نصيب المدرّس الافتراضي'))->suffix('%')
+                        ->range(0, 100)->half()->default(70)
+                        ->hint(__('يُستخدم لمن لا نسبة خاصة له.')),
+                    NumberField::make('payout_minimum')->label(__('أقل رصيد يُطلب سحبه'))
+                        ->range(0, 1000000)->half()->default(0)
+                        ->hint(__('صفر يعني بلا حدّ أدنى.')),
+                    SwitchField::make('payout_requests')->label(__('السماح للمدرّس بطلب السحب'))->default(true),
+                ]),
         ];
     }
 }

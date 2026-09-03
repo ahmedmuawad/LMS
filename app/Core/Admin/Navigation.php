@@ -6,6 +6,7 @@ namespace App\Core\Admin;
 
 use App\Core\Access\Roles;
 use App\Core\Tenancy\Models\Tenant;
+use App\Http\Middleware\EnsureAbility;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -92,16 +93,68 @@ final class Navigation
             return true;   // السياق المركزي: حارس آخر ونموذج آخر
         }
 
-        $ability = $item['ability'] ?? $this->abilityForResource($item['key']);
+        $abilities = match (true) {
+            isset($item['ability']) => [$item['ability']],
+            isset($item['route']) => $this->abilitiesForRoute($item['route']),
+            default => $this->abilitiesForResource($item['key']),
+        };
 
-        return $ability === null || $this->roles()->allows($user, $ability);
+        if ($abilities === []) {
+            return true;
+        }
+
+        // «أيّ واحدة» لا «كلّها»: شاشة الإعدادات يفتحها من يملك أي
+        // مجموعة فيها، تماماً كما يقرّر حارسها EnsureAbility
+        foreach ($abilities as $ability) {
+            if ($this->roles()->allows($user, $ability)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    private function abilityForResource(string $key): ?string
+    /**
+     * @return list<string>
+     */
+    private function abilitiesForResource(string $key): array
     {
         $class = config('admin-resources.tenant.'.$key);
 
-        return $class === null ? null : app($class)->viewAbility();
+        return $class === null ? [] : [app($class)->viewAbility()];
+    }
+
+    /**
+     * صلاحيات العنصر تُقرأ من حارس مساره نفسه.
+     *
+     * كانت تُقرأ من المورد وحده، فبقيت العناصر المبنية على مسار
+     * مكتوب باليد ظاهرة لمن لا يملكها: سبعة أبواب في قائمة المدرّس
+     * تُصفَق في وجهه بـ403. الاشتقاق من الحارس يجعل القائمة والباب
+     * مصدرهما واحد فلا يفترقان.
+     *
+     * @return list<string>
+     */
+    private function abilitiesForRoute(string $name): array
+    {
+        $route = Route::getRoutes()->getByName($name);
+
+        if ($route === null) {
+            return [];
+        }
+
+        $abilities = [];
+
+        foreach ($route->gatherMiddleware() as $middleware) {
+            if (! is_string($middleware) || ! str_starts_with($middleware, EnsureAbility::class.':')) {
+                continue;
+            }
+
+            foreach (explode(',', substr($middleware, strlen(EnsureAbility::class) + 1)) as $ability) {
+                $abilities[] = trim($ability);
+            }
+        }
+
+        return array_values(array_filter($abilities));
     }
 
     private function user(): ?User

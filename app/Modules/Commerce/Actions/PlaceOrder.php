@@ -98,7 +98,10 @@ final class PlaceOrder
             ? Course::find($product->purchasable_id)?->instructor
             : null;
 
-        $rate = (float) ($instructor?->commission_rate ?? 0);
+        // نسبة المدرّس الخاصة أولاً، فإن لم تُضبط فنسبة المنصّة الافتراضية
+        $rate = $instructor === null
+            ? 0.0
+            : (float) ($instructor->commission_rate ?? setting('commerce.commission_rate', 0));
 
         OrderItem::create([
             'order_id' => $order->getKey(),

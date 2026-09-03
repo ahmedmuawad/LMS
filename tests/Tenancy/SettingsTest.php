@@ -23,7 +23,7 @@ it('reads the defaults seeded by the platform mode', function () {
     $tenant->run(function (): void {
         expect(setting('lms.instructor_signup'))->toBeTrue()
             ->and(setting('lms.require_course_approval'))->toBeTrue()
-            ->and(setting('instructors.commission_rate'))->toBe(70);
+            ->and(setting('commerce.commission_rate'))->toBe(70);
     });
 
     tenancy()->end();

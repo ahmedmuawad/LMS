@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Lms;
 
+use App\Core\Access\Scope;
+use App\Models\User;
 use App\Modules\Lms\Models\Assignment;
 use App\Modules\Lms\Models\Course;
 use App\Modules\Lms\Models\CourseItem;
@@ -21,25 +23,34 @@ use Illuminate\View\View;
  * الدرس والاختبار والواجب كيانات مستقلة قابلة لإعادة الاستخدام،
  * وهذه الشاشة تضعها في ترتيب الكورس — فسؤال واحد قد يخدم اختبارين،
  * ودرس واحد قد يظهر في مسارين.
+ *
+ * وكل مدخل هنا يمرّ بـ`courseFor`: الشاشة كانت تفتح بأي رقم كورس،
+ * فكان المدرّس يحرّر منهج غيره برابط مكتوب باليد.
  */
 final class CurriculumController
 {
-    public function show(string $courseId): View
+    public function __construct(private readonly Scope $scope) {}
+
+    public function show(Request $request, string $courseId): View
     {
-        $course = Course::with(['sections.items.itemable', 'instructor.user'])->findOrFail($courseId);
+        $course = $this->courseFor($request, $courseId)
+            ->load(['sections.items.itemable', 'instructor.user']);
+
+        $user = $this->user($request);
 
         return view('lms.curriculum', [
             'course' => $course,
             'orphans' => $course->items()->whereNull('section_id')->with('itemable')->get(),
-            'lessons' => Lesson::latest()->limit(200)->get(),
-            'quizzes' => Quiz::latest()->limit(200)->get(),
-            'assignments' => Assignment::latest()->limit(200)->get(),
+            // البنوك مشتركة، وما يراه المدرّس منها ما أنشأه هو
+            'lessons' => $this->scope->byCreator(Lesson::query(), $user)->latest()->limit(200)->get(),
+            'quizzes' => $this->scope->byCreator(Quiz::query(), $user)->latest()->limit(200)->get(),
+            'assignments' => $this->scope->byCreator(Assignment::query(), $user)->latest()->limit(200)->get(),
         ]);
     }
 
     public function addSection(Request $request, string $courseId): RedirectResponse
     {
-        $course = Course::findOrFail($courseId);
+        $course = $this->courseFor($request, $courseId);
 
         $input = $request->validate([
             'title' => ['required', 'array'],
@@ -59,7 +70,7 @@ final class CurriculumController
 
     public function addItem(Request $request, string $courseId): RedirectResponse
     {
-        $course = Course::findOrFail($courseId);
+        $course = $this->courseFor($request, $courseId);
 
         $input = $request->validate([
             'kind' => ['required', 'string', 'in:'.implode(',', array_keys(CourseItem::TYPES))],
@@ -69,8 +80,24 @@ final class CurriculumController
 
         $class = CourseItem::TYPES[$input['kind']];
 
-        // نتحقّق من وجود الكيان بأنفسنا: المعرّف يأتي من المستخدم
-        abort_unless($class::whereKey($input['itemable_id'])->exists(), 404, __('العنصر غير موجود.'));
+        // نتحقّق من وجود الكيان بأنفسنا: المعرّف يأتي من المستخدم،
+        // ومن نطاقه أيضاً وإلا ضمّ المدرّس درس غيره إلى منهجه
+        abort_unless(
+            $this->scope->byCreator($class::query(), $this->user($request))
+                ->whereKey($input['itemable_id'])->exists(),
+            404,
+            __('العنصر غير موجود.'),
+        );
+
+        // القسم يجب أن يكون قسماً في هذا الكورس لا في كورس آخر
+        if (($input['section_id'] ?? null) !== null) {
+            abort_unless(
+                CourseSection::where('course_id', $course->getKey())
+                    ->whereKey($input['section_id'])->exists(),
+                404,
+                __('القسم غير موجود.'),
+            );
+        }
 
         CourseItem::create([
             'course_id' => $course->getKey(),
@@ -88,7 +115,7 @@ final class CurriculumController
     /** إعادة الترتيب بالسحب — تصل قائمة معرّفات بالترتيب الجديد. */
     public function reorder(Request $request, string $courseId): RedirectResponse
     {
-        $course = Course::findOrFail($courseId);
+        $course = $this->courseFor($request, $courseId);
 
         $input = $request->validate([
             'items' => ['required', 'array'],
@@ -107,9 +134,9 @@ final class CurriculumController
         return back()->with('status', __('حُفظ الترتيب.'));
     }
 
-    public function removeItem(string $courseId, string $itemId): RedirectResponse
+    public function removeItem(Request $request, string $courseId, string $itemId): RedirectResponse
     {
-        $course = Course::findOrFail($courseId);
+        $course = $this->courseFor($request, $courseId);
 
         // الحذف من المنهج لا يحذف الدرس نفسه — قد يخدم كورساً آخر
         CourseItem::where('course_id', $course->getKey())->whereKey($itemId)->delete();
@@ -126,7 +153,9 @@ final class CurriculumController
             'available_after_days' => ['nullable', 'integer', 'min:0', 'max:3650'],
         ]);
 
-        CourseItem::where('course_id', $courseId)->whereKey($itemId)->update([
+        $course = $this->courseFor($request, $courseId);
+
+        CourseItem::where('course_id', $course->getKey())->whereKey($itemId)->update([
             'is_preview' => (bool) ($input['is_preview'] ?? false),
             'available_after_days' => (int) ($input['available_after_days'] ?? 0),
         ]);
@@ -134,9 +163,9 @@ final class CurriculumController
         return back()->with('status', __('حُدِّث العنصر.'));
     }
 
-    public function removeSection(string $courseId, string $sectionId): RedirectResponse
+    public function removeSection(Request $request, string $courseId, string $sectionId): RedirectResponse
     {
-        $course = Course::findOrFail($courseId);
+        $course = $this->courseFor($request, $courseId);
 
         $section = CourseSection::where('course_id', $course->getKey())->findOrFail($sectionId);
 
@@ -157,5 +186,20 @@ final class CurriculumController
                 ->filter(fn (CourseItem $i): bool => $i->itemable instanceof Lesson)
                 ->sum(fn (CourseItem $i): int => (int) $i->itemable->duration_seconds) / 60),
         ])->save();
+    }
+
+    /** الكورس إن كان كورس صاحب الطلب — وإلا 404. */
+    private function courseFor(Request $request, string $courseId): Course
+    {
+        return $this->scope
+            ->byInstructor(Course::query(), $this->user($request), 'instructor_id')
+            ->findOrFail($courseId);
+    }
+
+    private function user(Request $request): ?User
+    {
+        $user = $request->user();
+
+        return $user instanceof User ? $user : null;
     }
 }

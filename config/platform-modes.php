@@ -50,7 +50,7 @@ return [
                 'lms.instructor_signup' => true,
                 'lms.require_course_approval' => true,
                 'commerce.guest_checkout' => true,
-                'instructors.commission_rate' => 70,
+                'commerce.commission_rate' => 70,
             ],
         ],
 
