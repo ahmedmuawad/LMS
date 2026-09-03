@@ -6,6 +6,7 @@ use App\Core\Admin\Resources\Central\SubscriptionResource;
 use App\Core\Admin\Resources\Central\TenantResource;
 use App\Core\Admin\Resources\Commerce\CouponResource;
 use App\Core\Admin\Resources\Commerce\OrderResource;
+use App\Core\Admin\Resources\Commerce\PayoutResource;
 use App\Core\Admin\Resources\Commerce\ProductResource;
 use App\Core\Admin\Resources\Commerce\RechargeCodeResource;
 use App\Core\Admin\Resources\Commerce\RefundResource;
@@ -44,6 +45,7 @@ return [
         'coupons' => CouponResource::class,
         'recharge-codes' => RechargeCodeResource::class,
         'refunds' => RefundResource::class,
+        'payouts' => PayoutResource::class,
     ],
 
     // اللوحة العليا — القاعدة المركزية

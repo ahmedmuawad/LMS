@@ -61,6 +61,7 @@ final class RefundOrder
 
             if ($order->status === 'refunded') {
                 $this->revokeAccess($order);
+                app(RecordEarnings::class)->reverse($order);
             }
 
             return $refund->refresh();

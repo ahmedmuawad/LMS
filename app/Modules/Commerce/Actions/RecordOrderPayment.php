@@ -16,7 +16,10 @@ use App\Modules\Commerce\Models\Payment;
  */
 final class RecordOrderPayment
 {
-    public function __construct(private readonly FulfillOrder $fulfil) {}
+    public function __construct(
+        private readonly FulfillOrder $fulfil,
+        private readonly RecordEarnings $earnings,
+    ) {}
 
     public function handle(
         Order $order,
@@ -44,6 +47,9 @@ final class RecordOrderPayment
             ])->save();
 
             $this->fulfil->handle($order->refresh());
+
+            // العمولة تُقيَّد عند البيع كي يراها المدرّس فوراً
+            $this->earnings->handle($order->refresh());
         }
 
         return $payment;

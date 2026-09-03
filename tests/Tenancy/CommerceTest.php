@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Core\Support\Money;
+use App\Models\User;
 use App\Modules\Commerce\Actions\ApplyCoupon;
 use App\Modules\Commerce\Actions\CartManager;
+use App\Modules\Commerce\Actions\CreatePayout;
 use App\Modules\Commerce\Actions\GenerateCodes;
 use App\Modules\Commerce\Actions\OrderNumber;
 use App\Modules\Commerce\Actions\PlaceOrder;
@@ -13,10 +15,12 @@ use App\Modules\Commerce\Actions\RedeemCode;
 use App\Modules\Commerce\Actions\RefundOrder;
 use App\Modules\Commerce\Gateways\Drivers\WalletGateway;
 use App\Modules\Commerce\Models\Cart;
+use App\Modules\Commerce\Models\InstructorEarning;
 use App\Modules\Commerce\Models\Order;
 use App\Modules\Commerce\Models\RechargeCode;
 use App\Modules\Commerce\Models\WalletTransaction;
 use App\Modules\Lms\Models\Enrollment;
+use App\Modules\Lms\Models\Instructor;
 use Database\Seeders\FeatureSeeder;
 use Database\Seeders\PlanSeeder;
 use Illuminate\Support\Str;
@@ -547,5 +551,129 @@ it('pays from the wallet and refuses when the balance is short', function () {
 
         expect(Order::find($order->id)->status)->toBe('completed')
             ->and(WalletTransaction::balanceFor((int) $student->id, 'EGP')->minor)->toBe(10000);
+    });
+});
+
+// ------------------------------------------------------------------
+// عمولات المدرّسين
+// ------------------------------------------------------------------
+
+it('books the instructor commission the moment the sale lands', function () {
+    provision()->run(function (): void {
+        $owner = User::where('role', 'owner')->firstOrFail();
+        $instructor = Instructor::create([
+            'user_id' => $owner->id, 'commission_rate' => 70, 'approved_at' => now(),
+        ]);
+
+        $student = seedStudent();
+        $cart = makeCart();
+        $cart->forceFill(['user_id' => $student->id])->save();
+
+        $course = seedCourse([
+            'enrollment_type' => 'paid', 'price_minor' => 100000, 'instructor_id' => $instructor->id,
+        ]);
+        app(CartManager::class)->add($cart, productForCourse($course));
+
+        $order = app(PlaceOrder::class)->handle($cart->refresh(), $student);
+        app(RecordOrderPayment::class)->handle($order, $order->total(), 'bank_transfer', 'T1');
+
+        $earning = InstructorEarning::firstOrFail();
+
+        expect($earning->amount_minor)->toBe(70000)
+            ->and($earning->status)->toBe('available');
+    });
+});
+
+it('holds the commission until the refund window closes', function () {
+    provision()->run(function (): void {
+        setting()->set('commerce.refund_days', 14);
+
+        $owner = User::where('role', 'owner')->firstOrFail();
+        $instructor = Instructor::create([
+            'user_id' => $owner->id, 'commission_rate' => 50, 'approved_at' => now(),
+        ]);
+
+        $student = seedStudent();
+        $cart = makeCart();
+        $cart->forceFill(['user_id' => $student->id])->save();
+        $course = seedCourse(['enrollment_type' => 'paid', 'price_minor' => 100000, 'instructor_id' => $instructor->id]);
+        app(CartManager::class)->add($cart, productForCourse($course));
+        $order = app(PlaceOrder::class)->handle($cart->refresh(), $student);
+        app(RecordOrderPayment::class)->handle($order, $order->total(), 'cash', 'T2');
+
+        // ناضجة بعد أسبوعين لا الآن
+        expect(app(CreatePayout::class)->balanceFor($instructor)->minor)->toBe(0);
+
+        InstructorEarning::query()->update(['available_at' => now()->subDay()]);
+
+        expect(app(CreatePayout::class)->balanceFor($instructor->refresh())->minor)
+            ->toBe(50000);
+    });
+});
+
+it('reverses the commission when the order is refunded', function () {
+    provision()->run(function (): void {
+        $owner = User::where('role', 'owner')->firstOrFail();
+        $instructor = Instructor::create([
+            'user_id' => $owner->id, 'commission_rate' => 60, 'approved_at' => now(),
+        ]);
+
+        $student = seedStudent();
+        $cart = makeCart();
+        $cart->forceFill(['user_id' => $student->id])->save();
+        $course = seedCourse(['enrollment_type' => 'paid', 'price_minor' => 100000, 'instructor_id' => $instructor->id]);
+        app(CartManager::class)->add($cart, productForCourse($course));
+        $order = app(PlaceOrder::class)->handle($cart->refresh(), $student);
+        app(RecordOrderPayment::class)->handle($order, $order->total(), 'cash', 'T3');
+
+        app(RefundOrder::class)->approve(app(RefundOrder::class)->request($order->refresh(), $student));
+
+        expect(InstructorEarning::first()->status)->toBe('reversed');
+    });
+});
+
+it('gathers mature earnings into one payout and refuses an empty one', function () {
+    provision()->run(function (): void {
+        $owner = User::where('role', 'owner')->firstOrFail();
+        $instructor = Instructor::create([
+            'user_id' => $owner->id, 'commission_rate' => 70, 'approved_at' => now(),
+        ]);
+
+        expect(fn () => app(CreatePayout::class)->handle($instructor, 'bank'))
+            ->toThrow(RuntimeException::class);
+
+        foreach ([30000, 20000] as $amount) {
+            InstructorEarning::create([
+                'instructor_id' => $instructor->id, 'currency' => 'EGP',
+                'amount_minor' => $amount, 'status' => 'available', 'available_at' => now()->subDay(),
+            ]);
+        }
+
+        $payout = app(CreatePayout::class)->handle($instructor, 'instapay');
+
+        expect($payout->amount_minor)->toBe(50000)
+            ->and(InstructorEarning::where('status', 'paid')->count())->toBe(2);
+    });
+});
+
+it('nets a reversal off the next payout instead of overpaying', function () {
+    provision()->run(function (): void {
+        $owner = User::where('role', 'owner')->firstOrFail();
+        $instructor = Instructor::create([
+            'user_id' => $owner->id, 'commission_rate' => 70, 'approved_at' => now(),
+        ]);
+
+        InstructorEarning::create([
+            'instructor_id' => $instructor->id, 'currency' => 'EGP',
+            'amount_minor' => 50000, 'status' => 'available', 'available_at' => now()->subDay(),
+        ]);
+
+        InstructorEarning::create([
+            'instructor_id' => $instructor->id, 'currency' => 'EGP',
+            'amount_minor' => -20000, 'status' => 'available', 'available_at' => now()->subDay(),
+        ]);
+
+        expect(app(CreatePayout::class)->handle($instructor, 'bank')->amount_minor)
+            ->toBe(30000);
     });
 });
