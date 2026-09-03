@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core\Admin\Resources\Lms;
 
+use App\Core\Access\Ability;
+use App\Core\Access\Scope;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\DateColumn;
 use App\Core\Admin\Columns\NumberColumn;
@@ -16,6 +18,7 @@ use App\Core\Admin\Fields\TextField;
 use App\Core\Admin\Fields\TranslatableField;
 use App\Core\Admin\Filters\SelectFilter;
 use App\Core\Admin\Resource;
+use App\Models\User;
 use App\Modules\Lms\Models\Course;
 use App\Modules\Lms\Models\Instructor;
 use App\Modules\Lms\Models\Taxonomy;
@@ -24,6 +27,21 @@ use Illuminate\Database\Eloquent\Model;
 
 final class CourseResource extends Resource
 {
+    public function viewAbility(): string
+    {
+        return Ability::COURSES_VIEW;
+    }
+
+    public function manageAbility(): string
+    {
+        return Ability::COURSES_MANAGE;
+    }
+
+    public function scopeFor(Builder $query, ?User $user): Builder
+    {
+        return app(Scope::class)->byInstructor($query, $user);
+    }
+
     public function model(): string
     {
         return Course::class;

@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Access\Ability;
 use App\Http\Controllers\Admin\ResourceController;
 use App\Http\Controllers\Center\AttendanceController;
 use App\Http\Controllers\Center\FinanceController;
@@ -43,6 +44,7 @@ use App\Http\Controllers\Tenant\ImpersonationController;
 use App\Http\Controllers\Tenant\OnboardingController;
 use App\Http\Controllers\Tenant\SettingsController;
 use App\Http\Middleware\ApplyTenantTheme;
+use App\Http\Middleware\EnsureAbility;
 use App\Http\Middleware\EnsurePanelAccess;
 use App\Http\Middleware\RequireOnboarding;
 use App\Http\Middleware\TrackAffiliateReferral;
@@ -166,12 +168,12 @@ $tenantRoutes = function (): void {
 
     // اللوحة — قبل مسار الموارد، وإلا التقطها كمورد اسمه dashboard
     Route::get('/admin/dashboard', DashboardController::class)
-        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class, EnsureAbility::class.':'.Ability::DASHBOARD])
         ->name('admin.dashboard');
 
     // ---------- السنتر ----------
     Route::prefix('admin')
-        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class, EnsureAbility::class.':'.Ability::CENTER_VIEW])
         ->name('admin.center.')->group(function (): void {
             Route::get('/attendance', [AttendanceController::class, 'today'])->name('attendance');
             Route::get('/attendance/{session}', [AttendanceController::class, 'show'])->name('attendance.show');
@@ -202,7 +204,7 @@ $tenantRoutes = function (): void {
 
     // إدارة الطلبات والأكواد — قبل مسار الموارد العام
     Route::prefix('admin')
-        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class, EnsureAbility::class.':'.Ability::ORDERS_MANAGE])
         ->name('admin.commerce.')->group(function (): void {
             Route::get('/orders/{id}', [AdminOrderController::class, 'show'])->name('order');
             Route::post('/orders/{id}/pay', [AdminOrderController::class, 'pay'])->name('order.pay');
@@ -217,7 +219,7 @@ $tenantRoutes = function (): void {
 
     // طاولة التصحيح
     Route::prefix('admin/grading')
-        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class, EnsureAbility::class.':'.Ability::GRADING])
         ->name('admin.grading.')->group(function (): void {
             Route::get('/', [GradingController::class, 'index'])->name('index');
             Route::get('/attempts/{attempt}', [GradingController::class, 'attempt'])->name('attempt');
@@ -228,7 +230,7 @@ $tenantRoutes = function (): void {
 
     // باني المنهج — قبل مسار الموارد العام
     Route::prefix('admin/courses/{course}')
-        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class, EnsureAbility::class.':'.Ability::CURRICULUM_MANAGE])
         ->name('admin.curriculum.')->group(function (): void {
             Route::get('/curriculum', [CurriculumController::class, 'show'])->name('show');
             Route::post('/sections', [CurriculumController::class, 'addSection'])->name('sections.store');
@@ -241,12 +243,12 @@ $tenantRoutes = function (): void {
 
     // الاشتراك والفواتير
     Route::get('/admin/billing', BillingController::class)
-        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class, EnsureAbility::class.':'.Ability::BILLING_MANAGE])
         ->name('admin.billing');
 
     // الإعدادات — قبل مسار الموارد
     Route::prefix('admin/settings')
-        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class, EnsureAbility::class.':'.Ability::SETTINGS_MANAGE.','.Ability::BILLING_MANAGE.','.Ability::APPEARANCE_MANAGE.','.Ability::MODULES_MANAGE.','.Ability::NOTIFICATIONS_MANAGE.','.Ability::AFFILIATES_MANAGE.','.Ability::GAMIFICATION_MANAGE])
         ->name('admin.settings.')->group(function (): void {
             Route::get('/', [SettingsController::class, 'index'])->name('index');
             Route::get('/{group}', [SettingsController::class, 'show'])->name('show');
@@ -257,20 +259,26 @@ $tenantRoutes = function (): void {
     Route::prefix('admin')
         ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
         ->name('admin.')->group(function (): void {
-            Route::get('/page-builder', [PageBuilderController::class, 'index'])->name('page-builder.index');
-            Route::post('/page-builder', [PageBuilderController::class, 'store'])->name('page-builder.store');
-            Route::get('/page-builder/{id}', [PageBuilderController::class, 'edit'])->name('page-builder.edit');
-            Route::put('/page-builder/{id}', [PageBuilderController::class, 'update'])->name('page-builder.update');
+            Route::middleware(EnsureAbility::class.':'.Ability::CONTENT_MANAGE)->group(function (): void {
+                Route::get('/page-builder', [PageBuilderController::class, 'index'])->name('page-builder.index');
+                Route::post('/page-builder', [PageBuilderController::class, 'store'])->name('page-builder.store');
+                Route::get('/page-builder/{id}', [PageBuilderController::class, 'edit'])->name('page-builder.edit');
+                Route::put('/page-builder/{id}', [PageBuilderController::class, 'update'])->name('page-builder.update');
 
-            Route::get('/media', [MediaController::class, 'index'])->name('media.index');
-            Route::post('/media', [MediaController::class, 'store'])->name('media.store');
-            Route::put('/media/{id}', [MediaController::class, 'update'])->name('media.update');
-            Route::delete('/media/{id}', [MediaController::class, 'destroy'])->name('media.destroy');
+                Route::put('/page-builder/{id}', [PageBuilderController::class, 'update'])->name('page-builder.update');
+            });
+
+            Route::middleware(EnsureAbility::class.':'.Ability::MEDIA_MANAGE)->group(function (): void {
+                Route::get('/media', [MediaController::class, 'index'])->name('media.index');
+                Route::post('/media', [MediaController::class, 'store'])->name('media.store');
+                Route::put('/media/{id}', [MediaController::class, 'update'])->name('media.update');
+                Route::delete('/media/{id}', [MediaController::class, 'destroy'])->name('media.destroy');
+            });
         });
 
     // التقارير — قبل مسار الموارد العام
     Route::prefix('admin/reports')
-        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class, EnsureAbility::class.':'.Ability::REPORTS_VIEW])
         ->name('admin.reports.')->group(function (): void {
             Route::get('/', [ReportController::class, 'index'])->name('index');
             Route::get('/export', [ReportController::class, 'export'])->name('export');
@@ -280,19 +288,23 @@ $tenantRoutes = function (): void {
     Route::prefix('admin')
         ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
         ->name('admin.')->group(function (): void {
-            Route::get('/affiliates', [AffiliateController::class, 'index'])->name('affiliates.index');
-            Route::put('/affiliates/{id}', [AffiliateController::class, 'update'])->name('affiliates.update');
-            Route::put('/affiliate-conversions/{id}/reject', [AffiliateController::class, 'rejectConversion'])->name('affiliates.reject');
+            Route::middleware(EnsureAbility::class.':'.Ability::AFFILIATES_MANAGE)->group(function (): void {
+                Route::get('/affiliates', [AffiliateController::class, 'index'])->name('affiliates.index');
+                Route::put('/affiliates/{id}', [AffiliateController::class, 'update'])->name('affiliates.update');
+                Route::put('/affiliate-conversions/{id}/reject', [AffiliateController::class, 'rejectConversion'])->name('affiliates.reject');
+            });
 
-            Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
-            Route::post('/campaigns', [CampaignController::class, 'store'])->name('campaigns.store');
-            Route::get('/campaigns/{id}', [CampaignController::class, 'edit'])->name('campaigns.edit');
-            Route::put('/campaigns/{id}', [CampaignController::class, 'update'])->name('campaigns.update');
+            Route::middleware(EnsureAbility::class.':'.Ability::CAMPAIGNS_MANAGE)->group(function (): void {
+                Route::get('/campaigns', [CampaignController::class, 'index'])->name('campaigns.index');
+                Route::post('/campaigns', [CampaignController::class, 'store'])->name('campaigns.store');
+                Route::get('/campaigns/{id}', [CampaignController::class, 'edit'])->name('campaigns.edit');
+                Route::put('/campaigns/{id}', [CampaignController::class, 'update'])->name('campaigns.update');
+            });
         });
 
     // مراجعة التقييمات — قبل مسار الموارد العام
     Route::prefix('admin/reviews')
-        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class, EnsureAbility::class.':'.Ability::REVIEWS_MODERATE])
         ->name('admin.reviews.')->group(function (): void {
             Route::get('/', [ReviewController::class, 'queue'])->name('queue');
             Route::put('/{type}/{id}', [ReviewController::class, 'moderate'])->name('moderate');
@@ -300,7 +312,7 @@ $tenantRoutes = function (): void {
 
     // الإشعارات: المصفوفة والقوالب والسجلّ — قبل مسار الموارد العام
     Route::prefix('admin/notifications')
-        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class, EnsureAbility::class.':'.Ability::NOTIFICATIONS_MANAGE])
         ->name('admin.notifications.')->group(function (): void {
             Route::get('/', [NotificationAdminController::class, 'matrix'])->name('matrix');
             Route::put('/', [NotificationAdminController::class, 'saveMatrix'])->name('matrix.save');

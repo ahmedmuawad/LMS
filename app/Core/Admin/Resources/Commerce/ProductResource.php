@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Admin\Resources\Commerce;
 
+use App\Core\Access\Ability;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\NumberColumn;
 use App\Core\Admin\Columns\TextColumn;
@@ -20,6 +21,11 @@ use Illuminate\Contracts\Database\Eloquent\Builder;
 
 final class ProductResource extends Resource
 {
+    public function viewAbility(): string
+    {
+        return Ability::PRODUCTS_MANAGE;
+    }
+
     public function model(): string
     {
         return Product::class;

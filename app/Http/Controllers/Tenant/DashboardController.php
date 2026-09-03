@@ -32,7 +32,7 @@ final class DashboardController
             'plan' => Plan::find($tenant->plan_key),
             'usage' => $this->usage(),
             'byRole' => $byRole,
-            'staff' => $byRole->only(User::PANEL_ROLES)->sum(),
+            'staff' => $byRole->only(User::panelRoles())->sum(),
             'students' => (int) ($byRole['student'] ?? 0),
             'modules' => DB::table('modules')->where('enabled', true)->pluck('key'),
         ]);

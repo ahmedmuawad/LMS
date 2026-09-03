@@ -8,6 +8,7 @@ use App\Core\Billing\Actions\StartSubscription;
 use App\Core\Entitlements\Models\Plan;
 use App\Core\Tenancy\Models\Domain;
 use App\Core\Tenancy\Models\Tenant;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -133,13 +134,26 @@ final class ProvisionTenant
      */
     private function currencyFor(string $country): string
     {
-        return DB::table('countries')->where('code', $country)->value('currency')
+        return $this->reference('countries')->where('code', $country)->value('currency')
             ?? (string) config('money.default', 'EGP');
     }
 
     private function timezoneFor(string $country): string
     {
-        return DB::table('countries')->where('code', $country)->value('timezone_default')
+        return $this->reference('countries')->where('code', $country)->value('timezone_default')
             ?? (string) config('app.timezone', 'UTC');
+    }
+
+    /**
+     * جدول مرجعي مركزي — بالاتصال المركزي صراحةً.
+     *
+     * `DB::table()` تستعمل الاتصال الافتراضي، وهو اتصال المشترك حين
+     * يكون سياقه مهيّأً. وتجهيزُ مشترك من داخل سياق مشترك آخر —
+     * وهو ما يحدث في اللوحة العليا وفي البذور — كان يسأل قاعدةً
+     * لا وجود لجدول الدول فيها.
+     */
+    private function reference(string $table): Builder
+    {
+        return DB::connection(config('tenancy.database.central_connection'))->table($table);
     }
 }

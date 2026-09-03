@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Settings\Groups;
 
+use App\Core\Access\Ability;
 use App\Core\Admin\Fields\NumberField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
@@ -36,6 +37,11 @@ final class GrowthSettings extends SettingsGroup
     public function description(): ?string
     {
         return __('التسويق بالعمولة والتسلسلات التسويقية ومُطلِقاتها.');
+    }
+
+    public function ability(): string
+    {
+        return Ability::AFFILIATES_MANAGE;
     }
 
     public function sections(): array

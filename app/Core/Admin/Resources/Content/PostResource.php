@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Admin\Resources\Content;
 
+use App\Core\Access\Ability;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\DateColumn;
 use App\Core\Admin\Columns\NumberColumn;
@@ -21,6 +22,11 @@ use Illuminate\Contracts\Database\Eloquent\Builder;
 
 final class PostResource extends Resource
 {
+    public function viewAbility(): string
+    {
+        return Ability::CONTENT_MANAGE;
+    }
+
     public function model(): string
     {
         return Post::class;

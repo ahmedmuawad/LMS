@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Settings\Groups;
 
+use App\Core\Access\Ability;
 use App\Core\Admin\Fields\NumberField;
 use App\Core\Admin\Fields\PasswordField;
 use App\Core\Admin\Fields\Section;
@@ -32,6 +33,11 @@ final class NotificationSettings extends SettingsGroup
     public function description(): ?string
     {
         return __('مزوّدو القنوات ومفاتيحهم. مصفوفة الأحداث لها شاشتها المستقلة.');
+    }
+
+    public function ability(): string
+    {
+        return Ability::NOTIFICATIONS_MANAGE;
     }
 
     public function sections(): array

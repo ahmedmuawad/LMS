@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Core\Admin;
 
+use App\Core\Access\Roles;
 use App\Core\Tenancy\Models\Tenant;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -39,6 +42,16 @@ final class Navigation
                     continue;
                 }
 
+                /*
+                 | ما لا يملك صلاحيته لا يُعرض له.
+                 |
+                 | لا يُعرض مقفولاً كالميزة خارج الباقة: تلك تُباع
+                 | بالترقية، وهذه ليست له أصلاً — وعرضها إغراء بلا باب.
+                 */
+                if (! $this->allowsItem($item)) {
+                    continue;
+                }
+
                 $feature = $item['feature'] ?? null;
                 $locked = $feature !== null && ! $this->allows($feature);
 
@@ -63,6 +76,44 @@ final class Navigation
     public function isActive(string $key, string $currentKey): bool
     {
         return $key === $currentKey;
+    }
+
+    /**
+     * صلاحية العنصر تُشتقّ من مورده أو تُعلَن عليه صراحةً.
+     *
+     * الاشتقاق مقصود: مورد يُضاف إلى القائمة يحمل حراسته معه بلا أن
+     * يُذكر مرتين، فلا تتفرّق الحراسة عن الشاشة التي تحرسها.
+     */
+    private function allowsItem(array $item): bool
+    {
+        $user = $this->user();
+
+        if ($user === null) {
+            return true;   // السياق المركزي: حارس آخر ونموذج آخر
+        }
+
+        $ability = $item['ability'] ?? $this->abilityForResource($item['key']);
+
+        return $ability === null || $this->roles()->allows($user, $ability);
+    }
+
+    private function abilityForResource(string $key): ?string
+    {
+        $class = config('admin-resources.tenant.'.$key);
+
+        return $class === null ? null : app($class)->viewAbility();
+    }
+
+    private function user(): ?User
+    {
+        $user = $this->tenant === null ? null : Auth::user();
+
+        return $user instanceof User ? $user : null;
+    }
+
+    private function roles(): Roles
+    {
+        return app(Roles::class);
     }
 
     private function moduleEnabled(string $module): bool

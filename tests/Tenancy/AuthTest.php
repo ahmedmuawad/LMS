@@ -76,7 +76,7 @@ it('refuses the panel to a student rather than pretending the session expired', 
     $this->get($this->base.'/admin/users')->assertForbidden();
 });
 
-it('lets an instructor into the panel', function () {
+it('lets an instructor into the panel but only onto its own screens', function () {
     $instructor = $this->tenant->run(fn () => User::create([
         'name' => 'مدرّس', 'email' => 'teacher@auth.test', 'password' => 'teacher-password',
         'status' => 'active', 'role' => 'instructor',
@@ -85,7 +85,11 @@ it('lets an instructor into the panel', function () {
     tenancy()->initialize($this->tenant);
     $this->actingAs($instructor);
 
-    $this->get($this->base.'/admin/users')->assertOk();
+    // يدخل اللوحة…
+    $this->get($this->base.'/admin/dashboard')->assertOk();
+
+    // …ولا يفتح شاشة ليست له. كان هذا يُعيد 200 قبل طبقة الصلاحيات.
+    $this->get($this->base.'/admin/users')->assertForbidden();
 });
 
 it('refuses a suspended admin', function () {

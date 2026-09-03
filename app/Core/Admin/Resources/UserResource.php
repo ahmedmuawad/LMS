@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Admin\Resources;
 
+use App\Core\Access\Ability;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\BooleanColumn;
 use App\Core\Admin\Columns\DateColumn;
@@ -23,6 +24,16 @@ use App\Models\User;
  */
 final class UserResource extends Resource
 {
+    public function viewAbility(): string
+    {
+        return Ability::USERS_VIEW;
+    }
+
+    public function manageAbility(): string
+    {
+        return Ability::USERS_MANAGE;
+    }
+
     public function model(): string
     {
         return User::class;

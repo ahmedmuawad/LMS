@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Admin\Resources\Community;
 
+use App\Core\Access\Ability;
 use App\Core\Admin\Columns\BooleanColumn;
 use App\Core\Admin\Columns\NumberColumn;
 use App\Core\Admin\Columns\TextColumn;
@@ -19,6 +20,11 @@ use Illuminate\Contracts\Database\Eloquent\Builder;
 
 final class BadgeResource extends Resource
 {
+    public function viewAbility(): string
+    {
+        return Ability::GAMIFICATION_MANAGE;
+    }
+
     public function model(): string
     {
         return Badge::class;

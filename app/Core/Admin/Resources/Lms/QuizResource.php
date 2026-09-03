@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core\Admin\Resources\Lms;
 
+use App\Core\Access\Ability;
+use App\Core\Access\Scope;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\NumberColumn;
 use App\Core\Admin\Columns\TextColumn;
@@ -14,12 +16,23 @@ use App\Core\Admin\Fields\SwitchField;
 use App\Core\Admin\Fields\TranslatableField;
 use App\Core\Admin\Filters\SelectFilter;
 use App\Core\Admin\Resource;
+use App\Models\User;
 use App\Modules\Lms\Models\Quiz;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 final class QuizResource extends Resource
 {
+    public function viewAbility(): string
+    {
+        return Ability::QUIZZES_MANAGE;
+    }
+
+    public function scopeFor(Builder $query, ?User $user): Builder
+    {
+        return app(Scope::class)->byCreator($query, $user);
+    }
+
     public function model(): string
     {
         return Quiz::class;

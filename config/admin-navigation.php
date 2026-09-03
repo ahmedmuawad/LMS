@@ -13,6 +13,16 @@ declare(strict_types=1);
  | الميزة المخفية لا تُباع.
  */
 
+/*
+ | ملاحظة صيانة: كل عنصر هنا يجب أن يفتح شاشة تعمل.
+ |
+ | اختبار «لا رابط مكسور في قائمة المشترك» يطرق كل رابط في النمطين
+ | ويفشل على أول 404 — فلا يُضاف عنصر قبل شاشته، ولا تُحذف شاشة
+ | ويُترك عنصرها. العناصر المرفوعة (الحصص المباشرة · المدرّسون ·
+ | المجتمع · المظهر · الموديولات · أولياء الأمور · المخزون · SCORM)
+ | تعود مع شاشاتها.
+ */
+
 return [
 
     'groups' => [
@@ -35,10 +45,8 @@ return [
                 ['key' => 'assignments', 'label' => 'الواجبات', 'icon' => '✎', 'module' => 'assignments'],
                 ['key' => 'grading', 'label' => 'التصحيح', 'icon' => '✔', 'module' => 'lms', 'route' => 'admin.grading.index'],
                 ['key' => 'certificates', 'label' => 'الشهادات', 'icon' => '◈', 'module' => 'certificates'],
-                ['key' => 'live', 'label' => 'الحصص المباشرة', 'icon' => '◉', 'module' => 'live'],
                 ['key' => 'enrollments', 'label' => 'التسجيلات', 'icon' => '☑', 'module' => 'lms'],
                 ['key' => 'taxonomies', 'label' => 'التصنيفات', 'icon' => '◱', 'module' => 'lms'],
-                ['key' => 'standards', 'label' => 'SCORM و H5P', 'icon' => '◩', 'module' => 'lms', 'feature' => 'scorm'],
             ],
         ],
 
@@ -54,8 +62,6 @@ return [
                 ['key' => 'center-invoices', 'label' => 'فواتير السنتر', 'icon' => '◨', 'module' => 'center-finance'],
                 ['key' => 'branches', 'label' => 'الفروع', 'icon' => '⌂', 'module' => 'center'],
                 ['key' => 'rooms', 'label' => 'القاعات', 'icon' => '▢', 'module' => 'center'],
-                ['key' => 'guardians', 'label' => 'أولياء الأمور', 'icon' => '☗', 'module' => 'parent-portal'],
-                ['key' => 'inventory', 'label' => 'المخزون', 'icon' => '◰', 'module' => 'inventory'],
             ],
         ],
 
@@ -90,7 +96,6 @@ return [
             'label' => 'الناس',
             'items' => [
                 ['key' => 'users', 'label' => 'المستخدمون', 'icon' => '☺', 'module' => 'users'],
-                ['key' => 'instructors', 'label' => 'المدرّسون', 'icon' => '✦', 'module' => 'instructors', 'feature' => 'multi_instructor'],
             ],
         ],
 
@@ -99,7 +104,6 @@ return [
             'items' => [
                 ['key' => 'campaigns', 'label' => 'التسلسلات التسويقية', 'icon' => '⌄', 'module' => 'funnels', 'feature' => 'funnels', 'route' => 'admin.campaigns.index'],
                 ['key' => 'affiliates', 'label' => 'التسويق بالعمولة', 'icon' => '⇢', 'module' => 'affiliates', 'feature' => 'affiliates', 'route' => 'admin.affiliates.index'],
-                ['key' => 'community', 'label' => 'المجتمع', 'icon' => '◍', 'module' => 'community', 'feature' => 'community'],
                 ['key' => 'reviews', 'label' => 'التقييمات', 'icon' => '★', 'module' => 'reviews', 'route' => 'admin.reviews.queue'],
                 ['key' => 'badges', 'label' => 'الشارات', 'icon' => '◆', 'module' => 'gamification', 'feature' => 'gamification'],
             ],
@@ -111,8 +115,6 @@ return [
                 ['key' => 'billing', 'label' => 'الاشتراك والفواتير', 'icon' => '◨', 'route' => 'admin.billing'],
                 ['key' => 'notifications', 'label' => 'الإشعارات', 'icon' => '◔', 'route' => 'admin.notifications.matrix'],
                 ['key' => 'settings', 'label' => 'الإعدادات', 'icon' => '⚙', 'route' => 'admin.settings.index'],
-                ['key' => 'appearance', 'label' => 'المظهر والثيم', 'icon' => '◐', 'route' => 'admin.appearance'],
-                ['key' => 'modules', 'label' => 'الموديولات', 'icon' => '◱', 'route' => 'admin.modules'],
             ],
         ],
     ],

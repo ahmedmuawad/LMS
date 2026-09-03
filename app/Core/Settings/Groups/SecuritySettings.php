@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Settings\Groups;
 
+use App\Core\Access\Ability;
 use App\Core\Admin\Fields\MultiSelectField;
 use App\Core\Admin\Fields\NumberField;
 use App\Core\Admin\Fields\PasswordField;
@@ -34,6 +35,11 @@ final class SecuritySettings extends SettingsGroup
     public function description(): ?string
     {
         return __('حماية النماذج والمحتوى، وحقوق المستخدم في بياناته.');
+    }
+
+    public function ability(): string
+    {
+        return Ability::MODULES_MANAGE;
     }
 
     public function sections(): array

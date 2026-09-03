@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Admin\Resources\Central;
 
+use App\Core\Access\Ability;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\DateColumn;
 use App\Core\Admin\Columns\TextColumn;
@@ -34,6 +35,11 @@ final class TenantResource extends Resource
         'center' => 'سنتر تعليمي',
         'hybrid' => 'شامل',
     ];
+
+    public function viewAbility(): string
+    {
+        return Ability::USERS_MANAGE;
+    }
 
     public function model(): string
     {

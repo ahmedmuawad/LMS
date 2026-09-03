@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Admin\Resources\Center;
 
+use App\Core\Access\Ability;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\DateColumn;
 use App\Core\Admin\Columns\TextColumn;
@@ -15,6 +16,16 @@ use Illuminate\Database\Eloquent\Model;
 
 final class CenterInvoiceResource extends Resource
 {
+    public function viewAbility(): string
+    {
+        return Ability::FEES_COLLECT;
+    }
+
+    public function manageAbility(): string
+    {
+        return Ability::CENTER_MANAGE;
+    }
+
     public function model(): string
     {
         return Invoice::class;

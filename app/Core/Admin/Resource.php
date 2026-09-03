@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace App\Core\Admin;
 
+use App\Core\Access\Roles;
 use App\Core\Admin\Columns\Column;
 use App\Core\Admin\Fields\Field;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Filters\Filter;
+use App\Models\User;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
@@ -24,6 +27,31 @@ abstract class Resource
 {
     /** @return class-string<Model> */
     abstract public function model(): string;
+
+    /**
+     * الصلاحية اللازمة لرؤية القائمة.
+     *
+     * مجرّدة عمداً بلا قيمة افتراضية: مورد جديد لا يُعلن حراسته لا
+     * يُصرَّف أصلاً، فيستحيل أن يُضاف مورد مفتوح للجميع بالسهو.
+     */
+    abstract public function viewAbility(): string;
+
+    /** الصلاحية اللازمة للإضافة والتعديل والحذف — الافتراضي هي نفسها. */
+    public function manageAbility(): string
+    {
+        return $this->viewAbility();
+    }
+
+    /**
+     * حصر الاستعلام بما يملكه هذا المستخدم.
+     *
+     * الافتراضي «لا صفوف» للدور المحصور لا «كل الصفوف»: المورد الذي
+     * ينسى حصر نطاقه يُخفي البيانات ولا يكشفها.
+     */
+    public function scopeFor(Builder $query, ?User $user): Builder
+    {
+        return app(Roles::class)->isScoped($user) ? $query->whereRaw('1 = 0') : $query;
+    }
 
     /** @return list<Column> */
     abstract public function columns(): array;
@@ -167,6 +195,17 @@ abstract class Resource
         return $this->model()::query();
     }
 
+    /**
+     * الاستعلام كما يراه هذا المستخدم — وهو ما تستعمله كل الشاشات.
+     *
+     * يقبل أي مُصادَق: اللوحة العليا تُصادِق بنموذج آخر، ولا حصر
+     * نطاق هناك لأن حارسها الخاص هو سلطتها.
+     */
+    public function queryFor(?Authenticatable $user): Builder
+    {
+        return $this->scopeFor($this->query(), $user instanceof User ? $user : null);
+    }
+
     /** @return list<string> */
     public function searchableColumns(): array
     {
@@ -178,7 +217,7 @@ abstract class Resource
 
     public function paginate(Request $request): LengthAwarePaginator
     {
-        $query = $this->query();
+        $query = $this->queryFor($request->user());
 
         $this->applySearch($query, trim((string) $request->query('q', '')));
         $this->applyFilters($query, $request);

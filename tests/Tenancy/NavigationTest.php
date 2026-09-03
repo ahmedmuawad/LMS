@@ -45,8 +45,8 @@ it('hides what does not belong to the platform mode', function () {
     expect($solo)->toHaveKeys(['courses', 'quizzes', 'orders', 'posts'])
         ->and($solo)->not->toHaveKey('groups')        // السنتر
         ->and($solo)->not->toHaveKey('attendance')
-        ->and($solo)->not->toHaveKey('guardians')
-        ->and($solo)->not->toHaveKey('instructors');  // تعدّد المدرّسين
+        ->and($solo)->not->toHaveKey('groups')       // ليس ضمن موديولات النمط الفردي
+        ->and($solo)->not->toHaveKey('branches');
 
     tenancy()->end();
 });
@@ -54,7 +54,7 @@ it('hides what does not belong to the platform mode', function () {
 it('shows the centre group only in centre mode', function () {
     $center = navFor('center', 'center');
 
-    expect($center)->toHaveKeys(['groups', 'schedule', 'attendance', 'fees', 'guardians', 'inventory'])
+    expect($center)->toHaveKeys(['groups', 'schedule', 'attendance', 'fees', 'branches', 'rooms'])
         ->and($center)->not->toHaveKey('page-builder')   // ليس ضمن موديولات نمط السنتر
         ->and($center)->not->toHaveKey('affiliates');
 
@@ -63,22 +63,21 @@ it('shows the centre group only in centre mode', function () {
 
 it('shows a feature outside the plan as locked, not hidden', function () {
     // الميزة المخفية لا تُباع: تظهر بقفل وبلا رابط
-    $market = navFor('marketplace', 'growth');
+    $starter = navFor('marketplace', 'starter');
 
-    expect($market)->toHaveKey('standards')
-        ->and($market['standards']['locked'])->toBeTrue()
-        ->and($market['standards']['url'])->toBeNull()
-        ->and($market['standards']['feature'])->toBe('scorm');
+    expect($starter)->toHaveKey('badges')
+        ->and($starter['badges']['locked'])->toBeTrue()
+        ->and($starter['badges']['url'])->toBeNull()
+        ->and($starter['badges']['feature'])->toBe('gamification');
 
     tenancy()->end();
 });
 
 it('unlocks the same item on a plan that grants it', function () {
-    $pro = navFor('hybrid', 'professional');
+    $pro = navFor('marketplace', 'growth');
 
-    expect($pro['standards']['locked'])->toBeFalse()
-        ->and($pro['standards']['url'])->not->toBeNull()
-        ->and($pro['services']['locked'])->toBeFalse();
+    expect($pro['badges']['locked'])->toBeFalse()
+        ->and($pro['badges']['url'])->not->toBeNull();
 
     tenancy()->end();
 });
@@ -100,12 +99,12 @@ it('reflects a mode change in the navigation immediately', function () {
 });
 
 it('renders the locked item with a lock and an explanation', function () {
-    $tenant = provision(['platform_mode' => 'marketplace', 'plan_key' => 'growth']);
+    $tenant = provision(['platform_mode' => 'marketplace', 'plan_key' => 'starter']);
     actingAsOwner($tenant);
 
     $this->get('http://'.$tenant->domains->first()->domain.'/admin/users')
         ->assertOk()
-        ->assertSee('SCORM و H5P', false)
+        ->assertSee('الشارات', false)
         ->assertSee('غير متاح في باقتك الحالية', false)
         ->assertSee('cursor-not-allowed', false);
 

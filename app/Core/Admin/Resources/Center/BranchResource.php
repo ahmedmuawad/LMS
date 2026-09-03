@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Admin\Resources\Center;
 
+use App\Core\Access\Ability;
 use App\Core\Admin\Columns\BooleanColumn;
 use App\Core\Admin\Columns\TextColumn;
 use App\Core\Admin\Fields\Section;
@@ -19,6 +20,11 @@ use Illuminate\Contracts\Database\Eloquent\Builder;
 
 final class BranchResource extends Resource
 {
+    public function viewAbility(): string
+    {
+        return Ability::CENTER_MANAGE;
+    }
+
     public function model(): string
     {
         return Branch::class;

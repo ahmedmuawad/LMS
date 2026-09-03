@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Lms\Models;
 
 use App\Core\Support\Concerns\HasTranslations;
+use App\Core\Support\Concerns\TracksCreator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 final class Question extends Model
 {
     use HasTranslations;
+    use TracksCreator;
 
     public const TYPES = [
         'single_choice' => 'اختيار واحد',

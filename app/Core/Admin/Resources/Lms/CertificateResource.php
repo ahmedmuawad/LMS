@@ -4,16 +4,34 @@ declare(strict_types=1);
 
 namespace App\Core\Admin\Resources\Lms;
 
+use App\Core\Access\Ability;
+use App\Core\Access\Scope;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\DateColumn;
 use App\Core\Admin\Columns\TextColumn;
 use App\Core\Admin\Resource;
+use App\Models\User;
 use App\Modules\Lms\Models\Certificate;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 final class CertificateResource extends Resource
 {
+    public function viewAbility(): string
+    {
+        return Ability::CERTIFICATES_VIEW;
+    }
+
+    public function manageAbility(): string
+    {
+        return Ability::CERTIFICATES_MANAGE;
+    }
+
+    public function scopeFor(Builder $query, ?User $user): Builder
+    {
+        return app(Scope::class)->byCourse($query, $user);
+    }
+
     public function model(): string
     {
         return Certificate::class;

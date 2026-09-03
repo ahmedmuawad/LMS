@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Core\Access\Roles;
 use App\Modules\Gamification\Models\Badge;
 use App\Modules\Gamification\Models\LearningStreak;
 use Database\Factories\UserFactory;
@@ -28,12 +29,36 @@ class User extends Authenticatable
 
     protected $hidden = ['password', 'remember_token'];
 
-    /** الأدوار التي تفتح لوحة التحكم — الطالب وولي الأمر لهما بواباتهما. */
-    public const PANEL_ROLES = ['owner', 'admin', 'instructor', 'staff'];
+    /**
+     * الأدوار التي تفتح اللوحة — تُقرأ من config لا تُكرّر هنا.
+     *
+     * @return list<string>
+     */
+    public static function panelRoles(): array
+    {
+        return (array) config('roles.panel', []);
+    }
 
     public function canAccessPanel(): bool
     {
-        return $this->status === 'active' && in_array($this->role, self::PANEL_ROLES, true);
+        return app(Roles::class)->mayEnterPanel($this);
+    }
+
+    /** هل يملك هذه الصلاحية؟ المصدر واحد لكل حراسة في المشروع. */
+    public function allows(string $ability): bool
+    {
+        return app(Roles::class)->allows($this, $ability);
+    }
+
+    /** الدور المحصور يرى ما يملكه وحده. */
+    public function isScoped(): bool
+    {
+        return app(Roles::class)->isScoped($this);
+    }
+
+    public function roleLabel(): string
+    {
+        return app(Roles::class)->label((string) $this->role);
     }
 
     public function isOwner(): bool

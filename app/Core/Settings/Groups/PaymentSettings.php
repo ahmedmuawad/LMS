@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Settings\Groups;
 
+use App\Core\Access\Ability;
 use App\Core\Admin\Fields\Field;
 use App\Core\Admin\Fields\MultiSelectField;
 use App\Core\Admin\Fields\NumberField;
@@ -40,6 +41,11 @@ final class PaymentSettings extends SettingsGroup
     public function description(): ?string
     {
         return __('بوابات الدفع ومفاتيحها وحدودها. المفاتيح تُخزَّن مشفّرة.');
+    }
+
+    public function ability(): string
+    {
+        return Ability::BILLING_MANAGE;
     }
 
     public function sections(): array

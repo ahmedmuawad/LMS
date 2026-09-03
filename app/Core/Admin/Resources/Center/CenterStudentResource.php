@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Admin\Resources\Center;
 
+use App\Core\Access\Ability;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\TextColumn;
 use App\Core\Admin\Filters\SelectFilter;
@@ -16,6 +17,16 @@ use Illuminate\Database\Eloquent\Model;
 
 final class CenterStudentResource extends Resource
 {
+    public function viewAbility(): string
+    {
+        return Ability::CENTER_VIEW;
+    }
+
+    public function manageAbility(): string
+    {
+        return Ability::CENTER_MANAGE;
+    }
+
     public function model(): string
     {
         return Student::class;

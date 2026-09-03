@@ -173,7 +173,7 @@ final class TenantController
                 $byRole = User::query()->selectRaw('role, count(*) as total')->groupBy('role')->pluck('total', 'role');
 
                 return [
-                    'staff' => User::whereIn('role', User::PANEL_ROLES)->orderByRaw("role = 'owner' desc")->limit(10)->get(),
+                    'staff' => User::whereIn('role', User::panelRoles())->orderByRaw("role = 'owner' desc")->limit(10)->get(),
                     'students' => (int) ($byRole['student'] ?? 0),
                     'total' => (int) $byRole->sum(),
                 ];

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core\Admin\Resources\Services;
 
+use App\Core\Access\Ability;
+use App\Core\Access\Roles;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\NumberColumn;
 use App\Core\Admin\Columns\TextColumn;
@@ -15,12 +17,36 @@ use App\Core\Admin\Fields\TextField;
 use App\Core\Admin\Fields\TranslatableField;
 use App\Core\Admin\Filters\SelectFilter;
 use App\Core\Admin\Resource;
+use App\Models\User;
 use App\Modules\Lms\Models\Taxonomy;
 use App\Modules\Services\Models\Service;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 
 final class ServiceResource extends Resource
 {
+    public function viewAbility(): string
+    {
+        return Ability::SERVICES_MANAGE;
+    }
+
+    /**
+     * المدرّس يرى الخدمات التي هو أحد مقدّميها.
+     *
+     * الملكية هنا علاقة لا عمود، فالحصر بـ`whereHas` لا بـ`where` —
+     * ومقدّم واحد قد يشارك في خدمة يديرها غيره.
+     */
+    public function scopeFor(Builder $query, ?User $user): Builder
+    {
+        if (! app(Roles::class)->isScoped($user)) {
+            return $query;
+        }
+
+        return $query->whereHas(
+            'providers',
+            fn ($q) => $q->where('user_id', $user?->getKey())->where('is_active', true),
+        );
+    }
+
     public function model(): string
     {
         return Service::class;

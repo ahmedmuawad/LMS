@@ -4,16 +4,34 @@ declare(strict_types=1);
 
 namespace App\Core\Admin\Resources\Commerce;
 
+use App\Core\Access\Ability;
+use App\Core\Access\Scope;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\DateColumn;
 use App\Core\Admin\Columns\TextColumn;
 use App\Core\Admin\Filters\SelectFilter;
 use App\Core\Admin\Resource;
+use App\Models\User;
 use App\Modules\Commerce\Models\Payout;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 
 final class PayoutResource extends Resource
 {
+    public function viewAbility(): string
+    {
+        return Ability::PAYOUTS_VIEW;
+    }
+
+    public function manageAbility(): string
+    {
+        return Ability::PAYOUTS_MANAGE;
+    }
+
+    public function scopeFor(Builder $query, ?User $user): Builder
+    {
+        return app(Scope::class)->byInstructor($query, $user);
+    }
+
     public function model(): string
     {
         return Payout::class;

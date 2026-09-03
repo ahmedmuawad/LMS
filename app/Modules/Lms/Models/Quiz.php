@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Lms\Models;
 
 use App\Core\Support\Concerns\HasTranslations;
+use App\Core\Support\Concerns\TracksCreator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,6 +15,7 @@ use Illuminate\Support\Collection;
 final class Quiz extends Model
 {
     use HasTranslations;
+    use TracksCreator;
 
     protected $guarded = [];
 

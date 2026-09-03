@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Settings\Groups;
 
+use App\Core\Access\Ability;
 use App\Core\Admin\Fields\CodeField;
 use App\Core\Admin\Fields\ColorField;
 use App\Core\Admin\Fields\Section;
@@ -33,6 +34,11 @@ final class AppearanceSettings extends SettingsGroup
     public function description(): ?string
     {
         return __('ألوان منصّتك وتخطيطها. كل لون يُفحص تباينه قبل الحفظ.');
+    }
+
+    public function ability(): string
+    {
+        return Ability::APPEARANCE_MANAGE;
     }
 
     public function sections(): array

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Lms\Models;
 
 use App\Core\Support\Concerns\HasTranslations;
+use App\Core\Support\Concerns\TracksCreator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -13,6 +14,7 @@ use Illuminate\Support\Carbon;
 final class Assignment extends Model
 {
     use HasTranslations;
+    use TracksCreator;
 
     protected $guarded = [];
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Admin\Resources\Central;
 
+use App\Core\Access\Ability;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\DateColumn;
 use App\Core\Admin\Columns\TextColumn;
@@ -15,6 +16,11 @@ use Illuminate\Database\Eloquent\Model;
 
 final class InvoiceResource extends Resource
 {
+    public function viewAbility(): string
+    {
+        return Ability::BILLING_MANAGE;
+    }
+
     public function model(): string
     {
         return Invoice::class;

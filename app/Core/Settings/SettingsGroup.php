@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Settings;
 
+use App\Core\Access\Ability;
 use App\Core\Admin\Fields\Field;
 use App\Core\Admin\Fields\Section;
 
@@ -30,6 +31,17 @@ abstract class SettingsGroup
     }
 
     /** موديول يجب أن يكون مفعّلاً حتى تظهر الشاشة — null تعني: تظهر دائماً. */
+    /**
+     * الصلاحية اللازمة لفتح هذه المجموعة.
+     *
+     * الافتراضي `settings.manage`، وتُشدّد المجموعات الحسّاسة:
+     * موظّف يفتح مفاتيح بوابة الدفع يستطيع تحويل دخل المنصّة.
+     */
+    public function ability(): string
+    {
+        return Ability::SETTINGS_MANAGE;
+    }
+
     public function module(): ?string
     {
         return null;

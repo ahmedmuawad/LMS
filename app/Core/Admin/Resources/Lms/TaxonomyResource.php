@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Admin\Resources\Lms;
 
+use App\Core\Access\Ability;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\TextColumn;
 use App\Core\Admin\Fields\NumberField;
@@ -18,6 +19,11 @@ use Illuminate\Contracts\Database\Eloquent\Builder;
 
 final class TaxonomyResource extends Resource
 {
+    public function viewAbility(): string
+    {
+        return Ability::TAXONOMIES_MANAGE;
+    }
+
     public function model(): string
     {
         return Taxonomy::class;

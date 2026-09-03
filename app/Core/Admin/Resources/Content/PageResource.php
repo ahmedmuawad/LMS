@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Admin\Resources\Content;
 
+use App\Core\Access\Ability;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\BooleanColumn;
 use App\Core\Admin\Columns\DateColumn;
@@ -20,6 +21,11 @@ use Illuminate\Database\Eloquent\Model;
 
 final class PageResource extends Resource
 {
+    public function viewAbility(): string
+    {
+        return Ability::CONTENT_MANAGE;
+    }
+
     public function model(): string
     {
         return Page::class;

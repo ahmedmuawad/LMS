@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core\Admin\Resources\Services;
 
+use App\Core\Access\Ability;
+use App\Core\Access\Roles;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\DateColumn;
 use App\Core\Admin\Columns\TextColumn;
@@ -13,6 +15,7 @@ use App\Core\Admin\Fields\TextareaField;
 use App\Core\Admin\Fields\TextField;
 use App\Core\Admin\Filters\SelectFilter;
 use App\Core\Admin\Resource;
+use App\Models\User;
 use App\Modules\Services\Models\Booking;
 use App\Modules\Services\Models\Service;
 use Illuminate\Contracts\Database\Eloquent\Builder;
@@ -20,6 +23,21 @@ use Illuminate\Database\Eloquent\Model;
 
 final class BookingResource extends Resource
 {
+    public function viewAbility(): string
+    {
+        return Ability::BOOKINGS_MANAGE;
+    }
+
+    /** المدرّس يرى حجوزات الخدمات التي يقدّمها هو. */
+    public function scopeFor(Builder $query, ?User $user): Builder
+    {
+        if (! app(Roles::class)->isScoped($user)) {
+            return $query;
+        }
+
+        return $query->whereHas('provider', fn ($q) => $q->where('user_id', $user?->getKey()));
+    }
+
     public function model(): string
     {
         return Booking::class;
