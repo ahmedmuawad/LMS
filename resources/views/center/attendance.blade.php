@@ -1,0 +1,128 @@
+@php
+    use App\Modules\Center\Models\Attendance;
+    $tones = ['present' => 'success', 'absent' => 'danger', 'late' => 'warning', 'excused' => 'info', 'online' => 'primary'];
+@endphp
+
+<x-layouts.admin :title="__('حضور :group', ['group' => $session->group?->name])" current="attendance">
+<div class="max-w-[1000px]"
+     x-data="attendanceSheet({
+        url: @js(url('/admin/attendance/'.$session->id.'/mark')),
+        token: @js(csrf_token()),
+     })">
+
+    <x-ui.page-header :title="$session->group?->name"
+                      :subtitle="$session->date?->translatedFormat('l j F').' · '.$session->timeLabel().' · '.($session->room?->name ?? '—')"
+                      :back="url('/admin/attendance?date='.$session->date?->toDateString())">
+        <x-slot:actions>
+            @if($session->attendanceTaken())
+                <x-ui.badge tone="success">{{ __('سُجّل') }}</x-ui.badge>
+            @endif
+        </x-slot:actions>
+    </x-ui.page-header>
+
+    {{-- المسح السريع: الكارنيه أو الكود، بلا إعادة تحميل --}}
+    <x-ui.card :title="__('تسجيل سريع')" :subtitle="__('امسح الكارنيه أو اكتب كود الطالب واضغط Enter.')" class="mb-4">
+        <form @submit.prevent="scan()" class="flex items-end gap-2">
+            <x-ui.field :label="__('كود الطالب')" for="scan" class="mb-0 flex-1">
+                <x-ui.input id="scan" x-model="code" x-ref="scan" autofocus autocomplete="off"
+                            class="font-mono text-lg tracking-wider" placeholder="ST00001" />
+            </x-ui.field>
+            <x-ui.button type="submit" size="lg" class="shrink-0">{{ __('تسجيل') }}</x-ui.button>
+        </form>
+
+        <p x-show="message" x-cloak class="mt-3 text-sm rounded-md px-3 py-2"
+           :class="ok ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'"
+           x-text="message" role="status" aria-live="polite"></p>
+    </x-ui.card>
+
+    <form method="POST" action="{{ url('/admin/attendance/'.$session->id) }}">
+        @csrf
+
+        <x-ui.card :title="__('كشف الحضور')"
+                   :subtitle="__('الافتراضي حاضر — علّم الغائبين وحدهم ثم احفظ.')" :padding="false">
+            @if($students->isEmpty())
+                <div class="p-5">
+                    <x-ui.empty :title="__('لا طلاب في هذه المجموعة')">
+                        {{ __('سجّل طلاباً في المجموعة أولاً.') }}
+                    </x-ui.empty>
+                </div>
+            @else
+                <ul class="divide-y divide-[var(--color-line)]">
+                    @foreach($students as $student)
+                        @php $current = $existing[$student->id] ?? 'present'; @endphp
+                        <li class="p-3 sm:p-4 flex flex-wrap items-center gap-3"
+                            :class="marked[{{ $student->id }}] ? 'bg-success-subtle' : ''">
+                            <x-ui.avatar :name="$student->name()" size="sm" class="shrink-0" />
+
+                            <span class="min-w-0 flex-1">
+                                <span class="block text-sm font-medium truncate">{{ $student->name() }}</span>
+                                <span class="block text-2xs text-subtle font-mono">{{ $student->code }}</span>
+                            </span>
+
+                            {{-- خمسة أزرار لا تسع 320px بجوار الاسم؛ تنزل سطراً كاملاً --}}
+                            <div class="flex flex-wrap gap-1 w-full sm:w-auto sm:shrink-0 min-w-0" role="radiogroup"
+                                 aria-label="{{ __('حالة :name', ['name' => $student->name()]) }}">
+                                @foreach(Attendance::STATUSES as $value => $label)
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="status[{{ $student->id }}]" value="{{ $value }}"
+                                               @checked($current === $value) class="peer sr-only">
+                                        <span @class([
+                                            'block px-3 py-2 rounded-md text-xs font-semibold border transition-colors select-none',
+                                            'border-line-strong text-muted hover:bg-surface-sunken',
+                                            'peer-checked:bg-'.$tones[$value].'-subtle',
+                                            'peer-checked:text-'.$tones[$value],
+                                            'peer-checked:border-'.$tones[$value],
+                                        ])>{{ __($label) }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </x-ui.card>
+
+        <div class="sticky bottom-0 -mx-4 sm:-mx-6 mt-4 px-4 sm:px-6 py-3 bg-surface/95 backdrop-blur border-t border-line
+                    flex flex-wrap items-center gap-3">
+            <x-ui.button type="submit" size="lg">{{ __('حفظ الكشف') }}</x-ui.button>
+            <p class="text-2xs text-subtle">
+                {{ __('سيُخطَر أولياء أمور الغائبين إن كان الإشعار مفعّلاً.') }}
+            </p>
+        </div>
+    </form>
+</div>
+
+@push('scripts')
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('attendanceSheet', (config) => ({
+            code: '',
+            message: '',
+            ok: false,
+            marked: {},
+            async scan() {
+                if (! this.code.trim()) return;
+                try {
+                    const response = await fetch(config.url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': config.token, 'Accept': 'application/json' },
+                        body: JSON.stringify({ code: this.code, method: 'qr' }),
+                    });
+                    const data = await response.json();
+                    this.ok = data.ok === true;
+                    this.message = this.ok
+                        ? `${data.name} — ${data.status === 'late' ? 'متأخر ' + data.late + ' دقيقة' : 'حاضر'}`
+                        : data.message;
+                    if (this.ok) this.marked[data.student_id] = true;
+                } catch (e) {
+                    this.ok = false;
+                    this.message = 'تعذّر الاتصال — أعد المحاولة.';
+                }
+                this.code = '';
+                this.$refs.scan.focus();
+            },
+        }));
+    });
+</script>
+@endpush
+</x-layouts.admin>

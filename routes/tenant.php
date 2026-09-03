@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\ResourceController;
+use App\Http\Controllers\Center\AttendanceController;
+use App\Http\Controllers\Center\FinanceController;
+use App\Http\Controllers\Center\GuardianPortalController;
+use App\Http\Controllers\Center\ScheduleController;
+use App\Http\Controllers\Center\StudentFileController;
 use App\Http\Controllers\Commerce\AdminOrderController;
 use App\Http\Controllers\Commerce\CartController;
 use App\Http\Controllers\Commerce\CheckoutController;
@@ -99,6 +104,37 @@ $tenantRoutes = function (): void {
     Route::get('/admin/dashboard', DashboardController::class)
         ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
         ->name('admin.dashboard');
+
+    // ---------- السنتر ----------
+    Route::prefix('admin')
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->name('admin.center.')->group(function (): void {
+            Route::get('/attendance', [AttendanceController::class, 'today'])->name('attendance');
+            Route::get('/attendance/{session}', [AttendanceController::class, 'show'])->name('attendance.show');
+            Route::post('/attendance/{session}', [AttendanceController::class, 'store'])->name('attendance.store');
+            Route::post('/attendance/{session}/mark', [AttendanceController::class, 'mark'])->name('attendance.mark');
+
+            Route::get('/schedule', [ScheduleController::class, 'week'])->name('schedule');
+            Route::post('/schedule/check', [ScheduleController::class, 'check'])->name('schedule.check');
+            Route::post('/schedule/sessions', [ScheduleController::class, 'storeSession'])->name('schedule.session');
+            Route::post('/groups/{group}/generate', [ScheduleController::class, 'generate'])->name('schedule.generate');
+            Route::put('/sessions/{session}/cancel', [ScheduleController::class, 'cancelSession'])->name('session.cancel');
+
+            Route::get('/fees', [FinanceController::class, 'arrears'])->name('arrears');
+            Route::post('/fees/collect', [FinanceController::class, 'collect'])->name('fees.collect');
+            Route::post('/groups/{group}/invoices', [FinanceController::class, 'issue'])->name('fees.issue');
+            Route::get('/cashboxes', [FinanceController::class, 'cashboxes'])->name('cashboxes');
+            Route::post('/cashboxes/{cashbox}/close', [FinanceController::class, 'close'])->name('cashboxes.close');
+
+            Route::get('/center-students/{id}', [StudentFileController::class, 'show'])->name('student');
+            Route::get('/center-students/{id}/report', [StudentFileController::class, 'monthly'])->name('student.report');
+        });
+
+    // بوابة ولي الأمر
+    Route::middleware('auth')->prefix('guardian')->name('guardian.')->group(function (): void {
+        Route::get('/', [GuardianPortalController::class, 'index'])->name('index');
+        Route::get('/children/{student}', [GuardianPortalController::class, 'child'])->name('child');
+    });
 
     // إدارة الطلبات والأكواد — قبل مسار الموارد العام
     Route::prefix('admin')

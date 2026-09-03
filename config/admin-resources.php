@@ -1,6 +1,11 @@
 <?php
 
 declare(strict_types=1);
+use App\Core\Admin\Resources\Center\BranchResource;
+use App\Core\Admin\Resources\Center\CenterInvoiceResource;
+use App\Core\Admin\Resources\Center\CenterStudentResource;
+use App\Core\Admin\Resources\Center\GroupResource;
+use App\Core\Admin\Resources\Center\RoomResource;
 use App\Core\Admin\Resources\Central\InvoiceResource;
 use App\Core\Admin\Resources\Central\SubscriptionResource;
 use App\Core\Admin\Resources\Central\TenantResource;
@@ -46,6 +51,13 @@ return [
         'recharge-codes' => RechargeCodeResource::class,
         'refunds' => RefundResource::class,
         'payouts' => PayoutResource::class,
+
+        // السنتر
+        'groups' => GroupResource::class,
+        'center-students' => CenterStudentResource::class,
+        'branches' => BranchResource::class,
+        'rooms' => RoomResource::class,
+        'center-invoices' => CenterInvoiceResource::class,
     ],
 
     // اللوحة العليا — القاعدة المركزية

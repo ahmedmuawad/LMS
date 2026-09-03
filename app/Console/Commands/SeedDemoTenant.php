@@ -8,6 +8,23 @@ use App\Core\Onboarding\OnboardingWizard;
 use App\Core\Tenancy\Actions\ProvisionTenant;
 use App\Core\Tenancy\Models\Tenant;
 use App\Models\User;
+use App\Modules\Center\Actions\CollectPayment;
+use App\Modules\Center\Actions\EnrolStudent;
+use App\Modules\Center\Actions\GenerateSessions;
+use App\Modules\Center\Actions\IssueInvoices;
+use App\Modules\Center\Actions\TakeAttendance;
+use App\Modules\Center\Models\Branch as CenterBranch;
+use App\Modules\Center\Models\Cashbox as CenterCashbox;
+use App\Modules\Center\Models\Grade as CenterGrade;
+use App\Modules\Center\Models\Group as CenterGroup;
+use App\Modules\Center\Models\Guardian as CenterGuardian;
+use App\Modules\Center\Models\Invoice as CenterInvoice;
+use App\Modules\Center\Models\Room as CenterRoom;
+use App\Modules\Center\Models\Schedule as CenterSchedule;
+use App\Modules\Center\Models\Session as CenterSession;
+use App\Modules\Center\Models\Stage as CenterStage;
+use App\Modules\Center\Models\Student as CenterStudent;
+use App\Modules\Center\Models\Subject as CenterSubject;
 use App\Modules\Lms\Actions\EnrollStudent;
 use App\Modules\Lms\Actions\TrackProgress;
 use App\Modules\Lms\Models\Course;
@@ -19,6 +36,7 @@ use App\Modules\Lms\Models\Question;
 use App\Modules\Lms\Models\Quiz;
 use App\Modules\Lms\Models\Taxonomy;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -94,6 +112,10 @@ final class SeedDemoTenant extends Command
             }
 
             $this->seedLms();
+
+            if (tenant()->managesCenter()) {
+                $this->seedCenter();
+            }
         });
 
         $this->info('تم إنشاء المشترك التجريبي.');
@@ -102,6 +124,131 @@ final class SeedDemoTenant extends Command
         $this->line('  النمط:  '.$tenant->platform_mode.' · الباقة: '.$tenant->plan_key);
 
         return self::SUCCESS;
+    }
+
+    /** سنتر بحصص وحضور وأقساط — لتُقاس عليه الشاشات بحالة حقيقية. */
+    private function seedCenter(): void
+    {
+        $branch = CenterBranch::create([
+            'name' => ['ar' => 'الفرع الرئيسي', 'en' => 'Main branch'],
+            'code' => 'MAIN', 'phone' => '0223456789', 'is_active' => true,
+        ]);
+
+        $rooms = collect(['قاعة أ', 'قاعة ب'])->map(fn (string $name): CenterRoom => CenterRoom::create([
+            'branch_id' => $branch->id, 'name' => ['ar' => $name], 'capacity' => 30,
+        ]));
+
+        $stage = CenterStage::create(['name' => ['ar' => 'ثانوي', 'en' => 'Secondary'], 'position' => 1]);
+        $grade = CenterGrade::create(['stage_id' => $stage->id, 'name' => ['ar' => 'الثالث الثانوي'], 'position' => 3]);
+
+        $cashbox = CenterCashbox::create([
+            'branch_id' => $branch->id, 'name' => ['ar' => 'خزنة الاستقبال'],
+            'currency' => 'EGP', 'opening_minor' => 0, 'balance_minor' => 0,
+        ]);
+
+        $teacher = DB::table('users')->where('role', 'owner')->value('id');
+        $subjects = ['فيزياء' => '#1F6FEB', 'كيمياء' => '#15803D', 'رياضيات' => '#B45309'];
+        $weekday = 6;
+
+        foreach ($subjects as $subjectName => $color) {
+            $subject = CenterSubject::create([
+                'name' => ['ar' => $subjectName], 'stage_id' => $stage->id, 'color' => $color,
+            ]);
+
+            $group = CenterGroup::create([
+                'branch_id' => $branch->id,
+                'subject_id' => $subject->id,
+                'grade_id' => $grade->id,
+                'teacher_id' => $teacher,
+                'name' => ['ar' => $subjectName.' ٣ث — '.CenterSchedule::WEEKDAYS[$weekday]],
+                'capacity' => 25,
+                'currency' => 'EGP',
+                'price_minor' => 40000,
+                'price_type' => 'monthly',
+                'status' => 'running',
+                'start_date' => now()->startOfMonth()->toDateString(),
+                'end_date' => now()->addMonths(3)->toDateString(),
+                'color' => $color,
+            ]);
+
+            CenterSchedule::create([
+                'group_id' => $group->id,
+                'room_id' => $rooms->random()->id,
+                'weekday' => $weekday,
+                'starts_at' => sprintf('%02d:00:00', 14 + array_search($subjectName, array_keys($subjects), true) * 2),
+                'ends_at' => sprintf('%02d:00:00', 16 + array_search($subjectName, array_keys($subjects), true) * 2),
+            ]);
+
+            app(GenerateSessions::class)->handle($group, now()->startOfWeek(Carbon::SUNDAY), now()->addWeeks(3));
+
+            $weekday = $weekday === 6 ? 1 : 3;
+        }
+
+        // طلاب بأولياء أمور وحضور وأقساط
+        $names = ['يوسف حمدي', 'سلمى أحمد', 'مازن خالد', 'ليلى سمير', 'آدم طارق', 'حبيبة وائل'];
+        $groups = CenterGroup::all();
+
+        foreach ($names as $index => $name) {
+            $user = User::create([
+                'name' => $name,
+                'email' => 'pupil'.($index + 1).'@t.test',
+                'phone' => '0102000'.str_pad((string) ($index + 1), 4, '0', STR_PAD_LEFT),
+                'password' => Hash::make('password'),
+                'role' => 'student',
+                'status' => 'active',
+                'email_verified_at' => now(),
+            ]);
+
+            $student = CenterStudent::create([
+                'user_id' => $user->id,
+                'code' => CenterStudent::nextCode(),
+                'branch_id' => $branch->id,
+                'stage_id' => $stage->id,
+                'grade_id' => $grade->id,
+                'school' => 'مدرسة النيل الثانوية',
+                'joined_at' => now()->subMonths(2)->toDateString(),
+                'status' => 'active',
+            ]);
+
+            $guardian = CenterGuardian::create([
+                'name' => 'ولي أمر '.$name,
+                'relation' => 'الأب',
+                'phone' => '0100100'.str_pad((string) ($index + 1), 4, '0', STR_PAD_LEFT),
+                'whatsapp' => '2010010'.str_pad((string) ($index + 1), 4, '0', STR_PAD_LEFT),
+            ]);
+
+            $guardian->students()->attach($student->id, ['is_primary' => true]);
+
+            foreach ($groups->random(min(2, $groups->count())) as $group) {
+                app(EnrolStudent::class)->handle($student, $group->refresh());
+            }
+        }
+
+        foreach ($groups as $group) {
+            app(IssueInvoices::class)->handle($group, now()->format('Y-m'));
+        }
+
+        // حضور الحصص الماضية
+        foreach (CenterSession::whereDate('date', '<', now())->get() as $session) {
+            $statuses = [];
+
+            foreach ($session->group->enrollments()->active()->pluck('student_id') as $studentId) {
+                $statuses[$studentId] = random_int(1, 10) > 8 ? 'absent' : 'present';
+            }
+
+            app(TakeAttendance::class)->handle($session, $statuses);
+        }
+
+        // بعض التحصيل حتى تظهر الخزنة والمتأخرات معاً
+        foreach (CenterInvoice::limit(4)->get() as $invoice) {
+            app(CollectPayment::class)->handle(
+                $invoice->student,
+                $invoice->total(),
+                $invoice,
+                $cashbox,
+                'cash',
+            );
+        }
     }
 
     /** محتوى تعليمي حقيقي بما يكفي لتُقاس عليه الشاشات والبوابات. */
