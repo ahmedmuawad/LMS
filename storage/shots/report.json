@@ -1,0 +1,374 @@
+[
+ {
+  "group": "guest",
+  "label": "home",
+  "path": "/",
+  "status": 200
+ },
+ {
+  "group": "guest",
+  "label": "courses",
+  "path": "/courses",
+  "status": 200
+ },
+ {
+  "group": "guest",
+  "label": "course",
+  "path": "/courses/php-from-zero",
+  "status": 200
+ },
+ {
+  "group": "guest",
+  "label": "landing",
+  "path": "/start-here",
+  "status": 200
+ },
+ {
+  "group": "guest",
+  "label": "blog",
+  "path": "/blog",
+  "status": 200
+ },
+ {
+  "group": "guest",
+  "label": "post",
+  "path": "/blog/kayfa-tabda",
+  "status": 200
+ },
+ {
+  "group": "guest",
+  "label": "services",
+  "path": "/services",
+  "status": 200
+ },
+ {
+  "group": "guest",
+  "label": "service",
+  "path": "/services/consultation",
+  "status": 200
+ },
+ {
+  "group": "guest",
+  "label": "discussions",
+  "path": "/discussions",
+  "status": 200
+ },
+ {
+  "group": "guest",
+  "label": "discussion",
+  "path": "/discussions/1",
+  "status": 200
+ },
+ {
+  "group": "guest",
+  "label": "cart",
+  "path": "/cart",
+  "status": 200
+ },
+ {
+  "group": "guest",
+  "label": "login",
+  "path": "/login",
+  "status": 200
+ },
+ {
+  "group": "student",
+  "label": "my-courses",
+  "path": "/my-courses",
+  "status": 200
+ },
+ {
+  "group": "student",
+  "label": "learn",
+  "path": "/learn/php-from-zero",
+  "status": 200
+ },
+ {
+  "group": "student",
+  "label": "progress",
+  "path": "/my-progress",
+  "status": 200
+ },
+ {
+  "group": "student",
+  "label": "leaderboard",
+  "path": "/leaderboard",
+  "status": 200
+ },
+ {
+  "group": "student",
+  "label": "notifications",
+  "path": "/notifications",
+  "status": 200
+ },
+ {
+  "group": "student",
+  "label": "prefs",
+  "path": "/account/notifications",
+  "status": 200
+ },
+ {
+  "group": "student",
+  "label": "wallet",
+  "path": "/wallet",
+  "status": 200
+ },
+ {
+  "group": "student",
+  "label": "my-bookings",
+  "path": "/my-bookings",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "dashboard",
+  "path": "/admin/dashboard",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "courses-list",
+  "path": "/admin/courses",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "curriculum",
+  "path": "/admin/courses/1/curriculum",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "grading",
+  "path": "/admin/grading",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "orders",
+  "path": "/admin/orders",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "products",
+  "path": "/admin/products",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "page-builder-list",
+  "path": "/admin/page-builder",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "page-builder",
+  "path": "/admin/page-builder/1",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "media",
+  "path": "/admin/media",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "posts",
+  "path": "/admin/posts",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "services-admin",
+  "path": "/admin/services",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "bookings-admin",
+  "path": "/admin/bookings",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "reviews",
+  "path": "/admin/reviews",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "badges",
+  "path": "/admin/badges",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "notif-matrix",
+  "path": "/admin/notifications",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "notif-template",
+  "path": "/admin/notifications/lms.enrolled",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "notif-logs",
+  "path": "/admin/notifications/logs",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "affiliates",
+  "path": "/admin/affiliates",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "campaigns",
+  "path": "/admin/campaigns",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "campaign",
+  "path": "/admin/campaigns/1",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "reports-learning",
+  "path": "/admin/reports?tab=learning",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "reports-financial",
+  "path": "/admin/reports?tab=financial",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "reports-marketing",
+  "path": "/admin/reports?tab=marketing",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "settings",
+  "path": "/admin/settings",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "settings-lms",
+  "path": "/admin/settings/lms",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "settings-payments",
+  "path": "/admin/settings/payments",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "billing",
+  "path": "/admin/billing",
+  "status": 200
+ },
+ {
+  "group": "owner",
+  "label": "users",
+  "path": "/admin/users",
+  "status": 200
+ },
+ {
+  "group": "center",
+  "label": "attendance",
+  "path": "/admin/attendance",
+  "status": 200
+ },
+ {
+  "group": "center",
+  "label": "attendance-sheet",
+  "path": "/admin/attendance/1",
+  "status": 200
+ },
+ {
+  "group": "center",
+  "label": "schedule",
+  "path": "/admin/schedule",
+  "status": 200
+ },
+ {
+  "group": "center",
+  "label": "fees",
+  "path": "/admin/fees",
+  "status": 200
+ },
+ {
+  "group": "center",
+  "label": "cashboxes",
+  "path": "/admin/cashboxes",
+  "status": 200
+ },
+ {
+  "group": "center",
+  "label": "groups",
+  "path": "/admin/groups",
+  "status": 200
+ },
+ {
+  "group": "center",
+  "label": "student-file",
+  "path": "/admin/center-students/1",
+  "status": 200
+ },
+ {
+  "group": "center",
+  "label": "student-report",
+  "path": "/admin/center-students/1/report",
+  "status": 200
+ },
+ {
+  "group": "super",
+  "label": "overview",
+  "path": "/admin",
+  "status": 200
+ },
+ {
+  "group": "super",
+  "label": "tenants",
+  "path": "/admin/tenants",
+  "status": 200
+ },
+ {
+  "group": "super",
+  "label": "plans",
+  "path": "/admin/plans",
+  "status": 200
+ },
+ {
+  "group": "super",
+  "label": "subscriptions",
+  "path": "/admin/subscriptions",
+  "status": 200
+ },
+ {
+  "group": "super",
+  "label": "usage",
+  "path": "/admin/usage",
+  "status": 200
+ },
+ {
+  "group": "super",
+  "label": "health",
+  "path": "/admin/health",
+  "status": 200
+ }
+]

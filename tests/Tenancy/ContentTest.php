@@ -267,3 +267,15 @@ it('لا يخزّن الملف نفسه مرتين', function (): void {
             ->and(Media::count())->toBe(1);
     });
 });
+
+it('لا يربط التذييل صفحة إلزامية ما لم تُنشر', function (): void {
+    $tenant = provision();
+
+    // تُنشأ مسودّةً ليحرّرها المشترك: ربطها قبل النشر رابط ميت
+    tenantGet($tenant, '/courses')->assertOk()->assertDontSee('/about', false);
+
+    $tenant->run(fn () => Page::where('system_key', 'about')
+        ->update(['status' => 'published', 'published_at' => now()]));
+
+    tenantGet($tenant, '/courses')->assertOk()->assertSee('/about', false);
+});
