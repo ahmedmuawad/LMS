@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Core\Onboarding\OnboardingWizard;
 use App\Core\Tenancy\Actions\ProvisionTenant;
 use App\Core\Tenancy\Models\Tenant;
+use App\Models\SuperAdmin;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
@@ -89,4 +90,24 @@ function actingAsOwner(Tenant $tenant): void
     }
 
     test()->actingAs($owner);
+}
+
+/**
+ * يدخل كعضو في فريق المنصة — كل شاشات اللوحة العليا تشترطه.
+ */
+function actingAsSuperAdmin(array $overrides = []): SuperAdmin
+{
+    $admin = SuperAdmin::create([
+        'name' => 'عضو الفريق',
+        'email' => 'team-'.uniqid().'@platform.test',
+        'password' => 'platform-password',
+        'role' => 'super_admin',
+        'is_active' => true,
+        'email_verified_at' => now(),
+        ...$overrides,
+    ]);
+
+    test()->actingAs($admin, 'super');
+
+    return $admin;
 }

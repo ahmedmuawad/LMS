@@ -174,3 +174,13 @@
   border: 1px solid var(--color-line);
   border-radius: var(--radius-lg);
 }
+
+/*
+ | رابط داخل نص أو جدول: يبقى سطراً في التصميم، لكن مساحة لمسه
+ | ٣٢px كاملة على الشاشات اللمسية. الهامش السالب يمنع تمدّد الصف.
+ */
+@utility tap-link {
+  display: inline-block;
+  padding-block: 0.5rem;
+  margin-block: -0.5rem;
+}

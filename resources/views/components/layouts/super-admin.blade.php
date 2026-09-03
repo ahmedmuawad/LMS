@@ -1,4 +1,5 @@
 @props(['title' => null, 'current' => null])
+@php $me = auth('super')->user(); @endphp
 <x-layouts.app :title="$title">
 <div x-data="{ nav: false }" class="min-h-screen lg:grid lg:grid-cols-[240px_minmax(0,1fr)]">
 
@@ -37,6 +38,23 @@
                     aria-label="{{ __('فتح القائمة') }}">☰</button>
             <span class="font-semibold text-sm truncate flex-1">{{ $title }}</span>
             <x-ui.theme-toggle />
+
+            <x-ui.dropdown>
+                <x-slot:trigger>
+                    <button type="button" class="flex items-center gap-2 rounded-full p-0.5 hover:bg-surface-sunken transition-colors"
+                            aria-label="{{ __('حسابي') }}">
+                        <x-ui.avatar :name="$me?->name ?? __('فريق المنصة')" size="sm" />
+                    </button>
+                </x-slot:trigger>
+                <div class="px-3 py-2 border-b border-line mb-1">
+                    <p class="text-sm font-semibold truncate">{{ $me?->name }}</p>
+                    <p class="text-2xs text-subtle font-mono truncate">{{ $me?->email }}</p>
+                </div>
+                <form method="POST" action="{{ url('/super/logout') }}">
+                    @csrf
+                    <x-ui.menu-item icon="↩" :danger="true" type="submit">{{ __('تسجيل الخروج') }}</x-ui.menu-item>
+                </form>
+            </x-ui.dropdown>
         </header>
 
         @if(session('status'))

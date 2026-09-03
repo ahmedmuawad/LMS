@@ -7,6 +7,7 @@
  *   node tests/Browser/contrast.mjs [baseUrl] [path...]
  */
 import { chromium } from 'playwright';
+import { openContext } from './session.mjs';
 
 const BASE  = process.argv[2] || 'http://127.0.0.1:8899';
 const PATHS = process.argv.slice(3).length ? process.argv.slice(3) : ['/design-system'];
@@ -89,10 +90,11 @@ let failed = 0;
 
 for (const path of PATHS) {
     for (const scheme of ['light', 'dark']) {
-        const page = await browser.newPage({ viewport: { width: 1280, height: 900 }, colorScheme: scheme });
+        const context = await openContext(browser, BASE, { viewport: { width: 1280, height: 900 }, colorScheme: scheme });
+        const page = await context.newPage();
         await page.goto(BASE + path, { waitUntil: 'networkidle' });
         const r = await page.evaluate(audit);
-        await page.close();
+        await context.close();
 
         const label = scheme === 'dark' ? 'داكن' : 'فاتح';
         if (r.total) {

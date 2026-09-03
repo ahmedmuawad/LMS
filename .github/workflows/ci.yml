@@ -61,26 +61,40 @@ jobs:
       - name: تثبيت متصفّح الفحص
         run: npx playwright install --with-deps chromium
 
-      - name: تجهيز مشترك تجريبي للفحوص
+      - name: تجهيز مشترك تجريبي وحساب فريق للفحوص
         run: |
           php artisan demo:tenant --fresh
           php artisan demo:tenant --slug=fresh --fresh --onboarding
+          php artisan super-admin:create --name="فريق الفحص" --email=gate@platform.test --password=gate-password
 
+      # الشاشات المحمية تُفحص بجلسة حقيقية، وإلا فُحصت صفحة الدخول بدلاً منها
       - name: فحص الاستجابة (6 مقاسات × لغتين)
         env:
           PLAYWRIGHT_CHROMIUM: ''
         run: |
           node tests/Browser/responsive.mjs
-          node tests/Browser/responsive.mjs http://demo.localhost:8899 /admin/users /admin/users/create
-          node tests/Browser/responsive.mjs http://fresh.localhost:8899 /onboarding/mode
+          node tests/Browser/responsive.mjs http://127.0.0.1:8899 /super/login
+          node tests/Browser/responsive.mjs http://demo.localhost:8899 /login
+          GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
+            node tests/Browser/responsive.mjs http://demo.localhost:8899 /admin/dashboard /admin/users /admin/users/create
+          GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
+            node tests/Browser/responsive.mjs http://fresh.localhost:8899 /onboarding/mode
+          GATE_EMAIL=gate@platform.test GATE_PASSWORD=gate-password GATE_LOGIN_PATH=/super/login \
+            node tests/Browser/responsive.mjs http://127.0.0.1:8899 /admin /admin/tenants /admin/plans /admin/usage /admin/health /admin/audit
 
       - name: فحص التباين (WCAG AA · فاتح وداكن)
         env:
           PLAYWRIGHT_CHROMIUM: ''
         run: |
           node tests/Browser/contrast.mjs
-          node tests/Browser/contrast.mjs http://demo.localhost:8899 /admin/users /admin/users/create
-          node tests/Browser/contrast.mjs http://fresh.localhost:8899 /onboarding/mode
+          node tests/Browser/contrast.mjs http://127.0.0.1:8899 /super/login
+          node tests/Browser/contrast.mjs http://demo.localhost:8899 /login
+          GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
+            node tests/Browser/contrast.mjs http://demo.localhost:8899 /admin/dashboard /admin/users /admin/users/create
+          GATE_EMAIL=ahmed@example.test GATE_PASSWORD=password \
+            node tests/Browser/contrast.mjs http://fresh.localhost:8899 /onboarding/mode
+          GATE_EMAIL=gate@platform.test GATE_PASSWORD=gate-password GATE_LOGIN_PATH=/super/login \
+            node tests/Browser/contrast.mjs http://127.0.0.1:8899 /admin /admin/tenants /admin/plans /admin/usage /admin/health /admin/audit
 
       - name: فحص السلوك والوصولية
         env:

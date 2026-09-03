@@ -7,9 +7,13 @@ namespace App\Core\Entitlements\Models;
 use App\Core\Support\Money;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Stancl\Tenancy\Database\Concerns\CentralConnection;
 
 final class Plan extends Model
 {
+    // جدول مركزي — يُقرأ من قاعدة المركز حتى داخل سياق مشترك
+    use CentralConnection;
+
     protected $primaryKey = 'key';
 
     protected $keyType = 'string';

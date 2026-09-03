@@ -90,6 +90,16 @@ final class Tenant extends BaseTenant implements TenantWithDatabase
         return $this->entitlements()->hasReachedLimit($feature);
     }
 
+    /**
+     * يُفرغ الصلاحيات المحفوظة ويُسقط النسخة المحمّلة.
+     * لازم بعد تغيير الباقة: مفتاح الحفظ يحمل اسمها.
+     */
+    public function forgetEntitlements(): void
+    {
+        $this->entitlements()->flush();
+        $this->entitlements = null;
+    }
+
     // ---------------------------------------------------------------
     // الأنماط (ADR-010)
     // ---------------------------------------------------------------

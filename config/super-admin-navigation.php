@@ -30,6 +30,7 @@ return [
             'items' => [
                 ['key' => 'themes', 'label' => 'الثيمات', 'icon' => '◐', 'url' => '/admin/themes'],
                 ['key' => 'countries', 'label' => 'الدول والعملات', 'icon' => '◍', 'url' => '/admin/countries'],
+                ['key' => 'audit', 'label' => 'سجلّ التدخّلات', 'icon' => '☰', 'url' => '/admin/audit'],
                 ['key' => 'health', 'label' => 'صحة النظام', 'icon' => '✓', 'url' => '/admin/health'],
             ],
         ],

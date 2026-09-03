@@ -100,6 +100,17 @@ abstract class Resource
         return $this->form() !== [];
     }
 
+    /**
+     * الرابط الذي يفتحه الصف الأول في الجدول.
+     * الافتراضي شاشة التحرير؛ ومورد له شاشة تفصيلية خاصة يتجاوزه.
+     */
+    public function recordUrl(Model $record, string $key): ?string
+    {
+        return $this->canCreate()
+            ? url('/admin/'.$key.'/'.$record->getKey().'/edit')
+            : null;
+    }
+
     /** @param  list<string>  $rules */
     private function contextualise(array $rules, mixed $record): array
     {

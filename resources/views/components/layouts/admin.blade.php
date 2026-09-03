@@ -4,6 +4,8 @@
     $tenant   = tenant();
     $trial    = $tenant?->onTrial() ? $tenant->trialDaysLeft() : 0;
     $pastDue  = $tenant?->status === 'past_due';
+    $me       = auth()->user();
+    $asGuest  = (bool) session('impersonating');
 @endphp
 <x-layouts.app :title="$title">
 <div x-data="{ nav: false }" class="min-h-screen lg:grid lg:grid-cols-[240px_minmax(0,1fr)]">
@@ -64,14 +66,32 @@
                 <x-slot:trigger>
                     <button type="button" class="flex items-center gap-2 rounded-full p-0.5 hover:bg-surface-sunken transition-colors"
                             aria-label="{{ __('حساب المستخدم') }}">
-                        <x-ui.avatar :name="$tenant?->owner_name ?? 'مستخدم'" size="sm" />
+                        <x-ui.avatar :name="$me?->name ?? __('مستخدم')" size="sm" />
                     </button>
                 </x-slot:trigger>
-                <x-ui.menu-item icon="☺">{{ __('ملفي الشخصي') }}</x-ui.menu-item>
+                <div class="px-3 py-2 border-b border-line mb-1">
+                    <p class="text-sm font-semibold truncate">{{ $me?->name }}</p>
+                    <p class="text-2xs text-subtle font-mono truncate">{{ $me?->email }}</p>
+                </div>
                 <x-ui.menu-item icon="⚙" :href="url('/admin/settings')">{{ __('الإعدادات') }}</x-ui.menu-item>
-                <x-ui.menu-item icon="↩" :danger="true">{{ __('تسجيل الخروج') }}</x-ui.menu-item>
+                <form method="POST" action="{{ url('/logout') }}">
+                    @csrf
+                    <x-ui.menu-item icon="↩" :danger="true" type="submit">{{ __('تسجيل الخروج') }}</x-ui.menu-item>
+                </form>
             </x-ui.dropdown>
         </header>
+
+        {{-- شريط «أنت داخل حساب عميل» — لا يجوز أن ينسى أحد أنه ليس صاحب الحساب --}}
+        @if($asGuest)
+            <div class="bg-warning-subtle text-warning border-b border-line px-4 sm:px-6 py-2.5
+                        flex flex-wrap items-center justify-between gap-3 text-sm font-semibold">
+                <span>{{ __('أنت تتصفّح هذا الحساب كعضو في فريق المنصة. كل ما تفعله هنا مقيَّد باسمك.') }}</span>
+                <form method="POST" action="{{ url('/logout') }}">
+                    @csrf
+                    <x-ui.button size="sm" variant="secondary" type="submit">{{ __('إنهاء الجلسة') }}</x-ui.button>
+                </form>
+            </div>
+        @endif
 
         {{-- تنبيهات حالة الاشتراك --}}
         @if($pastDue)

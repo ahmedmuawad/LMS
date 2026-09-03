@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Entitlements\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Stancl\Tenancy\Database\Concerns\CentralConnection;
 
 /**
  * @property string $key
@@ -13,6 +14,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 final class Feature extends Model
 {
+    // جدول مركزي — يُقرأ من قاعدة المركز حتى داخل سياق مشترك
+    use CentralConnection;
+
     protected $primaryKey = 'key';
 
     protected $keyType = 'string';

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\ResourceController;
 use App\Http\Controllers\Tenant\AuthController;
+use App\Http\Controllers\Tenant\DashboardController;
+use App\Http\Controllers\Tenant\ImpersonationController;
 use App\Http\Controllers\Tenant\OnboardingController;
 use App\Http\Middleware\ApplyTenantTheme;
 use App\Http\Middleware\EnsurePanelAccess;
@@ -24,6 +26,10 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 $tenantRoutes = function (): void {
     Route::get('/', fn () => view('tenant.home'))->name('tenant.home');
 
+    // استلام تذكرة «الدخول كمشترك» القادمة من لوحتنا العليا
+    Route::get('/impersonate/{token}', ImpersonationController::class)
+        ->name('impersonate');
+
     // المصادقة
     Route::middleware('guest')->group(function (): void {
         Route::get('/login', [AuthController::class, 'show'])->name('login');
@@ -38,6 +44,11 @@ $tenantRoutes = function (): void {
         Route::get('/{step}', [OnboardingController::class, 'show'])->name('show');
         Route::post('/{step}', [OnboardingController::class, 'store'])->name('store');
     });
+
+    // اللوحة — قبل مسار الموارد، وإلا التقطها كمورد اسمه dashboard
+    Route::get('/admin/dashboard', DashboardController::class)
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->name('admin.dashboard');
 
     // نواة الإدارة: متحكّم واحد يخدم كل الموارد
     Route::prefix('admin/{resource}')

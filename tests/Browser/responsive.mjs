@@ -6,6 +6,7 @@
  *   node tests/Browser/responsive.mjs [baseUrl] [path...]
  */
 import { chromium } from 'playwright';
+import { openContext } from './session.mjs';
 
 const BASE  = process.argv[2] || 'http://127.0.0.1:8899';
 const PATHS = process.argv.slice(3).length ? process.argv.slice(3) : ['/design-system', '/en/design-system'];
@@ -77,14 +78,15 @@ let failed = 0;
 
 for (const path of PATHS) {
     for (const vp of VIEWPORTS) {
-        const page = await browser.newPage({
+        const context = await openContext(browser, BASE, {
             viewport: { width: vp.width, height: vp.height },
             hasTouch: vp.touch,
             isMobile: vp.touch,
         });
+        const page = await context.newPage();
         await page.goto(BASE + path, { waitUntil: 'networkidle' });
         const r = await page.evaluate(audit);
-        await page.close();
+        await context.close();
 
         const problems = [];
         if (r.overflow > 0)   problems.push(`تمرير أفقي ${r.overflow}px`);

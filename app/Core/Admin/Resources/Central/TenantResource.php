@@ -11,6 +11,7 @@ use App\Core\Admin\Filters\SelectFilter;
 use App\Core\Admin\Resource;
 use App\Core\Tenancy\Models\Tenant;
 use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * المشتركون كما نراهم نحن: عملاء في طبقة الـ SaaS.
@@ -131,6 +132,12 @@ final class TenantResource extends Resource
                 ->options(['starter' => __('البداية'), 'growth' => __('النمو'),
                     'professional' => __('الاحترافية'), 'center' => __('السنتر')]),
         ];
+    }
+
+    /** المشترك له ملف كامل لا شاشة تحرير — ولا يُعدَّل بحقول مباشرة. */
+    public function recordUrl(Model $record, string $key): ?string
+    {
+        return url('/admin/tenants/'.$record->getKey());
     }
 
     public function emptyState(): array

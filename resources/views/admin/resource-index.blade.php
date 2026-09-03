@@ -97,15 +97,14 @@
                                         'whitespace-nowrap' => ! $column->shouldWrap()])>
                                 @php
                                     $cellProps = ['value' => $column->value($record)] + $column->props($record);
-                                    $isFirst   = $loop->first && $resource->canCreate();
+                                    $rowUrl    = $loop->first ? $resource->recordUrl($record, $key) : null;
                                 @endphp
-                                @if($isFirst)
-                                    <a href="{{ url('/admin/'.$key.'/'.$record->getKey().'/edit') }}"
-                                       class="block hover:text-primary transition-colors">
+                                @if($rowUrl)
+                                    <a href="{{ $rowUrl }}" class="block hover:text-primary transition-colors">
                                 @endif
                                 <x-dynamic-component :component="$column->component()"
                                                      :attributes="new Illuminate\View\ComponentAttributeBag($cellProps)" />
-                                @if($isFirst)</a>@endif
+                                @if($rowUrl)</a>@endif
                             </td>
                         @endforeach
                     </tr>
