@@ -1,4 +1,5 @@
-<div x-data class="inline-flex bg-surface border border-line rounded-full p-[3px] gap-0.5 shadow-sm"
+@props([])
+<div x-data {{ $attributes->merge(['class' => 'inline-flex bg-surface border border-line rounded-full p-[3px] gap-0.5 shadow-sm']) }}
      role="group" aria-label="{{ __('وضع العرض') }}">
     @foreach ([['light', __('فاتح')], ['system', __('تلقائي')], ['dark', __('داكن')]] as [$mode, $label])
         <button type="button"

@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 return [
+    // العملة الافتراضية للمنصة — مرجعٌ حين لا تُحدَّد دولة المشترك
+    'default' => env('DEFAULT_CURRENCY', 'EGP'),
+
     'default_decimals' => 2,
 
     /*

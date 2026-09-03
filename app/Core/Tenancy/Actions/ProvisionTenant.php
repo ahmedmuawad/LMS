@@ -126,13 +126,20 @@ final class ProvisionTenant
         return $slug;
     }
 
+    /**
+     * جدول الدول هو المرجع؛ وحين يغيب الصف نرجع إلى افتراضي المنصة
+     * لا إلى الدولار: مشترك مصري يُنشأ بعملة أجنبية عطلٌ صامت،
+     * يظهر متأخراً في أول فاتورة.
+     */
     private function currencyFor(string $country): string
     {
-        return DB::table('countries')->where('code', $country)->value('currency') ?? 'USD';
+        return DB::table('countries')->where('code', $country)->value('currency')
+            ?? (string) config('money.default', 'EGP');
     }
 
     private function timezoneFor(string $country): string
     {
-        return DB::table('countries')->where('code', $country)->value('timezone_default') ?? 'UTC';
+        return DB::table('countries')->where('code', $country)->value('timezone_default')
+            ?? (string) config('app.timezone', 'UTC');
     }
 }

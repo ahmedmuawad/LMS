@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Core\Admin\Navigation;
 use App\Core\Settings\SettingsRepository;
 use App\Core\Theming\ThemeManager;
+use App\Modules\Commerce\Observers\CourseObserver;
+use App\Modules\Lms\Models\Course;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Stancl\Tenancy\Events\TenancyEnded;
@@ -43,5 +45,12 @@ class AppServiceProvider extends ServiceProvider
         Event::listen([TenancyInitialized::class, TenancyEnded::class], function (): void {
             app(SettingsRepository::class)->flush();
         });
+
+        /*
+         | المنتج يتبع الكورس تلقائياً. لو تُرك للمشترك لنسِيَه،
+         | فيصير الكورس منشوراً ولا يُشترى — وهو أسوأ عطل: كل شيء
+         | يبدو سليماً ولا يصل بيع واحد.
+         */
+        Course::observe(CourseObserver::class);
     }
 }

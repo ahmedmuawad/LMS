@@ -7,11 +7,14 @@ use App\Core\Tenancy\Actions\ProvisionTenant;
 use App\Core\Tenancy\Models\Tenant;
 use App\Models\SuperAdmin;
 use App\Models\User;
+use Database\Seeders\CountrySeeder;
+use Database\Seeders\CurrencySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
 
 require_once __DIR__.'/LmsHelpers.php';
+require_once __DIR__.'/CommerceHelpers.php';
 
 pest()->extend(TestCase::class)->in('Unit');
 pest()->extend(TestCase::class)->use(RefreshDatabase::class)->in('Feature');
@@ -28,6 +31,11 @@ pest()->extend(TestCase::class)
         }
 
         Artisan::call('migrate:fresh', ['--force' => true]);
+
+        // الدول والعملات مرجع ثابت لا بيانات اختبار: بدونها يُنشأ
+        // مشترك مصري بعملة أجنبية فتفشل مقارنات لا علاقة لها بالخلل.
+        Artisan::call('db:seed', ['--class' => CountrySeeder::class, '--force' => true]);
+        Artisan::call('db:seed', ['--class' => CurrencySeeder::class, '--force' => true]);
     })
     ->afterEach(function (): void {
         if (tenancy()->initialized) {

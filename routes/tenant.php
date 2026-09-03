@@ -3,6 +3,11 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\ResourceController;
+use App\Http\Controllers\Commerce\AdminOrderController;
+use App\Http\Controllers\Commerce\CartController;
+use App\Http\Controllers\Commerce\CheckoutController;
+use App\Http\Controllers\Commerce\WalletController;
+use App\Http\Controllers\Commerce\WebhookController;
 use App\Http\Controllers\Lms\AssignmentController;
 use App\Http\Controllers\Lms\CatalogController;
 use App\Http\Controllers\Lms\CertificateController;
@@ -45,9 +50,24 @@ $tenantRoutes = function (): void {
     Route::get('/courses/{slug}', [CatalogController::class, 'show'])->name('courses.show');
     Route::get('/certificate/{code}', [CertificateController::class, 'verify'])->name('certificate.verify');
 
+    // ---------- السلة والدفع ----------
+    Route::get('/cart', [CartController::class, 'show'])->name('cart');
+    Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+    Route::put('/cart/items/{item}', [CartController::class, 'update'])->name('cart.update');
+    Route::delete('/cart/items/{item}', [CartController::class, 'remove'])->name('cart.remove');
+    Route::post('/cart/coupon', [CartController::class, 'applyCoupon'])->name('cart.coupon');
+    Route::delete('/cart/coupon', [CartController::class, 'removeCoupon'])->name('cart.coupon.remove');
+
+    Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout');
+    Route::post('/checkout', [CheckoutController::class, 'place'])->name('checkout.place');
+    Route::get('/checkout/return/{gateway}', [WebhookController::class, 'return'])->name('checkout.return');
+    Route::get('/orders/{number}', [CheckoutController::class, 'order'])->name('orders.show');
+
     // ---------- غرفة التعلّم ----------
     Route::middleware('auth')->group(function (): void {
         Route::get('/my-courses', MyCoursesController::class)->name('my-courses');
+        Route::get('/wallet', [WalletController::class, 'show'])->name('wallet');
+        Route::post('/wallet/redeem', [WalletController::class, 'redeem'])->name('wallet.redeem');
         Route::post('/courses/{slug}/enroll', [LearnController::class, 'enroll'])->name('courses.enroll');
 
         Route::get('/learn/{slug}', [LearnController::class, 'room'])->name('learn');
@@ -79,6 +99,21 @@ $tenantRoutes = function (): void {
     Route::get('/admin/dashboard', DashboardController::class)
         ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
         ->name('admin.dashboard');
+
+    // إدارة الطلبات والأكواد — قبل مسار الموارد العام
+    Route::prefix('admin')
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->name('admin.commerce.')->group(function (): void {
+            Route::get('/orders/{id}', [AdminOrderController::class, 'show'])->name('order');
+            Route::post('/orders/{id}/pay', [AdminOrderController::class, 'pay'])->name('order.pay');
+            Route::put('/orders/{id}/cancel', [AdminOrderController::class, 'cancel'])->name('order.cancel');
+            Route::post('/orders/{id}/refund', [AdminOrderController::class, 'refund'])->name('order.refund');
+            Route::put('/refunds/{refund}', [AdminOrderController::class, 'handleRefund'])->name('refund.handle');
+
+            Route::get('/recharge-codes/generate', [AdminOrderController::class, 'codes'])->name('codes');
+            Route::post('/recharge-codes/generate', [AdminOrderController::class, 'generateCodes'])->name('codes.generate');
+            Route::get('/recharge-codes/batches/{batch}/export', [AdminOrderController::class, 'exportBatch'])->name('codes.export');
+        });
 
     // طاولة التصحيح
     Route::prefix('admin/grading')
@@ -130,6 +165,14 @@ $tenantRoutes = function (): void {
             Route::delete('/{id}', [ResourceController::class, 'destroy'])->name('destroy');
         });
 };
+
+/*
+ | ردّ البوابات: بلا جلسة ولا CSRF — البوابة لا تحمل رمزاً، والتحقق
+ | من التوقيع داخل كل بوابة هو ما يحرس هذا المسار.
+ */
+Route::middleware([InitializeTenancyByDomain::class])
+    ->post('/webhooks/payments/{gateway}', WebhookController::class)
+    ->name('webhooks.payments');
 
 Route::middleware([
     'web',

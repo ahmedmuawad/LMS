@@ -1,6 +1,12 @@
 <?php
 
 declare(strict_types=1);
+use App\Modules\Commerce\Gateways\Drivers\BankTransferGateway;
+use App\Modules\Commerce\Gateways\Drivers\CashOnDeliveryGateway;
+use App\Modules\Commerce\Gateways\Drivers\FawryGateway;
+use App\Modules\Commerce\Gateways\Drivers\PaymobGateway;
+use App\Modules\Commerce\Gateways\Drivers\StripeGateway;
+use App\Modules\Commerce\Gateways\Drivers\WalletGateway;
 
 /*
  | ADR-002 — البوابات التسع. كل بوابة بلجن مستقل، وهذه بطاقة تعريفه:
@@ -11,6 +17,19 @@ declare(strict_types=1);
  */
 
 return [
+
+    /*
+     | البوابات المنفَّذة. القائمة مغلقة: لا يصل اسم بوابة من
+     | المستخدم إلى الحاوية ليُحلّ كصنف.
+     */
+    'drivers' => [
+        'paymob' => PaymobGateway::class,
+        'fawry' => FawryGateway::class,
+        'stripe' => StripeGateway::class,
+        'bank_transfer' => BankTransferGateway::class,
+        'cash_on_delivery' => CashOnDeliveryGateway::class,
+        'wallet' => WalletGateway::class,
+    ],
 
     'gateways' => [
 
@@ -26,6 +45,7 @@ return [
                 'integration_card' => 'رقم تكامل البطاقات',
                 'integration_wallet' => 'رقم تكامل المحافظ',
                 'integration_kiosk' => 'رقم تكامل أكسبت',
+                'iframe_id' => 'رقم إطار الدفع',
             ],
             'currencies' => ['EGP'],
             'countries' => ['EG'],

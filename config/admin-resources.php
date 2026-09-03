@@ -4,6 +4,11 @@ declare(strict_types=1);
 use App\Core\Admin\Resources\Central\InvoiceResource;
 use App\Core\Admin\Resources\Central\SubscriptionResource;
 use App\Core\Admin\Resources\Central\TenantResource;
+use App\Core\Admin\Resources\Commerce\CouponResource;
+use App\Core\Admin\Resources\Commerce\OrderResource;
+use App\Core\Admin\Resources\Commerce\ProductResource;
+use App\Core\Admin\Resources\Commerce\RechargeCodeResource;
+use App\Core\Admin\Resources\Commerce\RefundResource;
 use App\Core\Admin\Resources\Lms\CertificateResource;
 use App\Core\Admin\Resources\Lms\CourseResource;
 use App\Core\Admin\Resources\Lms\EnrollmentResource;
@@ -32,6 +37,13 @@ return [
         'enrollments' => EnrollmentResource::class,
         'certificates' => CertificateResource::class,
         'taxonomies' => TaxonomyResource::class,
+
+        // التجارة
+        'orders' => OrderResource::class,
+        'products' => ProductResource::class,
+        'coupons' => CouponResource::class,
+        'recharge-codes' => RechargeCodeResource::class,
+        'refunds' => RefundResource::class,
     ],
 
     // اللوحة العليا — القاعدة المركزية

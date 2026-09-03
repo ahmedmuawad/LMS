@@ -1,6 +1,8 @@
 @php
     $siteName = setting()->translated('general.site_name') ?: (tenant('name') ?? config('app.name'));
     $me = auth()->user();
+    $cart = app(App\Modules\Commerce\Actions\CartManager::class)->current(request(), create: false);
+    $cartCount = $cart?->loadMissing('items')->count() ?? 0;
 @endphp
 <header class="sticky top-0 z-30 bg-surface/95 backdrop-blur border-b border-line" x-data="{ open: false }">
     <div class="max-w-[1200px] mx-auto px-4 sm:px-6 h-16 flex items-center gap-3">
@@ -15,8 +17,18 @@
             <a href="{{ url('/blog') }}" class="px-3 py-2 rounded-md text-sm text-muted hover:bg-surface-sunken hover:text-content transition-colors">{{ __('المدونة') }}</a>
         </nav>
 
-        <div class="flex items-center gap-2 ms-auto">
-            <x-ui.theme-toggle />
+        <div class="flex items-center gap-2 ms-auto shrink-0">
+            {{-- مبدّل الوضع ثلاثي الأزرار أعرض من أن يشارك الشاشة الصغيرة؛ مكانه القائمة --}}
+            <span class="hidden sm:block"><x-ui.theme-toggle /></span>
+
+            <a href="{{ url('/cart') }}" class="relative size-10 grid place-items-center rounded-md text-muted hover:bg-surface-sunken hover:text-content transition-colors"
+               aria-label="{{ trans_choice('{0} سلتك فارغة|{1} في سلتك عنصر واحد|{2} في سلتك عنصران|[3,10] في سلتك :count عناصر|[11,*] في سلتك :count عنصراً', $cartCount, ['count' => $cartCount]) }}">
+                <span aria-hidden="true">◨</span>
+                @if($cartCount > 0)
+                    <span class="absolute -top-0.5 -end-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-on
+                                 text-[10px] font-bold grid place-items-center font-mono" aria-hidden="true">{{ $cartCount }}</span>
+                @endif
+            </a>
 
             @if($me)
                 <x-ui.button size="sm" variant="secondary" :href="url('/my-courses')">{{ __('كورساتي') }}</x-ui.button>
@@ -35,6 +47,8 @@
         <a href="{{ url('/blog') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('المدونة') }}</a>
         @if($me)
             <a href="{{ url('/my-courses') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('كورساتي') }}</a>
+            <a href="{{ url('/wallet') }}" class="px-3 py-2.5 rounded-md text-sm text-muted hover:bg-surface-sunken">{{ __('محفظتي') }}</a>
         @endif
+        <div class="px-3 py-2 sm:hidden"><x-ui.theme-toggle /></div>
     </nav>
 </header>
