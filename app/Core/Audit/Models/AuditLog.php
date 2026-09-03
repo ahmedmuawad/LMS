@@ -26,6 +26,9 @@ final class AuditLog extends Model
         'tenant.feature_overridden' => 'تجاوز ميزة لمشترك',
         'tenant.impersonated' => 'دخول كمشترك',
         'plan.updated' => 'تعديل باقة',
+        'subscription.started' => 'بدء اشتراك',
+        'subscription.cancelled' => 'إلغاء اشتراك',
+        'invoice.paid' => 'سداد فاتورة',
     ];
 
     public function getConnectionName(): ?string

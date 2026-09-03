@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+use App\Core\Admin\Resources\Central\InvoiceResource;
+use App\Core\Admin\Resources\Central\SubscriptionResource;
 use App\Core\Admin\Resources\Central\TenantResource;
 use App\Core\Admin\Resources\UserResource;
 
@@ -19,5 +21,7 @@ return [
     // اللوحة العليا — القاعدة المركزية
     'central' => [
         'tenants' => TenantResource::class,
+        'subscriptions' => SubscriptionResource::class,
+        'invoices' => InvoiceResource::class,
     ],
 ];

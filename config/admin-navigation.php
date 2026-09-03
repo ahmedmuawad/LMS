@@ -91,6 +91,7 @@ return [
         [
             'label' => 'النظام',
             'items' => [
+                ['key' => 'billing', 'label' => 'الاشتراك والفواتير', 'icon' => '◨', 'route' => 'admin.billing'],
                 ['key' => 'settings', 'label' => 'الإعدادات', 'icon' => '⚙', 'route' => 'admin.settings.index'],
                 ['key' => 'appearance', 'label' => 'المظهر والثيم', 'icon' => '◐', 'route' => 'admin.appearance'],
                 ['key' => 'modules', 'label' => 'الموديولات', 'icon' => '◱', 'route' => 'admin.modules'],

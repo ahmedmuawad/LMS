@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\ImpersonationController;
+use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\Admin\ResourceController;
 use App\Http\Controllers\Admin\SuperAdminController;
@@ -48,6 +49,11 @@ $central = function (): void {
         Route::put('/tenants/{id}/plan', [TenantController::class, 'updatePlan'])->name('super.tenant.plan');
         Route::put('/tenants/{id}/feature', [TenantController::class, 'updateFeature'])->name('super.tenant.feature');
         Route::post('/tenants/{id}/impersonate', [ImpersonationController::class, 'start'])->name('super.tenant.impersonate');
+
+        // الفواتير — التفصيل قبل المورد العام
+        Route::get('/invoices/{id}', [InvoiceController::class, 'show'])->name('super.invoice');
+        Route::post('/invoices/{id}/pay', [InvoiceController::class, 'pay'])->name('super.invoice.pay');
+        Route::put('/invoices/{id}/void', [InvoiceController::class, 'void'])->name('super.invoice.void');
 
         // نواة الموارد العامة — آخر ما يُسجَّل حتى لا يبتلع ما قبله
         Route::prefix('{resource}')->name('super.resource.')->group(function (): void {

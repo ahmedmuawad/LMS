@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Tenancy\Actions;
 
+use App\Core\Billing\Actions\StartSubscription;
 use App\Core\Entitlements\Models\Plan;
 use App\Core\Tenancy\Models\Domain;
 use App\Core\Tenancy\Models\Tenant;
@@ -23,6 +24,7 @@ final class ProvisionTenant
 {
     public function __construct(
         private readonly ApplyPlatformMode $applyMode,
+        private readonly StartSubscription $subscriptions,
     ) {}
 
     /**
@@ -93,6 +95,11 @@ final class ProvisionTenant
                 'provisioned_at' => now(),
                 'provision_error' => null,
             ])->save();
+
+            // 5) الاشتراك — يُجمَّد سعر الباقة وقت الاشتراك، فلا يمسّه رفع لاحق
+            if ($plan !== null) {
+                $this->subscriptions->handle($tenant->refresh(), $plan->key, $tenant->currency);
+            }
 
             return $tenant->refresh();
         } catch (Throwable $e) {

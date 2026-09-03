@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\ResourceController;
 use App\Http\Controllers\Tenant\AuthController;
+use App\Http\Controllers\Tenant\BillingController;
 use App\Http\Controllers\Tenant\DashboardController;
 use App\Http\Controllers\Tenant\ImpersonationController;
 use App\Http\Controllers\Tenant\OnboardingController;
@@ -50,6 +51,11 @@ $tenantRoutes = function (): void {
     Route::get('/admin/dashboard', DashboardController::class)
         ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
         ->name('admin.dashboard');
+
+    // الاشتراك والفواتير
+    Route::get('/admin/billing', BillingController::class)
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->name('admin.billing');
 
     // الإعدادات — قبل مسار الموارد
     Route::prefix('admin/settings')
