@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Core\Onboarding\OnboardingWizard;
 use App\Core\Tenancy\Actions\ProvisionTenant;
 use App\Core\Tenancy\Models\Tenant;
 use Illuminate\Console\Command;
@@ -19,7 +20,8 @@ final class SeedDemoTenant extends Command
         {--slug=demo : النطاق الفرعي}
         {--mode=marketplace : نمط المنصة}
         {--plan=growth : الباقة}
-        {--fresh : احذف المشترك القائم بنفس النطاق أولاً}';
+        {--fresh : احذف المشترك القائم بنفس النطاق أولاً}
+        {--onboarding : اتركه في معالج التهيئة بدل إكماله}';
 
     protected $description = 'ينشئ مشتركاً تجريبياً ببيانات واقعية';
 
@@ -49,6 +51,10 @@ final class SeedDemoTenant extends Command
         ]);
 
         $tenant->run(function (): void {
+            if (! $this->option('onboarding')) {
+                app(OnboardingWizard::class)->complete();
+            }
+
             $people = [
                 ['سارة عبد الرحمن', 'sara@t.test', 'active', true, '01000000001'],
                 ['يوسف حمدي', 'youssef@t.test', 'pending', false, '01000000002'],

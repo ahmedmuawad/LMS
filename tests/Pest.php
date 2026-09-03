@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Onboarding\OnboardingWizard;
 use App\Core\Tenancy\Actions\ProvisionTenant;
 use App\Core\Tenancy\Models\Tenant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -54,14 +55,23 @@ function makeTenant(string $plan = 'growth', array $attributes = []): Tenant
 
 /**
  * تجهيز حقيقي كامل: ينشئ قاعدة المشترك ويطبّق نمطه.
+ *
+ * يُنهي معالج التهيئة افتراضياً، لأن كل شاشات اللوحة تشترط إكماله.
+ * مرّر onboarded: false لاختبار المعالج نفسه.
  */
-function provision(array $overrides = []): Tenant
+function provision(array $overrides = [], bool $onboarded = true): Tenant
 {
-    return app(ProvisionTenant::class)->handle([
+    $tenant = app(ProvisionTenant::class)->handle([
         'name' => 'أكاديمية الاختبار',
         'owner_email' => 'owner@example.test',
         'owner_name' => 'مالك الأكاديمية',
         'plan_key' => 'growth',
         ...$overrides,
     ]);
+
+    if ($onboarded) {
+        $tenant->run(fn () => app(OnboardingWizard::class)->complete());
+    }
+
+    return $tenant;
 }

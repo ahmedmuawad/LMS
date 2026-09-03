@@ -12,8 +12,9 @@ use InvalidArgumentException;
  * ADR-010 — يترجم اختيار المشترك في معالج التهيئة إلى حالة فعلية:
  * موديولات مفعّلة + إعدادات افتراضية + ثيم.
  *
- * قابل لإعادة التشغيل: تغيير النمط لاحقاً لا يفقد أي بيانات —
- * يفعّل موديولات جديدة ويترك القديمة قائمة (لكن مخفية عن القوائم).
+ * النمط يحدّد المجموعة كاملة: ما ليس فيه يُعطَّل لا يُترك مفعّلاً،
+ * وإلا ظهرت في قائمة السنتر بقايا نمط سابق. التعطيل إخفاء فقط —
+ * بيانات الموديول تبقى في القاعدة كما هي، فالعودة للنمط تعيدها.
  */
 final class ApplyPlatformMode
 {
@@ -50,6 +51,12 @@ final class ApplyPlatformMode
                     ['enabled' => true, 'updated_at' => $now, 'created_at' => $now],
                 );
             }
+
+            // ما ليس من هذا النمط يُخفى — والبيانات تبقى كما هي
+            DB::table('modules')->whereNotIn('key', $modules)->update([
+                'enabled' => false,
+                'updated_at' => $now,
+            ]);
 
             foreach ($config['settings'] as $path => $value) {
                 [$group, $key] = explode('.', $path, 2);
