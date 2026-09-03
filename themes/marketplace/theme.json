@@ -1,0 +1,9 @@
+{
+    "key": "marketplace",
+    "name": { "ar": "منصة متعددة المدرّسين", "en": "marketplace" },
+    "icon": "🏛️",
+    "version": "1.0.0",
+    "modes": ["marketplace", "hybrid"],
+    "supports": ["dark", "rtl", "page-builder"],
+    "preview": "preview.png"
+}

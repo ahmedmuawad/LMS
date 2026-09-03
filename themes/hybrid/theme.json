@@ -1,0 +1,21 @@
+{
+    "key": "hybrid",
+    "name": {
+        "ar": "شامل",
+        "en": "hybrid"
+    },
+    "icon": "🌐",
+    "version": "1.0.0",
+    "modes": [
+        "solo",
+        "marketplace",
+        "center",
+        "hybrid"
+    ],
+    "supports": [
+        "dark",
+        "rtl",
+        "page-builder"
+    ],
+    "preview": "preview.png"
+}

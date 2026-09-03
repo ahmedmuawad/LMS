@@ -1,0 +1,9 @@
+{
+    "key": "solo-academy",
+    "name": { "ar": "أكاديمية فردية", "en": "solo-academy" },
+    "icon": "👤",
+    "version": "1.0.0",
+    "modes": ["solo", "hybrid"],
+    "supports": ["dark", "rtl", "page-builder"],
+    "preview": "preview.png"
+}

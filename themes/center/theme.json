@@ -1,0 +1,9 @@
+{
+    "key": "center",
+    "name": { "ar": "سنتر تعليمي", "en": "center" },
+    "icon": "🏫",
+    "version": "1.0.0",
+    "modes": ["center", "hybrid"],
+    "supports": ["dark", "rtl", "page-builder"],
+    "preview": "preview.png"
+}

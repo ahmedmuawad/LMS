@@ -16,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             SetLocale::class,
         ]);
+
+        // ApplyTenantTheme يُطبَّق داخل routes/tenant.php لأنه يجب أن
+        // يعمل بعد InitializeTenancyByDomain لا قبلها.
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
