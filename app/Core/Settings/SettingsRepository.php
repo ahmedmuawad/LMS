@@ -7,6 +7,7 @@ namespace App\Core\Settings;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * وثيقة 05 — طبقة الإعدادات.
@@ -29,6 +30,15 @@ final class SettingsRepository
             $this->cacheKey(),
             now()->addDay(),
             function (): array {
+                /*
+                 | الإعدادات جدول في قاعدة المشترك. على النطاق المركزي
+                 | لا وجود له، وطلبه هناك خطأ سياق لا خطأ بيانات —
+                 | فنُرجع «لا إعدادات» بدل أن نُسقط صفحتنا نحن.
+                 */
+                if (! Schema::hasTable('settings')) {
+                    return [];
+                }
+
                 $out = [];
 
                 foreach (DB::table('settings')->get() as $row) {

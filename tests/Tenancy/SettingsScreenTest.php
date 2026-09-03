@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Core\Settings\SettingsRegistry;
+use App\Core\Theming\BrandPalette;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 
@@ -147,4 +148,27 @@ it('keeps one tenant settings out of another', function () {
 
     expect($first->run(fn () => setting('general.phone')))->toBe('01000000001')
         ->and($second->run(fn () => setting('general.phone')))->toBe('01000000002');
+});
+
+it('paints the tenant brand colour into the page without breaking contrast', function () {
+    $tenant = provision();
+    actingAsOwner($tenant);
+
+    // أصفر فاقع: نصّ أبيض فوقه غير مقروء إن تُرك كما هو
+    tenantPut($tenant, '/admin/settings/appearance', ['primary' => '#FFD400']);
+
+    $html = tenantGet($tenant, '/admin/dashboard')->assertOk()->getContent();
+
+    expect($html)->toContain('--sem-primary:');
+
+    preg_match('/--sem-primary: (#[0-9A-F]{6})/', $html, $m);
+
+    expect(BrandPalette::contrast($m[1], '#FFFFFF'))->toBeGreaterThanOrEqual(4.5);
+});
+
+it('leaves the house palette alone when the tenant sets no colour', function () {
+    $tenant = provision();
+    actingAsOwner($tenant);
+
+    expect(tenantGet($tenant, '/admin/dashboard')->getContent())->not->toContain('--sem-primary:');
 });

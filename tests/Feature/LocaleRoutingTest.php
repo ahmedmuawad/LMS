@@ -24,3 +24,10 @@ it('keeps unprefixed URLs working for the home page', function () {
 it('does not expose an /ar prefix', function () {
     $this->get('/ar/design-system')->assertNotFound();
 });
+
+it('does not ask a tenant settings table for our own central pages', function () {
+    // الإعدادات جدول في قاعدة المشترك — طلبه على نطاقنا خطأ سياق
+    expect(setting('appearance.primary'))->toBeNull();
+
+    $this->get('/')->assertOk();
+});

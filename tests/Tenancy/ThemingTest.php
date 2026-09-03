@@ -73,3 +73,17 @@ it('reads the theme manifest', function () {
         ->and($manifest['name']['ar'])->toBe('سنتر تعليمي')
         ->and($manifest['supports'])->toContain('rtl', 'dark');
 });
+
+it('lets the tenant switch theme from their settings screen', function () {
+    $tenant = provision(['platform_mode' => 'hybrid']);
+    actingAsOwner($tenant);
+
+    expect(tenant('theme'))->toBe('hybrid');
+
+    tenantPut($tenant, '/admin/settings/appearance', ['theme' => 'marketplace']);
+
+    // الطلب التالي يجب أن يُصيَّر بثيم الإعدادات لا بثيم النمط
+    tenantGet($tenant, '/admin/dashboard')->assertOk();
+
+    $tenant->run(fn () => expect(setting('appearance.theme'))->toBe('marketplace'));
+});

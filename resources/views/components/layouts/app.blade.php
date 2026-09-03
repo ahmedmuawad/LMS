@@ -1,6 +1,10 @@
 @php
     $locale = app()->getLocale();
     $dir    = in_array($locale, ['ar', 'fa', 'ur', 'he'], true) ? 'rtl' : 'ltr';
+
+    // الوضع الذي يفرضه المشترك، إن فرض واحداً — وإلا فاختيار الزائر وحده
+    $forcedScheme = setting('appearance.dark_mode');
+    $forcedScheme = in_array($forcedScheme, ['light', 'dark'], true) ? $forcedScheme : null;
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $locale }}" dir="{{ $dir }}">
@@ -12,12 +16,15 @@
     <script>
         (function () {
             try {
-                var m = localStorage.getItem('theme');
+                var m = localStorage.getItem('theme') || {!! json_encode($forcedScheme) !!};
                 if (m === 'dark' || m === 'light') document.documentElement.setAttribute('data-theme', m);
             } catch (e) {}
         })();
     </script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    {{-- تخصيص المشترك: يعيد تعريف الطبقة الدلالية وحدها، وبدرجات مضبوطة التباين --}}
+    @php $brand = app(App\Core\Theming\BrandCss::class)->render(); @endphp
+    @if($brand)<style>{!! $brand !!}</style>@endif
     @stack('head')
 </head>
 <body class="min-h-screen bg-bg text-content antialiased">

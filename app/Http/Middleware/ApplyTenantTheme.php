@@ -19,8 +19,9 @@ final class ApplyTenantTheme
 
     public function handle(Request $request, Closure $next): Response
     {
+        // اختيار المشترك من إعداداته يسبق ما ثبّته نمطه وقت التهيئة
         $theme = tenancy()->initialized
-            ? (string) tenant('theme')
+            ? (string) (setting('appearance.theme') ?: tenant('theme'))
             : $this->themes->default();
 
         $this->themes->use($theme);
