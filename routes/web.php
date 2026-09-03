@@ -5,16 +5,29 @@ declare(strict_types=1);
 use Illuminate\Support\Facades\Route;
 
 /*
- | ADR-003: نسجّل نفس المسارات مرتين — بلا بادئة (العربية)
- | ومع بادئة اللغة لكل لغة أخرى مفعّلة.
+ | المسارات المركزية — موقعنا نحن (التسويق، التسجيل، لوحة الإدارة العليا).
+ |
+ | مقيّدة بالنطاقات المركزية حتى لا تتصادم مع مسارات المشتركين،
+ | إذ يتشارك الاثنان نفس المسار "/" على نطاقات مختلفة.
+ |
+ | ADR-003: العربية بلا بادئة، والإنجليزية تحت /en/.
  */
-$register = function (): void {
+
+$central = function (): void {
     Route::view('/', 'welcome')->name('home');
-    Route::view('/design-system', 'design-system')->name('design-system');
+
+    // مرجع نظام التصميم — أداة للفريق، تُقيَّد بغير الإنتاج
+    if (! app()->isProduction()) {
+        Route::view('/design-system', 'design-system')->name('design-system');
+    }
 };
 
-$register();
+foreach (config('tenancy.central_domains') as $domain) {
+    Route::domain($domain)->group(function () use ($central): void {
+        $central();
 
-foreach (config('locales.prefixed') as $prefix) {
-    Route::prefix($prefix)->name($prefix.'.')->group($register);
+        foreach (config('locales.prefixed') as $prefix) {
+            Route::prefix($prefix)->name($prefix.'.')->group($central);
+        }
+    });
 }

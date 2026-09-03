@@ -29,6 +29,13 @@ return [
         'localhost',
     ],
 
+    /*
+     | النطاق الأساسي الذي تُشتق منه نطاقات المشتركين الفرعية:
+     |   {slug}.{base_domain}
+     | النطاقات الخاصة تُضاف بجانبه وتصير هي الأساسية عند التحقق منها.
+     */
+    'base_domain' => env('TENANT_BASE_DOMAIN', 'localhost'),
+
     /**
      * Tenancy bootstrappers are executed when tenancy is initialized.
      * Their responsibility is making Laravel features tenant-aware.
@@ -60,7 +67,7 @@ return [
          * prefix + tenant_id + suffix.
          */
         'prefix' => 'tenant',
-        'suffix' => '',
+        'suffix' => '.sqlite',   // قواعد SQLite في التطوير تحتاج امتداداً
 
         /**
          * TenantDatabaseManagers are classes that handle the creation & deletion of tenant databases.
