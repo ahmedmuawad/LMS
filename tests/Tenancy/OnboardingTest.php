@@ -19,6 +19,7 @@ beforeEach(function () {
 
     $this->tenant = provision(['name' => 'أكاديمية جديدة', 'owner_email' => 'ob@example.test'], onboarded: false);
     $this->base = 'http://'.$this->tenant->domains->first()->domain;
+    actingAsOwner($this->tenant);
 });
 
 afterEach(fn () => tenancy()->initialized && tenancy()->end());

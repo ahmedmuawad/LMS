@@ -6,7 +6,7 @@
         : __('إضافة').' '.$resource->singularLabel();
 @endphp
 
-<x-layouts.admin :title="$title" :current="$key">
+<x-dynamic-component :component="$resource->layout()" :title="$title" :current="$key">
 <div class="max-w-3xl">
 
     <x-ui.page-header :title="$title" :back="url('/admin/'.$key)">
@@ -79,4 +79,4 @@
         </form>
     @endif
 </div>
-</x-layouts.admin>
+</x-dynamic-component>

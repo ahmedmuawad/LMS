@@ -7,7 +7,7 @@
     $hasQuery = filled(request('q')) || collect($filters)->contains(fn ($f) => filled(request($f->name)));
 @endphp
 
-<x-layouts.admin :title="$resource->label()" :current="$key">
+<x-dynamic-component :component="$resource->layout()" :title="$resource->label()" :current="$key">
 <div class="max-w-[1400px]">
 
     <x-ui.page-header :title="$resource->label()"
@@ -121,4 +121,4 @@
         @endif
     @endif
 </div>
-</x-layouts.admin>
+</x-dynamic-component>

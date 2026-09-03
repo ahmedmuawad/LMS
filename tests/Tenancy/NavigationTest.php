@@ -101,6 +101,7 @@ it('reflects a mode change in the navigation immediately', function () {
 
 it('renders the locked item with a lock and an explanation', function () {
     $tenant = provision(['platform_mode' => 'marketplace', 'plan_key' => 'growth']);
+    actingAsOwner($tenant);
 
     $this->get('http://'.$tenant->domains->first()->domain.'/admin/users')
         ->assertOk()
@@ -113,6 +114,7 @@ it('renders the locked item with a lock and an explanation', function () {
 
 it('shows the trial banner while on trial', function () {
     $tenant = provision(['plan_key' => 'growth']);
+    actingAsOwner($tenant);
 
     $this->get('http://'.$tenant->domains->first()->domain.'/admin/users')
         ->assertOk()
@@ -124,6 +126,7 @@ it('shows the trial banner while on trial', function () {
 it('warns a past-due tenant without shutting the panel', function () {
     $tenant = provision(['plan_key' => 'growth']);
     $tenant->forceFill(['status' => 'past_due', 'trial_ends_at' => null])->save();
+    actingAsOwner($tenant);
 
     $this->get('http://'.$tenant->domains->first()->domain.'/admin/users')
         ->assertOk()

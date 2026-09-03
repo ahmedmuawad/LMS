@@ -126,6 +126,12 @@ abstract class Resource
         return '▦';
     }
 
+    /** الهيكل الذي تُصيَّر داخله شاشات هذا المورد. */
+    public function layout(): string
+    {
+        return 'layouts.admin';
+    }
+
     public function perPage(): int
     {
         return 25;

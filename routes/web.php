@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\ResourceController;
+use App\Http\Controllers\Admin\SuperAdminController;
+use App\Http\Controllers\Admin\SuperAuthController;
+use App\Http\Middleware\EnsureSuperAdmin;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,6 +19,22 @@ use Illuminate\Support\Facades\Route;
 
 $central = function (): void {
     Route::view('/', 'welcome')->name('home');
+
+    // دخول فريق المنصة
+    Route::get('/super/login', [SuperAuthController::class, 'show'])->name('super.login');
+    Route::post('/super/login', [SuperAuthController::class, 'login']);
+    Route::post('/super/logout', [SuperAuthController::class, 'logout'])->name('super.logout');
+
+    // اللوحة العليا — أعمالنا نحن، لفريقنا وحده
+    Route::middleware(EnsureSuperAdmin::class)->group(function (): void {
+        Route::get('/admin', [SuperAdminController::class, 'overview'])->name('super.overview');
+
+        Route::prefix('admin/{resource}')->name('super.resource.')->group(function (): void {
+            Route::get('/', [ResourceController::class, 'index'])->name('index');
+            Route::get('/{id}/edit', [ResourceController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [ResourceController::class, 'update'])->name('update');
+        });
+    });
 
     // مرجع نظام التصميم — أداة للفريق، تُقيَّد بغير الإنتاج
     if (! app()->isProduction()) {

@@ -24,6 +24,19 @@ class User extends Authenticatable
 
     protected $hidden = ['password', 'remember_token'];
 
+    /** الأدوار التي تفتح لوحة التحكم — الطالب وولي الأمر لهما بواباتهما. */
+    public const PANEL_ROLES = ['owner', 'admin', 'instructor', 'staff'];
+
+    public function canAccessPanel(): bool
+    {
+        return $this->status === 'active' && in_array($this->role, self::PANEL_ROLES, true);
+    }
+
+    public function isOwner(): bool
+    {
+        return $this->role === 'owner';
+    }
+
     protected function casts(): array
     {
         return [

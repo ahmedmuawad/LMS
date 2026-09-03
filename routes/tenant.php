@@ -3,8 +3,10 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Admin\ResourceController;
+use App\Http\Controllers\Tenant\AuthController;
 use App\Http\Controllers\Tenant\OnboardingController;
 use App\Http\Middleware\ApplyTenantTheme;
+use App\Http\Middleware\EnsurePanelAccess;
 use App\Http\Middleware\RequireOnboarding;
 use Illuminate\Support\Facades\Route;
 use Stancl\Tenancy\Middleware\InitializeTenancyByDomain;
@@ -22,8 +24,15 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
 $tenantRoutes = function (): void {
     Route::get('/', fn () => view('tenant.home'))->name('tenant.home');
 
+    // المصادقة
+    Route::middleware('guest')->group(function (): void {
+        Route::get('/login', [AuthController::class, 'show'])->name('login');
+        Route::post('/login', [AuthController::class, 'login']);
+    });
+    Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
+
     // معالج التهيئة — يسبق اللوحة
-    Route::prefix('onboarding')->name('onboarding.')->group(function (): void {
+    Route::prefix('onboarding')->middleware(EnsurePanelAccess::class)->name('onboarding.')->group(function (): void {
         Route::get('/', fn () => redirect(url('/onboarding/mode')));
         Route::post('/finish', [OnboardingController::class, 'finish'])->name('finish');
         Route::get('/{step}', [OnboardingController::class, 'show'])->name('show');
@@ -31,14 +40,16 @@ $tenantRoutes = function (): void {
     });
 
     // نواة الإدارة: متحكّم واحد يخدم كل الموارد
-    Route::prefix('admin/{resource}')->middleware(RequireOnboarding::class)->name('admin.resource.')->group(function (): void {
-        Route::get('/', [ResourceController::class, 'index'])->name('index');
-        Route::get('/create', [ResourceController::class, 'create'])->name('create');
-        Route::post('/', [ResourceController::class, 'store'])->name('store');
-        Route::get('/{id}/edit', [ResourceController::class, 'edit'])->name('edit');
-        Route::put('/{id}', [ResourceController::class, 'update'])->name('update');
-        Route::delete('/{id}', [ResourceController::class, 'destroy'])->name('destroy');
-    });
+    Route::prefix('admin/{resource}')
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->name('admin.resource.')->group(function (): void {
+            Route::get('/', [ResourceController::class, 'index'])->name('index');
+            Route::get('/create', [ResourceController::class, 'create'])->name('create');
+            Route::post('/', [ResourceController::class, 'store'])->name('store');
+            Route::get('/{id}/edit', [ResourceController::class, 'edit'])->name('edit');
+            Route::put('/{id}', [ResourceController::class, 'update'])->name('update');
+            Route::delete('/{id}', [ResourceController::class, 'destroy'])->name('destroy');
+        });
 };
 
 Route::middleware([

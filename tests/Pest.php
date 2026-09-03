@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Core\Onboarding\OnboardingWizard;
 use App\Core\Tenancy\Actions\ProvisionTenant;
 use App\Core\Tenancy\Models\Tenant;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
 use Tests\TestCase;
@@ -74,4 +75,18 @@ function provision(array $overrides = [], bool $onboarded = true): Tenant
     }
 
     return $tenant;
+}
+
+/**
+ * يدخل كمالك المنصة — كل شاشات اللوحة تشترط حساباً بصلاحية إدارية.
+ */
+function actingAsOwner(Tenant $tenant): void
+{
+    $owner = $tenant->run(fn () => User::where('role', 'owner')->firstOrFail());
+
+    if (! tenancy()->initialized) {
+        tenancy()->initialize($tenant);
+    }
+
+    test()->actingAs($owner);
 }

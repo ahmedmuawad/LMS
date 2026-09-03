@@ -91,8 +91,12 @@ final class ResourceController
 
     private function resolve(string $key): Resource
     {
-        // القائمة مغلقة: لا يصل اسم صنف من المستخدم إلى الحاوية
-        $class = self::RESOURCES[$key] ?? throw new NotFoundHttpException("مورد غير معروف: [{$key}]");
+        // القائمة مغلقة: لا يصل اسم صنف من المستخدم إلى الحاوية.
+        // السياق يحدّد الخريطة: قاعدة المشترك أم القاعدة المركزية.
+        $context = tenancy()->initialized ? 'tenant' : 'central';
+
+        $class = config("admin-resources.{$context}.{$key}")
+            ?? throw new NotFoundHttpException("مورد غير معروف في سياق [{$context}]: [{$key}]");
 
         return app($class);
     }

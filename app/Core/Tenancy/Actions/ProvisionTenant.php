@@ -82,6 +82,7 @@ final class ProvisionTenant
                     'email_verified_at' => now(),
                     'locale' => $input['locale'] ?? 'ar',
                     'status' => 'active',
+                    'role' => 'owner',
                     'created_at' => now(),
                     'updated_at' => now(),
                 ]);

@@ -34,6 +34,8 @@ function tenantWithUsers(): array
         }
     });
 
+    actingAsOwner($tenant);
+
     return [$tenant, 'http://'.$tenant->domains->first()->domain];
 }
 
@@ -118,17 +120,13 @@ it('shows the empty state when nothing matches', function () {
     tenancy()->end();
 });
 
-it('shows the resource empty state for a fresh tenant', function () {
-    $tenant = provision(['name' => 'أكاديمية فارغة', 'owner_email' => 'empty@example.test']);
+it('defines its own empty state rather than a generic one', function () {
+    // الحالة الفارغة إلزامية لكل مورد (وثيقة 13) — ولا يمكن اختبارها
+    // عبر HTTP هنا لأن المشترك يملك دائماً حساب المالك على الأقل
+    $empty = (new UserResource)->emptyState();
 
-    // فيها المالك فقط — نحذفه لنرى الحالة الفارغة الحقيقية
-    $tenant->run(fn () => DB::table('users')->delete());
-
-    $this->get('http://'.$tenant->domains->first()->domain.'/admin/users')
-        ->assertOk()
-        ->assertSee('لا يوجد مستخدمون بعد', false);
-
-    tenancy()->end();
+    expect($empty['title'])->toBe('لا يوجد مستخدمون بعد')
+        ->and($empty['body'])->toContain('سيظهر هنا كل من يسجّل');
 });
 
 it('returns 404 for an unknown resource key', function () {

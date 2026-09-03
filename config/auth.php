@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\SuperAdmin;
 use App\Models\User;
 
 return [
@@ -42,6 +43,12 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        // فريقنا على القاعدة المركزية — حارس منفصل تماماً عن حارس المشترك
+        'super' => [
+            'driver' => 'session',
+            'provider' => 'super_admins',
+        ],
     ],
 
     /*
@@ -65,6 +72,12 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+
+        // فريق المنصة — يُقرأ دائماً من القاعدة المركزية مهما كان سياق المشترك
+        'super_admins' => [
+            'driver' => 'eloquent',
+            'model' => SuperAdmin::class,
         ],
 
         // 'users' => [
