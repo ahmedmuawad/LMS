@@ -21,7 +21,7 @@ return [
             'label' => 'نظرة عامة',
             'items' => [
                 ['key' => 'dashboard', 'label' => 'اللوحة', 'icon' => '◧', 'route' => 'admin.dashboard'],
-                ['key' => 'reports', 'label' => 'التقارير', 'icon' => '◔', 'module' => 'reports'],
+                ['key' => 'reports', 'label' => 'التقارير', 'icon' => '◔', 'module' => 'reports', 'route' => 'admin.reports.index'],
             ],
         ],
 

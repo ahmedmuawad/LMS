@@ -1,3 +1,4 @@
+@props(['title' => null, 'meta' => null])
 @php
     $locale = app()->getLocale();
     $dir    = in_array($locale, ['ar', 'fa', 'ur', 'he'], true) ? 'rtl' : 'ltr';
@@ -11,7 +12,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ $title ?? config('app.name') }}</title>
+    @php
+        $seoMeta = $meta ?? (tenant() === null ? null : app(App\Core\Seo\Seo::class)->forPage($title));
+        $pageTitle = $seoMeta?->title ?: ($title ?? config('app.name'));
+    @endphp
+    <title>{{ $pageTitle }}</title>
+    @if($seoMeta !== null)
+        <x-seo.head :meta="$seoMeta" />
+    @endif
     {{-- منع وميض الوضع الخاطئ قبل تحميل Alpine --}}
     <script>
         (function () {
@@ -35,6 +43,7 @@
     {{-- تخصيص المشترك: يعيد تعريف الطبقة الدلالية وحدها، وبدرجات مضبوطة التباين --}}
     @php $brand = app(App\Core\Theming\BrandCss::class)->render(); @endphp
     @if($brand)<style>{!! $brand !!}</style>@endif
+    @if(tenant())<x-analytics.head />@endif
     @stack('head')
 </head>
 <body class="min-h-screen bg-bg text-content antialiased">

@@ -1,6 +1,17 @@
 <x-layouts.app :title="__('إتمام الشراء')">
 <x-site.header />
 
+<x-analytics.event name="begin_checkout" :data="[
+    'currency' => (string) $cart->currency,
+    'value' => round($totals['total']->minor / 100, 2),
+    'items' => $cart->items->map(fn ($item) => [
+        'item_id' => (string) $item->product_id,
+        'item_name' => (string) ($item->product?->title ?? ''),
+        'price' => round($item->unitPrice()->minor / 100, 2),
+        'quantity' => (int) $item->quantity,
+    ])->all(),
+]" />
+
 <main id="main" class="max-w-[1000px] mx-auto px-4 sm:px-6 py-8">
 
     <x-ui.page-header :title="__('إتمام الشراء')" :back="url('/cart')" />

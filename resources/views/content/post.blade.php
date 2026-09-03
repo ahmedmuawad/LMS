@@ -1,12 +1,13 @@
-<x-layouts.app :title="$post->title">
+@php
+    $meta = app(App\Core\Seo\Seo::class)->forModel($post, [
+        'breadcrumbs' => [
+            ['name' => __('المدونة'), 'url' => url('/blog')],
+            ['name' => (string) $post->title, 'url' => url('/blog/'.$post->slug)],
+        ],
+    ]);
+@endphp
+<x-layouts.app :title="$post->title" :meta="$meta">
 <x-site.header />
-
-@push('head')
-    @if($post->excerpt)<meta name="description" content="{{ Str::limit(strip_tags($post->excerpt), 160) }}">@endif
-    <meta property="og:type" content="article">
-    <meta property="og:title" content="{{ $post->title }}">
-    @if($post->cover)<meta property="og:image" content="{{ $post->cover->url() }}">@endif
-@endpush
 
 <main id="main" class="max-w-[760px] mx-auto px-4 sm:px-6 py-8">
 

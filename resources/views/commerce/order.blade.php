@@ -10,6 +10,28 @@
 <x-layouts.app :title="__('طلب :n', ['n' => $order->number])">
 <x-site.header />
 
+{{--
+    حدث الشراء يُرسل من صفحة الطلب المدفوع وحدها.
+
+    إرساله من صفحة الشكر بلا شرط يعدّ كل إعادة تحميل شراءً جديداً،
+    فتنتفخ أرقام الإعلانات ويُصرف على قناة تبدو أنجح مما هي.
+--}}
+@if(in_array($order->status, ['paid', 'processing', 'completed'], true))
+    <x-analytics.event name="purchase" :data="[
+        'transaction_id' => (string) $order->number,
+        'currency' => (string) $order->currency,
+        'value' => round((int) $order->total_minor / 100, 2),
+        'tax' => round((int) ($order->tax_minor ?? 0) / 100, 2),
+        'shipping' => round((int) ($order->shipping_minor ?? 0) / 100, 2),
+        'items' => $order->items->map(fn ($item) => [
+            'item_id' => (string) $item->getKey(),
+            'item_name' => $item->title(),
+            'price' => round((int) $item->unit_price_minor / 100, 2),
+            'quantity' => (int) $item->quantity,
+        ])->all(),
+    ]" />
+@endif
+
 <main id="main" class="max-w-[820px] mx-auto px-4 sm:px-6 py-8">
 
     @if(session('status'))<x-ui.alert tone="success" class="mb-4">{{ session('status') }}</x-ui.alert>@endif

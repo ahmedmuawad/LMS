@@ -1,9 +1,13 @@
-<x-layouts.app :title="$service->title">
+@php
+    $meta = app(App\Core\Seo\Seo::class)->forModel($service, [
+        'breadcrumbs' => [
+            ['name' => __('الخدمات'), 'url' => url('/services')],
+            ['name' => (string) $service->title, 'url' => url('/services/'.$service->slug)],
+        ],
+    ]);
+@endphp
+<x-layouts.app :title="$service->title" :meta="$meta">
 <x-site.header />
-
-@push('head')
-    @if($service->excerpt)<meta name="description" content="{{ Str::limit(strip_tags($service->excerpt), 160) }}">@endif
-@endpush
 
 @php
     /** التقويم يصل مصفوفة تواريخ؛ Alpine يحتاجه شكلاً واحداً مسطّحاً */

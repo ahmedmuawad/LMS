@@ -24,6 +24,22 @@ use Illuminate\Support\Facades\Route;
 $central = function (): void {
     Route::view('/', 'welcome')->name('home');
 
+    /*
+     | robots للنطاق المركزي.
+     |
+     | كان ملفاً ساكناً في public، وهو يسبق كل مسار — فكان يُقدَّم
+     | لكل مشترك بدل ملفه هو، ويُبطل إعداد الفهرسة في شاشته.
+     */
+    Route::get('/robots.txt', fn () => response(
+        implode("\n", [
+            'User-agent: *',
+            'Disallow: /admin/',
+            'Disallow: /super/',
+        ])."\n",
+        200,
+        ['Content-Type' => 'text/plain; charset=utf-8'],
+    ))->name('robots');
+
     // دخول فريق المنصة
     Route::get('/super/login', [SuperAuthController::class, 'show'])->name('super.login');
     Route::post('/super/login', [SuperAuthController::class, 'login']);

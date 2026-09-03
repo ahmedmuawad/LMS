@@ -1,9 +1,28 @@
 @php
     $canEnrol = $enrollment === null && $course->isOpenForEnrollment();
     $totalItems = collect($sections)->sum('total');
+
+    $meta = app(App\Core\Seo\Seo::class)->forModel($course, [
+        'breadcrumbs' => [
+            ['name' => __('الكورسات'), 'url' => url('/courses')],
+            ['name' => (string) $course->title, 'url' => url('/courses/'.$course->slug)],
+        ],
+    ]);
 @endphp
 
-<x-layouts.app :title="$course->title">
+<x-layouts.app :title="$course->title" :meta="$meta">
+
+{{-- حدث «شوهد المنتج»: أساس إعادة الاستهداف في كل المنصّات --}}
+<x-analytics.event name="view_item" :data="[
+    'currency' => (string) $course->currency,
+    'value' => round((int) $course->price_minor / 100, 2),
+    'items' => [[
+        'item_id' => (string) $course->slug,
+        'item_name' => (string) $course->title,
+        'item_category' => (string) ($course->category?->name ?? ''),
+        'price' => round((int) $course->price_minor / 100, 2),
+    ]],
+]" />
 <x-site.header />
 
 <main id="main" class="max-w-[1200px] mx-auto px-4 sm:px-6 py-8">

@@ -33,6 +33,8 @@ use App\Http\Controllers\Lms\QuizController;
 use App\Http\Controllers\Notifications\InboxController;
 use App\Http\Controllers\Notifications\NotificationAdminController;
 use App\Http\Controllers\Pwa\PwaController;
+use App\Http\Controllers\Reports\ReportController;
+use App\Http\Controllers\Seo\SitemapController;
 use App\Http\Controllers\Services\ServiceController;
 use App\Http\Controllers\Tenant\AuthController;
 use App\Http\Controllers\Tenant\BillingController;
@@ -266,6 +268,14 @@ $tenantRoutes = function (): void {
             Route::delete('/media/{id}', [MediaController::class, 'destroy'])->name('media.destroy');
         });
 
+    // التقارير — قبل مسار الموارد العام
+    Route::prefix('admin/reports')
+        ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
+        ->name('admin.reports.')->group(function (): void {
+            Route::get('/', [ReportController::class, 'index'])->name('index');
+            Route::get('/export', [ReportController::class, 'export'])->name('export');
+        });
+
     // النمو: المسوّقون والتسلسلات — قبل مسار الموارد العام
     Route::prefix('admin')
         ->middleware([EnsurePanelAccess::class, RequireOnboarding::class])
@@ -343,6 +353,16 @@ Route::middleware([
      | /en يعني عاملَين لا يعرف أحدهما ما خزّنه الآخر.
      */
     Route::get('/service-worker.js', [PwaController::class, 'serviceWorker'])->name('pwa.service-worker');
+
+    /*
+     | السيو: خريطة الموقع وrobots خارج بادئات اللغة.
+     | الخريطة تحمل بدائل اللغات داخلها، وتكرارها لكل بادئة يضاعفها
+     | بلا فائدة ويربك المحرّك في أي نسخة يُصدّق.
+     */
+    Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+    Route::get('/sitemap-{section}.xml', [SitemapController::class, 'section'])
+        ->where('section', '[a-z]+')->name('sitemap.section');
+    Route::get('/robots.txt', [SitemapController::class, 'robots'])->name('robots');
 
     foreach (config('locales.prefixed') as $prefix) {
         Route::prefix($prefix)->name($prefix.'.')->group($tenantRoutes);

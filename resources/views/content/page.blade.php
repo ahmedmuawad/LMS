@@ -1,4 +1,5 @@
-<x-layouts.app :title="$page->title">
+@php $meta = app(App\Core\Seo\Seo::class)->forModel($page); @endphp
+<x-layouts.app :title="$page->title" :meta="$meta">
 <x-site.header />
 
 <main id="main">
