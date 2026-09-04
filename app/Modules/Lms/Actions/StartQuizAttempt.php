@@ -49,12 +49,25 @@ final class StartQuizAttempt
             'status' => 'in_progress',
             'started_at' => now(),
             'max_score' => $questions->sum(fn (Question $q): float => $quiz->marksFor($q)),
+            /*
+             | اللقطة تحمل الشرح وخطوات الحل معها.
+             |
+             | لو قُرئا من السؤال وقت العرض لتغيّرا بعد تعديل المدرّس
+             | للسؤال، فيرى الطالب شرحاً لا يخصّ الورقة التي أجابها.
+             |
+             | ولا تحمل **الإجابة الصحيحة**: اللقطة صفٌّ يُقرأ في أي
+             | استجابة مستقبلية، ووضع الحلّ فيها يعني تسريبه لمن يفتح
+             | أدوات المتصفّح وهو يمتحن.
+             */
             'snapshot' => $questions->map(fn (Question $q): array => [
                 'id' => $q->getKey(),
                 'type' => $q->type,
                 'body' => $q->getTranslations('body'),
                 'options' => $quiz->shuffle_answers ? $this->shuffleOptions($q) : $q->options,
                 'marks' => $quiz->marksFor($q),
+                'difficulty' => $q->difficulty,
+                'steps' => $q->getTranslations('steps'),
+                'explanation' => $q->getTranslations('explanation'),
             ])->all(),
         ]);
     }

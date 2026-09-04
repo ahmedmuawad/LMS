@@ -70,7 +70,8 @@
                     <x-ui.card>
                         <div class="flex items-start justify-between gap-3 mb-3">
                             <p class="font-semibold leading-relaxed min-w-0">
-                                <span class="text-subtle font-mono text-xs me-1">{{ $index + 1 }}.</span>{{ $body }}
+                                <span class="text-subtle font-mono text-xs me-1">{{ $index + 1 }}.</span><x-ui.math
+                                    inline>{{ $body }}</x-ui.math>
                             </p>
                             <span class="text-2xs text-subtle font-mono shrink-0">{{ rtrim(rtrim(number_format((float) $q['marks'], 2), '0'), '.') }}</span>
                         </div>
@@ -86,17 +87,27 @@
                         @elseif(in_array($q['type'], ['single_choice', 'dropdown'], true))
                             <div class="grid gap-2">
                                 @foreach(($q['options'] ?? []) as $key => $label)
-                                    <x-ui.checkbox type="radio" :name="$name" :value="$key" :label="$label"
+                                    <x-ui.checkbox type="radio" :name="$name" :value="$key"
                                                    :disabled="! $open"
-                                                   :checked="(string) ($given?->answer['value'] ?? '') === (string) $key" />
+                                                   :checked="(string) ($given?->answer['value'] ?? '') === (string) $key">
+                                        <x-ui.math inline>{{ $label }}</x-ui.math>
+                                        @if(in_array((string) $key, $correct[$q['id']] ?? [], true))
+                                            <span class="text-success text-xs font-semibold ms-1">✓ {{ __('الصحيحة') }}</span>
+                                        @endif
+                                    </x-ui.checkbox>
                                 @endforeach
                             </div>
                         @elseif($q['type'] === 'multiple_choice')
                             <div class="grid gap-2">
                                 @foreach(($q['options'] ?? []) as $key => $label)
-                                    <x-ui.checkbox :name="$name.'[]'" :value="$key" :label="$label"
+                                    <x-ui.checkbox :name="$name.'[]'" :value="$key"
                                                    :disabled="! $open"
-                                                   :checked="in_array((string) $key, array_map('strval', (array) ($given?->answer['value'] ?? [])), true)" />
+                                                   :checked="in_array((string) $key, array_map('strval', (array) ($given?->answer['value'] ?? [])), true)">
+                                        <x-ui.math inline>{{ $label }}</x-ui.math>
+                                        @if(in_array((string) $key, $correct[$q['id']] ?? [], true))
+                                            <span class="text-success text-xs font-semibold ms-1">✓ {{ __('الصحيحة') }}</span>
+                                        @endif
+                                    </x-ui.checkbox>
                                 @endforeach
                             </div>
                         @elseif($q['type'] === 'essay')
@@ -122,8 +133,24 @@
                                 </span>
                             </div>
 
-                            @if($showAnswers && $given?->is_correct === false)
-                                <p class="text-xs text-muted mt-2">{{ __('راجع الدرس المرتبط بهذا السؤال قبل محاولتك القادمة.') }}</p>
+                            @if($showAnswers)
+                                @php
+                                    $steps = $q['steps'][app()->getLocale()] ?? $q['steps']['ar'] ?? null;
+                                    $why   = $q['explanation'][app()->getLocale()] ?? $q['explanation']['ar'] ?? null;
+                                @endphp
+
+                                {{-- الخطوات قبل الشرح: الطالب يريد أن يعرف **أين** أخطأ لا أن يُقال له «خطأ» --}}
+                                @if(filled($steps))
+                                    <div class="mt-3"><x-ui.solution-steps :steps="$steps" /></div>
+                                @endif
+
+                                @if(filled($why))
+                                    <x-ui.math class="text-sm text-muted mt-3">{{ $why }}</x-ui.math>
+                                @endif
+
+                                @if($given?->is_correct === false && blank($steps) && blank($why))
+                                    <p class="text-xs text-muted mt-2">{{ __('راجع الدرس المرتبط بهذا السؤال قبل محاولتك القادمة.') }}</p>
+                                @endif
                             @endif
                         @endunless
                     </x-ui.card>

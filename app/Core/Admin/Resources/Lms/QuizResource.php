@@ -10,6 +10,7 @@ use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\NumberColumn;
 use App\Core\Admin\Columns\TextColumn;
 use App\Core\Admin\Fields\NumberField;
+use App\Core\Admin\Fields\QuestionPoolField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
 use App\Core\Admin\Fields\SwitchField;
@@ -18,6 +19,7 @@ use App\Core\Admin\Filters\SelectFilter;
 use App\Core\Admin\Resource;
 use App\Models\User;
 use App\Modules\Lms\Models\Quiz;
+use App\Modules\Lms\Models\Taxonomy;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -97,8 +99,16 @@ final class QuizResource extends Resource
                     ->options(['static' => __('ثابت — أسئلة محدّدة'), 'dynamic' => __('عشوائي من بنك الأسئلة')])
                     ->default('static'),
                 NumberField::make('questions_count')->label(__('عدد الأسئلة العشوائية'))->range(1, 200)->half()
-                    ->hint(__('للاختبار العشوائي وحده.')),
+                    ->hint(__('للاختبار العشوائي بلا خلطة صعوبات.')),
             ]),
+
+            Section::make(__('خلطة الصعوبات'))
+                ->description(__('للاختبار العشوائي: كم سؤالاً من كل مستوى. حدّدها فتسبق «عدد الأسئلة» أعلاه.'))
+                ->fields([
+                    QuestionPoolField::make('question_pool')->label(__('من بنك الأسئلة'))
+                        ->categories(Taxonomy::ofType('question_category')->get()
+                            ->mapWithKeys(fn (Taxonomy $t): array => [$t->getKey() => (string) $t->name])->all()),
+                ]),
 
             Section::make(__('القواعد'))->fields([
                 NumberField::make('time_limit_minutes')->label(__('الزمن'))->suffix(__('دقيقة'))

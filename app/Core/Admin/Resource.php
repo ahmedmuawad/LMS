@@ -6,6 +6,7 @@ namespace App\Core\Admin;
 
 use App\Core\Access\Roles;
 use App\Core\Admin\Columns\Column;
+use App\Core\Admin\Fields\ChoicesField;
 use App\Core\Admin\Fields\Field;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Filters\Filter;
@@ -118,6 +119,16 @@ abstract class Resource
             }
 
             $data[$field->name] = $field->fill($value);
+
+            /*
+             | حقل الخيارات يملأ عمودين: الخيارات والصواب.
+             |
+             | فصلهما حقلين مستقلّين كان يسمح بحفظ إجابة صحيحة تشير
+             | إلى خيار حُذف — فيصير السؤال بلا إجابة صحيحة أبداً.
+             */
+            if ($field instanceof ChoicesField) {
+                $data['correct'] = ChoicesField::correctFrom($value);
+            }
         }
 
         return $data;

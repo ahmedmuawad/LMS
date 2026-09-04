@@ -1,0 +1,51 @@
+/*
+ | عزل اتجاه المعادلة عن اتجاه الصفحة.
+ |
+ | المعادلة تُقرأ من اليسار دائماً، ولو كانت في جملة عربية. بلا هذا
+ | العزل ترث `.katex` اتجاه الصفحة فينعكس ترتيب أجزائها بصرياً:
+ | $x^2 - 5x + 6 = 0$ تظهر «0 = 6 + 5x − ²x» — لا مقروءة ولا صحيحة،
+ | و $40\,\text{cm}^2$ تظهر «²cm 40» فيهاجر الأسّ إلى الوحدة.
+ |
+ | `isolate` لا `bidi-override`: نعزل المعادلة عن جارها ولا نفرض
+ | اتجاهاً على النصّ العربي الذي قد يرد داخلها في \text{...}.
+ */
+.katex {
+    direction: ltr;
+    unicode-bidi: isolate;
+    text-align: left;
+}
+
+.katex-display {
+    direction: ltr;
+    unicode-bidi: isolate;
+    margin: 0.75em 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-block: 0.25em;
+}
+
+.katex-display > .katex {
+    text-align: center;
+    white-space: nowrap;
+}
+
+/* المعادلة الطويلة تُمرَّر داخل إطارها ولا تمدّ الصفحة أفقياً */
+[data-math] {
+    max-width: 100%;
+    overflow-wrap: break-word;
+}
+
+/* الألوان تتبع النصّ المحيط فتصحّ على الخلفية الداكنة كما الفاتحة */
+.katex,
+.katex .mord,
+.katex .mbin,
+.katex .mrel,
+.katex .mopen,
+.katex .mclose,
+.katex .mpunct {
+    color: inherit;
+}
+
+.katex .frac-line {
+    border-bottom-color: currentColor;
+}

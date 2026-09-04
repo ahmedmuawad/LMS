@@ -2,6 +2,8 @@ import Alpine from 'alpinejs';
 import focus from '@alpinejs/focus';
 import collapse from '@alpinejs/collapse';
 
+import './math.js';
+
 Alpine.plugin(focus);
 Alpine.plugin(collapse);
 

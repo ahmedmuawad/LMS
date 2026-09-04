@@ -39,7 +39,7 @@ final class Question extends Model
     protected $guarded = [];
 
     /** @var list<string> */
-    protected array $translatable = ['title', 'body', 'explanation'];
+    protected array $translatable = ['title', 'body', 'explanation', 'steps'];
 
     protected function casts(): array
     {
@@ -47,6 +47,7 @@ final class Question extends Model
             'title' => 'array',
             'body' => 'array',
             'explanation' => 'array',
+            'steps' => 'array',
             'options' => 'array',
             'correct' => 'array',
             'marks' => 'float',

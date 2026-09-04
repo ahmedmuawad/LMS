@@ -10,6 +10,7 @@ use App\Core\Admin\Columns\TextColumn;
 use App\Core\Admin\Fields\NumberField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
+use App\Core\Admin\Fields\TextField;
 use App\Core\Admin\Fields\TranslatableField;
 use App\Core\Admin\Filters\SelectFilter;
 use App\Core\Admin\Resource;
@@ -68,6 +69,13 @@ final class GroupResource extends Resource
             TextColumn::make('teacher_id')->label(__('المدرّس'))
                 ->using(fn ($v, Group $g): string => (string) ($g->teacher?->name ?? '—')),
 
+            TextColumn::make('venue')->label(__('المكان'))
+                ->using(fn ($v, Group $g): string => $g->venueLabel()),
+
+            BadgeColumn::make('kind')->label(__('الشكل'))->sortable()
+                ->tones(['private' => 'accent', 'group' => 'neutral'])
+                ->labels(array_map(fn (string $l): string => __($l), Group::KINDS)),
+
             TextColumn::make('enrolled_count')->label(__('الطلاب'))->mono()->align('end')->sortable()
                 ->using(fn ($v, Group $g): string => $v.' / '.$g->capacity),
 
@@ -91,6 +99,12 @@ final class GroupResource extends Resource
             SelectFilter::make('subject_id')->label(__('المادة'))
                 ->options(Subject::get()->mapWithKeys(fn (Subject $s): array => [$s->getKey() => (string) $s->name])->all()),
 
+            SelectFilter::make('venue')->label(__('المكان'))
+                ->options(array_map(fn (string $l): string => __($l), Group::VENUES)),
+
+            SelectFilter::make('kind')->label(__('الشكل'))
+                ->options(array_map(fn (string $l): string => __($l), Group::KINDS)),
+
             SelectFilter::make('branch_id')->label(__('الفرع'))
                 ->options(Branch::get()->mapWithKeys(fn (Branch $b): array => [$b->getKey() => (string) $b->name])->all()),
         ];
@@ -102,8 +116,20 @@ final class GroupResource extends Resource
             Section::make(__('المجموعة'))->fields([
                 TranslatableField::make('name')->label(__('الاسم'))->required()
                     ->hint(__('اسم يعرفه الطلاب: «فيزياء ٣ث — سبت ٤م».')),
-                SelectField::make('branch_id')->label(__('الفرع'))->half()->required()
-                    ->options(Branch::get()->mapWithKeys(fn (Branch $b): array => [$b->getKey() => (string) $b->name])->all()),
+                SelectField::make('kind')->label(__('الشكل'))->half()
+                    ->options(array_map(fn (string $l): string => __($l), Group::KINDS))
+                    ->default('group')
+                    ->hint(__('الفردي سعته طالب واحد.')),
+                SelectField::make('venue')->label(__('المكان'))->half()
+                    ->options(array_map(fn (string $l): string => __($l), Group::VENUES))
+                    ->default('branch'),
+                SelectField::make('branch_id')->label(__('الفرع'))->half()
+                    ->options(Branch::get()->mapWithKeys(fn (Branch $b): array => [$b->getKey() => (string) $b->name])->all())
+                    ->hint(__('للمجموعات في الفروع وحدها — اتركه فارغاً للأونلاين وللبيت.')),
+                TextField::make('meeting_url')->label(__('رابط الحصة'))->url()->half()
+                    ->hint(__('للأونلاين — يصل الطالب برابطه لا باسم الفرع.')),
+                TextField::make('location')->label(__('العنوان'))->half()
+                    ->hint(__('للدرس في البيت — يُكتب لولي الأمر.')),
                 SelectField::make('subject_id')->label(__('المادة'))->half()
                     ->options(Subject::get()->mapWithKeys(fn (Subject $s): array => [$s->getKey() => (string) $s->name])->all()),
                 SelectField::make('grade_id')->label(__('الصف'))->half()

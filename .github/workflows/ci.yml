@@ -68,6 +68,7 @@ jobs:
           php artisan demo:tenant --slug=center --mode=center --plan=center --fresh
           php artisan super-admin:create --name="فريق الفحص" --email=gate@platform.test --password=gate-password
           php artisan demo:two-factor --slug=demo
+          php artisan demo:math-school --slug=math --fresh
 
       # رابط الحجز يحمل رمزاً عشوائياً لا رقماً متسلسلاً — نقرأه للفحص
       - name: قراءة رمز الحجز التجريبي
@@ -97,6 +98,8 @@ jobs:
             node tests/Browser/responsive.mjs http://demo.localhost:8899 /two-factor
           GATE_EMAIL=nour@t.test GATE_PASSWORD=password \
             node tests/Browser/responsive.mjs http://demo.localhost:8899 /admin/dashboard /admin/students /admin/students/2 /admin/discussions /admin/discussions/1 /admin/announcements /admin/earnings /admin/statistics
+          GATE_EMAIL=mona@math.test GATE_PASSWORD=password \
+            node tests/Browser/responsive.mjs http://math.localhost:8899 /admin/questions /admin/questions/1/edit /admin/quizzes/1/edit /admin/groups /admin/schedule /admin/attendance
 
       - name: فحص التباين (WCAG AA · فاتح وداكن)
         env:
@@ -121,6 +124,8 @@ jobs:
             node tests/Browser/contrast.mjs http://demo.localhost:8899 /two-factor
           GATE_EMAIL=nour@t.test GATE_PASSWORD=password \
             node tests/Browser/contrast.mjs http://demo.localhost:8899 /admin/dashboard /admin/students /admin/students/2 /admin/discussions /admin/discussions/1 /admin/announcements /admin/earnings /admin/statistics
+          GATE_EMAIL=mona@math.test GATE_PASSWORD=password \
+            node tests/Browser/contrast.mjs http://math.localhost:8899 /admin/questions /admin/questions/1/edit /admin/quizzes/1/edit /admin/groups /admin/schedule /admin/attendance
 
       - name: فحص السلوك والوصولية
         env:
