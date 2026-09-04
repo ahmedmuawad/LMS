@@ -9,6 +9,7 @@ use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\DateColumn;
 use App\Core\Admin\Columns\NumberColumn;
 use App\Core\Admin\Columns\TextColumn;
+use App\Core\Admin\Fields\ImageField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
 use App\Core\Admin\Fields\SwitchField;
@@ -92,7 +93,7 @@ final class PostResource extends Resource
                 SelectField::make('category_id')->label(__('القسم'))->half()
                     ->options(Taxonomy::ofType('category')->pluck('name', 'id')->all())
                     ->placeholder(__('بلا قسم')),
-                TextField::make('cover_id')->label(__('معرّف صورة الغلاف'))->half()
+                ImageField::make('cover_id')->label(__('صورة الغلاف'))->storesId()->folder('posts')->half()
                     ->rules(['integer'])->hint(__('من مكتبة الوسائط.')),
             ]),
 

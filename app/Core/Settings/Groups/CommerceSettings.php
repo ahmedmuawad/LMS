@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Settings\Groups;
 
+use App\Core\Admin\Fields\ImageField;
 use App\Core\Admin\Fields\NumberField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
@@ -86,7 +87,7 @@ final class CommerceSettings extends SettingsGroup
 
             Section::make(__('الفاتورة'))->fields([
                 SwitchField::make('invoice_pdf')->label(__('إصدار فاتورة PDF'))->default(true),
-                TextField::make('invoice_logo')->label(__('شعار الفاتورة'))->url()->half(),
+                ImageField::make('invoice_logo')->label(__('شعار الفاتورة'))->folder('brand')->ratio('3/1')->half(),
                 TextField::make('invoice_prefix')->label(__('بادئة رقم الفاتورة'))->half()->default('INV-'),
                 TranslatableField::make('invoice_footer')->label(__('تذييل الفاتورة'))->long(),
             ]),

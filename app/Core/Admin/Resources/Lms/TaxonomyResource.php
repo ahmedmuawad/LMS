@@ -7,6 +7,7 @@ namespace App\Core\Admin\Resources\Lms;
 use App\Core\Access\Ability;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\TextColumn;
+use App\Core\Admin\Fields\IconField;
 use App\Core\Admin\Fields\NumberField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
@@ -86,7 +87,7 @@ final class TaxonomyResource extends Resource
                     ->options(Taxonomy::get()
                         ->mapWithKeys(fn (Taxonomy $t): array => [$t->getKey() => (string) $t->name])->all()),
                 NumberField::make('position')->label(__('الترتيب'))->range(0, 999)->half()->default(0),
-                TextField::make('icon')->label(__('الأيقونة'))->half()
+                IconField::make('icon')->label(__('الأيقونة'))->half()
                     ->hint(__('رمز واحد أو إيموجي.')),
                 TranslatableField::make('description')->label(__('الوصف'))->long(),
             ]),

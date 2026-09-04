@@ -8,6 +8,7 @@ use App\Core\Access\Ability;
 use App\Core\Admin\Columns\BooleanColumn;
 use App\Core\Admin\Columns\NumberColumn;
 use App\Core\Admin\Columns\TextColumn;
+use App\Core\Admin\Fields\IconField;
 use App\Core\Admin\Fields\NumberField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
@@ -81,7 +82,7 @@ final class BadgeResource extends Resource
                 TextField::make('key')->label(__('المفتاح'))->required()->half()
                     ->rules(['alpha_dash', 'max:48', 'unique:badges,key']),
                 TranslatableField::make('description')->label(__('الوصف'))->long(),
-                TextField::make('icon')->label(__('الأيقونة'))->half()->rules(['max:8'])
+                IconField::make('icon')->label(__('الأيقونة'))->half()
                     ->hint(__('حرف أو رمز واحد.')),
                 SelectField::make('tone')->label(__('اللون'))->half()
                     ->options([

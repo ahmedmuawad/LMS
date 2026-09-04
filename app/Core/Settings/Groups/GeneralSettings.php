@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Settings\Groups;
 
 use App\Core\Admin\Fields\CodeField;
+use App\Core\Admin\Fields\ImageField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
 use App\Core\Admin\Fields\SwitchField;
@@ -43,10 +44,10 @@ final class GeneralSettings extends SettingsGroup
                 ->fields([
                     TranslatableField::make('site_name')->label(__('اسم الموقع'))->required(),
                     TranslatableField::make('tagline')->label(__('الوصف المختصر'))->long(),
-                    TextField::make('logo_light')->label(__('الشعار — خلفية فاتحة'))->half()->url(),
-                    TextField::make('logo_dark')->label(__('الشعار — خلفية داكنة'))->half()->url(),
-                    TextField::make('logo_mobile')->label(__('شعار الموبايل'))->half()->url(),
-                    TextField::make('favicon')->label(__('أيقونة التبويب'))->half()->url(),
+                    ImageField::make('logo_light')->label(__('الشعار — خلفية فاتحة'))->folder('brand')->ratio('3/1')->half(),
+                    ImageField::make('logo_dark')->label(__('الشعار — خلفية داكنة'))->folder('brand')->ratio('3/1')->half(),
+                    ImageField::make('logo_mobile')->label(__('شعار الموبايل'))->folder('brand')->ratio('1/1')->half(),
+                    ImageField::make('favicon')->label(__('أيقونة التبويب'))->folder('brand')->ratio('1/1')->half(),
                 ]),
 
             Section::make(__('التواصل'))->fields([

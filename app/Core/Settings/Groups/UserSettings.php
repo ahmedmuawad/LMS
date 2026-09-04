@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Settings\Groups;
 
+use App\Core\Admin\Fields\ImageField;
 use App\Core\Admin\Fields\MultiSelectField;
 use App\Core\Admin\Fields\NumberField;
 use App\Core\Admin\Fields\PasswordField;
@@ -46,7 +47,7 @@ final class UserSettings extends SettingsGroup
                 SwitchField::make('instructor_approval')->label(__('اعتماد المدرّس يدوياً قبل النشر'))->default(true),
                 SwitchField::make('self_delete')->label(__('السماح للمستخدم بحذف حسابه'))->default(true)
                     ->hint(__('حق قانوني في كثير من الدول — يُنفَّذ بحذف مؤجّل قابل للتراجع.')),
-                TextField::make('default_avatar')->label(__('الصورة الرمزية الافتراضية'))->url()->half(),
+                ImageField::make('default_avatar')->label(__('الصورة الرمزية الافتراضية'))->folder('brand')->ratio('1/1')->half(),
             ]),
 
             Section::make(__('كلمة المرور والجلسات'))->fields([

@@ -10,6 +10,7 @@ use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\DateColumn;
 use App\Core\Admin\Columns\NumberColumn;
 use App\Core\Admin\Columns\TextColumn;
+use App\Core\Admin\Fields\ImageField;
 use App\Core\Admin\Fields\NumberField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
@@ -136,7 +137,7 @@ final class CourseResource extends Resource
                     ->options(collect(config('locales.supported', []))
                         ->map(fn (array $m, string $k): string => $m['native'] ?? $k)->all())
                     ->default('ar'),
-                TextField::make('cover_path')->label(__('صورة الغلاف'))->url()->half(),
+                ImageField::make('cover_path')->label(__('صورة الغلاف'))->folder('courses')->half(),
             ]),
 
             Section::make(__('النشر والتسعير'))->fields([

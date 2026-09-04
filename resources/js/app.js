@@ -41,7 +41,6 @@ Alpine.store('theme', {
 });
 
 window.Alpine = Alpine;
-Alpine.start();
 
 /* ---------------------------------------------------------
    تطبيق الويب التقدّمي — التسجيل والتثبيت وإشعارات المتصفّح
@@ -162,5 +161,109 @@ Alpine.data('installPrompt', () => ({
         this.prompt = null;
     },
 }));
+
+/* ---------------------------------------------------------
+   حقل الصورة — رفع واختيار من مكتبة الوسائط في مكان الحقل
+   --------------------------------------------------------- */
+Alpine.data('imageField', (config) => ({
+    value: config.value || '',
+    preview: config.preview || null,
+    storesId: config.storesId,
+    folder: config.folder,
+    open: false,
+    loading: false,
+    busy: false,
+    error: '',
+    q: '',
+    items: [],
+    next: null,
+
+    pickFile() {
+        this.$refs.file.click();
+    },
+
+    openLibrary() {
+        this.open = true;
+        if (this.items.length === 0) this.load(1);
+    },
+
+    async load(page) {
+        this.loading = true;
+        this.error = '';
+
+        try {
+            const url = `${config.browseUrl}?kind=image&page=${page}&q=${encodeURIComponent(this.q)}`;
+            const res = await fetch(url, { headers: { Accept: 'application/json' } });
+            if (!res.ok) throw new Error();
+
+            const data = await res.json();
+            /* الصفحة الأولى تستبدل، وما بعدها يضيف — وإلا كرّر البحث ما قبله */
+            this.items = page === 1 ? data.items : [...this.items, ...data.items];
+            this.next = data.next;
+        } catch (e) {
+            this.error = 'تعذّر تحميل مكتبة الوسائط.';
+        } finally {
+            this.loading = false;
+        }
+    },
+
+    async upload(file) {
+        if (!file) return;
+
+        this.busy = true;
+        this.error = '';
+
+        try {
+            const body = new FormData();
+            body.append('file', file);
+            if (this.folder) body.append('folder', this.folder);
+
+            const res = await fetch(config.uploadUrl, {
+                method: 'POST',
+                body,
+                headers: {
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                },
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            /* رسالة الخادم أدقّ من أي نصّ عام: هي التي تقول إن الملف
+               كبير أو إن نوعه مرفوض أو إن الـSVG يحمل كوداً */
+            if (!res.ok) throw new Error(data.message || 'تعذّر رفع الملف.');
+
+            this.choose(data);
+        } catch (e) {
+            this.error = e.message || 'تعذّر رفع الملف.';
+        } finally {
+            this.busy = false;
+            this.$refs.file.value = '';
+        }
+    },
+
+    choose(item) {
+        this.value = String(this.storesId ? item.id : item.url);
+        this.preview = item.url;
+        this.open = false;
+        this.error = '';
+    },
+
+    clear() {
+        this.value = '';
+        this.preview = null;
+    },
+
+    /* حين يحرّر المستخدم القيمة بيده، المعاينة تتبع ما كتب */
+    refreshPreview() {
+        this.preview = this.value === '' ? null
+            : (/^(https?:)?\/\//.test(this.value) || this.value.startsWith('/') ? this.value : this.preview);
+    },
+}));
+
+/* التسجيل قبل البدء: `Alpine.start()` يمشي على الصفحة مرّة واحدة، وما
+   يُسجَّل بعدها لا تراه العناصر الموجودة أصلاً — فكان زرّ التثبيت
+   ومفتاح إشعارات الدفع يسقطان بـ«is not defined» في كل صفحة. */
+Alpine.start();
 
 pwa.register();

@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Content;
 
 use App\Modules\Content\Actions\StoreMedia;
 use App\Modules\Content\Models\Media;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -26,6 +27,66 @@ final class MediaController
             ->withQueryString();
 
         return view('content.media', ['media' => $media]);
+    }
+
+    /**
+     * قائمة الوسائط لمنتقي حقل الصورة.
+     *
+     * منفصلة عن `index` عمداً: تلك تعيد صفحة كاملة بقالبها، وهذه تعيد
+     * ما يحتاجه المنتقي وحده — فلا يُحمَّل نصف اللوحة داخل نافذة صغيرة.
+     */
+    public function browse(Request $request): JsonResponse
+    {
+        $media = Media::query()
+            ->when($request->filled('q'), fn ($q) => $q->where('name', 'like', '%'.$request->string('q').'%'))
+            ->when($request->input('kind', 'image') === 'image', fn ($q) => $q->images())
+            ->latest()
+            ->paginate(30);
+
+        return response()->json([
+            'items' => $media->getCollection()->map($this->toPayload(...))->values(),
+            'next' => $media->hasMorePages() ? $media->currentPage() + 1 : null,
+        ]);
+    }
+
+    /**
+     * رفع من داخل حقل الصورة — يعيد الملف المرفوع لا تحويلاً.
+     *
+     * ملف واحد لا مصفوفة: الحقل يحمل قيمة واحدة، وقبول عشرين ملفاً
+     * هنا يعني اختيار أحدها عشوائياً.
+     */
+    public function upload(Request $request, StoreMedia $store): JsonResponse
+    {
+        $request->validate([
+            'file' => ['required', 'file'],
+            'folder' => ['nullable', 'string', 'alpha_dash', 'max:60'],
+        ]);
+
+        try {
+            $media = $store->handle(
+                $request->file('file'),
+                $request->user(),
+                $request->string('folder')->value() ?: null,
+            );
+        } catch (RuntimeException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json($this->toPayload($media), 201);
+    }
+
+    /** @return array<string, mixed> */
+    private function toPayload(Media $media): array
+    {
+        return [
+            'id' => $media->getKey(),
+            'name' => $media->name,
+            'url' => $media->url(),
+            'mime' => $media->mime,
+            'size' => $media->humanSize(),
+            'width' => $media->width,
+            'height' => $media->height,
+        ];
     }
 
     public function store(Request $request, StoreMedia $store): RedirectResponse

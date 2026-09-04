@@ -8,6 +8,7 @@ use App\Core\Access\Ability;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\NumberColumn;
 use App\Core\Admin\Columns\TextColumn;
+use App\Core\Admin\Fields\ImageField;
 use App\Core\Admin\Fields\NumberField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
@@ -92,7 +93,7 @@ final class ProductResource extends Resource
                     ->default('digital'),
                 TextField::make('sku')->label(__('كود المنتج'))->half(),
                 TranslatableField::make('short_description')->label(__('وصف مختصر'))->long(),
-                TextField::make('cover_path')->label(__('الصورة'))->url()->half(),
+                ImageField::make('cover_path')->label(__('الصورة'))->folder('products')->ratio('1/1')->half(),
             ]),
 
             Section::make(__('التسعير'))->fields([

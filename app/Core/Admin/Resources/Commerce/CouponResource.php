@@ -8,6 +8,7 @@ use App\Core\Access\Ability;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\DateColumn;
 use App\Core\Admin\Columns\TextColumn;
+use App\Core\Admin\Fields\DateField;
 use App\Core\Admin\Fields\NumberField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
@@ -111,9 +112,9 @@ final class CouponResource extends Resource
             ]),
 
             Section::make(__('المدة'))->fields([
-                TextField::make('starts_at')->label(__('يبدأ في'))->half()->rules(['date'])
-                    ->hint(__('بصيغة 2026-09-10 14:00')),
-                TextField::make('ends_at')->label(__('ينتهي في'))->half()->rules(['date', 'after:starts_at']),
+                DateField::make('starts_at')->label(__('يبدأ في'))->withTime()->half()
+                    ->hint(__('اتركه فارغاً ليبدأ فوراً.')),
+                DateField::make('ends_at')->label(__('ينتهي في'))->withTime()->half()->rules(['after:starts_at']),
                 SwitchField::make('is_active')->label(__('فعّال'))->default(true),
             ]),
         ];

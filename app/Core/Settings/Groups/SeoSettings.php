@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Settings\Groups;
 
 use App\Core\Admin\Fields\CodeField;
+use App\Core\Admin\Fields\ImageField;
 use App\Core\Admin\Fields\MultiSelectField;
 use App\Core\Admin\Fields\NumberField;
 use App\Core\Admin\Fields\Section;
@@ -79,7 +80,7 @@ final class SeoSettings extends SettingsGroup
             ]),
 
             Section::make(__('المشاركة الاجتماعية'))->fields([
-                TextField::make('og_image')->label(__('صورة المشاركة الافتراضية'))->url()
+                ImageField::make('og_image')->label(__('صورة المشاركة الافتراضية'))->folder('brand')->ratio('1.91/1')
                     ->hint(__('1200×630 بكسل — أي مقاس آخر يُقصّ.')),
                 TextField::make('twitter_site')->label(__('حساب X'))->half()->placeholder('@handle'),
                 SelectField::make('twitter_card')->label(__('نوع بطاقة X'))->half()

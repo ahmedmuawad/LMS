@@ -7,10 +7,10 @@ namespace App\Core\Settings\Groups;
 use App\Core\Access\Ability;
 use App\Core\Admin\Fields\CodeField;
 use App\Core\Admin\Fields\ColorField;
+use App\Core\Admin\Fields\ImageField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
 use App\Core\Admin\Fields\SwitchField;
-use App\Core\Admin\Fields\TextField;
 use App\Core\Settings\SettingsGroup;
 use App\Core\Theming\ThemeManager;
 
@@ -86,7 +86,7 @@ final class AppearanceSettings extends SettingsGroup
                     ->options(['columns' => __('أعمدة'), 'simple' => __('سطر واحد'), 'rich' => __('غنيّ بنشرة بريدية')])
                     ->default('columns'),
                 SwitchField::make('sticky_header')->label(__('رأس ثابت عند التمرير'))->default(true),
-                TextField::make('loader_logo')->label(__('شعار شاشة التحميل'))->url()->half(),
+                ImageField::make('loader_logo')->label(__('شعار شاشة التحميل'))->folder('brand')->ratio('1/1')->half(),
             ]),
 
             Section::make(__('تخصيص متقدّم'))

@@ -315,6 +315,9 @@ $tenantRoutes = function (): void {
 
             Route::middleware(EnsureAbility::class.':'.Ability::MEDIA_MANAGE)->group(function (): void {
                 Route::get('/media', [MediaController::class, 'index'])->name('media.index');
+                // قبل مسار {id}، وإلا قُرئت «browse» معرّفاً
+                Route::get('/media/browse', [MediaController::class, 'browse'])->name('media.browse');
+                Route::post('/media/upload', [MediaController::class, 'upload'])->name('media.upload');
                 Route::post('/media', [MediaController::class, 'store'])->name('media.store');
                 Route::put('/media/{id}', [MediaController::class, 'update'])->name('media.update');
                 Route::delete('/media/{id}', [MediaController::class, 'destroy'])->name('media.destroy');
