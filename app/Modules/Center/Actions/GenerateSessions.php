@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\DB;
  */
 final class GenerateSessions
 {
-    /** @return array{created:int, skipped:int, holidays:int} */
+    /** @return array{created:int, skipped:int, holidays:int, conflicts:list<array{date:string,time:string,reason:string}>} */
     public function handle(Group $group, ?Carbon $from = null, ?Carbon $to = null): array
     {
         $from ??= $group->start_date ?? now()->startOfDay();
@@ -28,14 +28,15 @@ final class GenerateSessions
         $schedules = $group->schedules()->get();
 
         if ($schedules->isEmpty()) {
-            return ['created' => 0, 'skipped' => 0, 'holidays' => 0];
+            return ['created' => 0, 'skipped' => 0, 'holidays' => 0, 'conflicts' => []];
         }
 
         $created = 0;
         $skipped = 0;
         $holidays = 0;
+        $conflicts = [];
 
-        DB::transaction(function () use ($group, $schedules, $from, $to, &$created, &$skipped, &$holidays): void {
+        DB::transaction(function () use ($group, $schedules, $from, $to, &$created, &$skipped, &$holidays, &$conflicts): void {
             for ($date = $from->copy(); $date->lte($to); $date->addDay()) {
                 foreach ($schedules as $schedule) {
                     if (! $this->appliesOn($schedule, $date)) {
@@ -59,6 +60,39 @@ final class GenerateSessions
                         continue;
                     }
 
+                    /*
+                     | لا نحجز قاعة محجوزة.
+                     |
+                     | كان التوليد يكتب الحصص بلا فحص، فمجموعتان
+                     | بموعدين متعارضين تُنتجان أسابيع من الحجز
+                     | المزدوج — يكتشفها الاستقبال بابين مقفلين
+                     | ومدرّسَين واقفَين. اليوم تُتخطّى وتُبلَّغ.
+                     */
+                    $clash = app(DetectConflicts::class)->handle([
+                        'group_id' => (int) $group->getKey(),
+                        'room_id' => $schedule->room_id,
+                        'teacher_id' => $group->teacher_id,
+                        'date' => $date->toDateString(),
+                        'starts_at' => (string) $schedule->starts_at,
+                        'ends_at' => (string) $schedule->ends_at,
+                    ]);
+
+                    // العطلة مفحوصة أعلاه، وما بقي حجزٌ حقيقي لا يُدهَس
+                    $blocking = array_values(array_filter(
+                        $clash,
+                        fn (array $c): bool => $c['code'] !== 'holiday',
+                    ));
+
+                    if ($blocking !== []) {
+                        $conflicts[] = [
+                            'date' => $date->toDateString(),
+                            'time' => substr((string) $schedule->starts_at, 0, 5),
+                            'reason' => $blocking[0]['message'],
+                        ];
+
+                        continue;
+                    }
+
                     Session::create([
                         'group_id' => $group->getKey(),
                         'room_id' => $schedule->room_id,
@@ -77,7 +111,7 @@ final class GenerateSessions
             $group->forceFill(['sessions_count' => $group->sessions()->count()])->save();
         });
 
-        return ['created' => $created, 'skipped' => $skipped, 'holidays' => $holidays];
+        return ['created' => $created, 'skipped' => $skipped, 'holidays' => $holidays, 'conflicts' => $conflicts];
     }
 
     /** الأحد = 0 عندنا، وCarbon يوافقه. */

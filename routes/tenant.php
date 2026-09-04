@@ -226,6 +226,14 @@ $tenantRoutes = function (): void {
             Route::post('/attendance/{session}/mark', [AttendanceController::class, 'mark'])->name('attendance.mark');
 
             Route::get('/schedule', [ScheduleController::class, 'week'])->name('schedule');
+
+            // إشغال القاعات ومواعيد المجموعة المتكرّرة
+            Route::get('/rooms-occupancy', [ScheduleController::class, 'rooms'])->name('rooms');
+            Route::get('/center-teachers', [ScheduleController::class, 'teachers'])->name('teachers');
+            Route::get('/groups/{group}/slots', [ScheduleController::class, 'slots'])->name('slots');
+            Route::post('/groups/{group}/slots', [ScheduleController::class, 'storeSlot'])->name('slots.store');
+            Route::post('/groups/{group}/slots/check', [ScheduleController::class, 'checkSlot'])->name('slots.check');
+            Route::delete('/groups/{group}/slots/{slot}', [ScheduleController::class, 'destroySlot'])->name('slots.destroy');
             Route::post('/schedule/check', [ScheduleController::class, 'check'])->name('schedule.check');
             Route::post('/schedule/sessions', [ScheduleController::class, 'storeSession'])->name('schedule.session');
             Route::post('/groups/{group}/generate', [ScheduleController::class, 'generate'])->name('schedule.generate');

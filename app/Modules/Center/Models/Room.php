@@ -7,6 +7,7 @@ namespace App\Modules\Center\Models;
 use App\Core\Support\Concerns\HasTranslations;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 final class Room extends Model
 {
@@ -27,5 +28,20 @@ final class Room extends Model
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(Schedule::class);
+    }
+
+    public function sessions(): HasMany
+    {
+        return $this->hasMany(Session::class);
+    }
+
+    public function label(): string
+    {
+        return trim((string) $this->name.' — '.(string) ($this->branch?->name ?? ''), ' —');
     }
 }
