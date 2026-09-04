@@ -65,7 +65,7 @@ $central = function (): void {
         ])."\n",
         200,
         ['Content-Type' => 'text/plain; charset=utf-8'],
-    ))->name('robots');
+    ))->name('central.robots');
 
     // دخول فريق المنصة
     Route::get('/super/login', [SuperAuthController::class, 'show'])->name('super.login');
@@ -112,8 +112,18 @@ $central = function (): void {
     }
 };
 
-foreach (config('tenancy.central_domains') as $domain) {
-    Route::domain($domain)->group(function () use ($central): void {
+/*
+ | نفس المسارات على كل نطاق مركزي — وأسماؤها تختلف باختلافه.
+ |
+ | بغير بادئة الاسم يُسجَّل اسم `home` مرتين على نطاقين، فيرفض
+ | `route:cache` التسلسل ويسقط الموقع كلّه بـ500 في الإنتاج. النطاق
+ | الأول هو الأساسي فيحتفظ بالأسماء المجرّدة التي تشير إليها الشاشات،
+ | وما بعده — عناوين التطوير — يأخذ بادئته.
+ */
+foreach (config('tenancy.central_domains') as $index => $domain) {
+    $prefixName = $index === 0 ? '' : 'central'.$index.'.';
+
+    Route::domain($domain)->name($prefixName)->group(function () use ($central): void {
         $central();
 
         foreach (config('locales.prefixed') as $prefix) {

@@ -154,7 +154,7 @@ $tenantRoutes = function (): void {
 
         Route::get('/learn/{slug}', [LearnController::class, 'room'])->name('learn');
         Route::get('/learn/{slug}/quiz/{item}/attempt/{attempt}', [QuizController::class, 'attempt'])->name('learn.quiz.attempt');
-        Route::post('/learn/{slug}/quiz/{item}/attempt/{attempt}', [QuizController::class, 'submit']);
+        Route::post('/learn/{slug}/quiz/{item}/attempt/{attempt}', [QuizController::class, 'submit'])->name('learn.quiz.submit');
         Route::post('/learn/{slug}/quiz/{item}/start', [QuizController::class, 'start'])->name('learn.quiz.start');
         Route::post('/learn/{slug}/{item}/assignment', [AssignmentController::class, 'submit'])->name('learn.assignment');
         Route::get('/learn/{slug}/{item}', [LearnController::class, 'room'])->name('learn.item');
@@ -170,10 +170,10 @@ $tenantRoutes = function (): void {
      */
     Route::middleware('guest')->group(function (): void {
         Route::get('/login', [AuthController::class, 'show'])->name('login');
-        Route::post('/login', [AuthController::class, 'login']);
+        Route::post('/login', [AuthController::class, 'login'])->name('login.attempt');
 
         Route::get('/register', [RegisterController::class, 'show'])->name('register');
-        Route::post('/register', [RegisterController::class, 'store']);
+        Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
 
         Route::get('/forgot-password', [PasswordResetController::class, 'request'])->name('password.request');
         Route::post('/forgot-password', [PasswordResetController::class, 'send'])->name('password.email');
@@ -182,7 +182,7 @@ $tenantRoutes = function (): void {
 
         // تحدّي التوثيق: الجلسة لم تُنشأ بعد، فالزائر هو من يصلها
         Route::get('/two-factor', [TwoFactorController::class, 'challenge'])->name('two-factor.challenge');
-        Route::post('/two-factor', [TwoFactorController::class, 'verify']);
+        Route::post('/two-factor', [TwoFactorController::class, 'verify'])->name('two-factor.verify');
     });
 
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
@@ -209,8 +209,8 @@ $tenantRoutes = function (): void {
         Route::delete('/account', [ProfileController::class, 'destroy'])->name('account.destroy');
 
         Route::get('/account/two-factor', [TwoFactorController::class, 'setup'])->name('account.two-factor');
-        Route::post('/account/two-factor', [TwoFactorController::class, 'enable']);
-        Route::delete('/account/two-factor', [TwoFactorController::class, 'disable']);
+        Route::post('/account/two-factor', [TwoFactorController::class, 'enable'])->name('account.two-factor.enable');
+        Route::delete('/account/two-factor', [TwoFactorController::class, 'disable'])->name('account.two-factor.disable');
     });
 
     // معالج التهيئة — يسبق اللوحة

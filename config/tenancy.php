@@ -26,10 +26,20 @@ return [
      *
      * Only relevant if you're using the domain or subdomain identification middleware.
      */
-    'central_domains' => [
-        '127.0.0.1',
-        'localhost',
-    ],
+    /*
+     | نطاقاتنا نحن — موقع التسويق والتسجيل واللوحة العليا.
+     |
+     | كانت مكتوبة نصّاً: `127.0.0.1` و`localhost` وحدهما. فعلى أي
+     | خادم حقيقي لا يُطابق النطاقَ أيُّ مسار مركزي، ويُقرأ الطلب على
+     | أنه لمشترك اسمه النطاق كلّه — فلا صفحة أسعار ولا تسجيل.
+     |
+     | الأساسي يُقرأ من البيئة، ويبقى العنوانان المحلّيان للتطوير.
+     */
+    'central_domains' => array_values(array_unique(array_filter([
+        env('TENANT_BASE_DOMAIN', 'localhost'),
+        env('APP_ENV') === 'production' ? null : '127.0.0.1',
+        env('APP_ENV') === 'production' ? null : 'localhost',
+    ]))),
 
     /*
      | النطاق الأساسي الذي تُشتق منه نطاقات المشتركين الفرعية:
