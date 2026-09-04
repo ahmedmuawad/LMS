@@ -8,6 +8,7 @@ use App\Core\Access\Ability;
 use App\Core\Access\Scope;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\TextColumn;
+use App\Core\Admin\Fields\ChoicesField;
 use App\Core\Admin\Fields\NumberField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
@@ -88,22 +89,36 @@ final class QuestionResource extends Resource
     public function form(): array
     {
         return [
-            Section::make(__('السؤال'))->fields([
-                TranslatableField::make('body')->label(__('نص السؤال'))->long()->required(),
-                SelectField::make('type')->label(__('النوع'))->half()
-                    ->options(array_map(fn (string $l): string => __($l), Question::TYPES))
-                    ->default('single_choice'),
-                SelectField::make('difficulty')->label(__('الصعوبة'))->half()
-                    ->options(array_map(fn (string $l): string => __($l), Question::DIFFICULTIES))
-                    ->default('medium'),
-                SelectField::make('category_id')->label(__('التصنيف'))->half()
-                    ->options(Taxonomy::ofType('question_category')->get()
-                        ->mapWithKeys(fn (Taxonomy $t): array => [$t->getKey() => (string) $t->name])->all()),
-                NumberField::make('marks')->label(__('الدرجة'))->range(0, 1000)->half()->default(1),
-                NumberField::make('negative_marks')->label(__('الخصم عند الخطأ'))->range(0, 1000)->half()->default(0),
-                TranslatableField::make('explanation')->label(__('شرح الإجابة'))->long()
-                    ->hint(__('يظهر للطالب بعد التصحيح — هنا يتعلّم فعلاً.')),
-            ]),
+            Section::make(__('السؤال'))
+                ->description(__('استعمل لوحة الرموز أعلاه: تضغط الرمز فيُكتب، وترى المعادلة مرسومة قبل أن يراها الطالب.'))
+                ->fields([
+                    TranslatableField::make('body')->label(__('نص السؤال'))->long()->required()->math(),
+                    SelectField::make('type')->label(__('النوع'))->half()
+                        ->options(array_map(fn (string $l): string => __($l), Question::TYPES))
+                        ->default('single_choice'),
+                    SelectField::make('difficulty')->label(__('الصعوبة'))->half()
+                        ->options(array_map(fn (string $l): string => __($l), Question::DIFFICULTIES))
+                        ->default('medium'),
+                    SelectField::make('category_id')->label(__('التصنيف'))->half()
+                        ->options(Taxonomy::ofType('question_category')->get()
+                            ->mapWithKeys(fn (Taxonomy $t): array => [$t->getKey() => (string) $t->name])->all()),
+                    NumberField::make('marks')->label(__('الدرجة'))->range(0, 1000)->half()->default(1),
+                    NumberField::make('negative_marks')->label(__('الخصم عند الخطأ'))->range(0, 1000)->half()->default(0),
+                ]),
+
+            Section::make(__('الخيارات والإجابة'))
+                ->description(__('لأسئلة الاختيار والصواب والخطأ والقائمة المنسدلة.'))
+                ->fields([
+                    ChoicesField::make('options')->label(__('الخيارات'))->dependsOn('type'),
+                ]),
+
+            Section::make(__('ما يراه الطالب بعد التصحيح'))
+                ->description(__('هنا يتعلّم فعلاً: الدرجة وحدها لا تُصلح خطأً.'))
+                ->fields([
+                    TranslatableField::make('steps')->label(__('خطوات الحل'))->long()->math()
+                        ->hint(__('سطر لكل خطوة، بالترتيب.')),
+                    TranslatableField::make('explanation')->label(__('شرح الإجابة'))->long()->math(),
+                ]),
         ];
     }
 

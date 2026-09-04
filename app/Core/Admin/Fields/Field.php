@@ -29,6 +29,9 @@ abstract class Field
 
     protected bool $skipWhenEmpty = false;
 
+    /** هل يقبل هذا الحقل معادلات — فتعمل معه لوحة الرموز؟ */
+    protected bool $math = false;
+
     final public function __construct(public readonly string $name) {}
 
     public static function make(string $name): static
@@ -84,6 +87,24 @@ abstract class Field
         $this->rules = $rules;
 
         return $this;
+    }
+
+    /**
+     * يربط الحقل بمحرّر المعادلات.
+     *
+     * العلامة على الحقل لا على الشاشة: من يضيف حقلاً يقبل معادلة
+     * يُعلنها معه، فلا تُنسى اللوحة ولا تظهر حيث لا معنى لها.
+     */
+    public function math(bool $math = true): static
+    {
+        $this->math = $math;
+
+        return $this;
+    }
+
+    public function acceptsMath(): bool
+    {
+        return $this->math;
     }
 
     public function half(): static

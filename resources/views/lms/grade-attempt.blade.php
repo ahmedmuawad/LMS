@@ -26,16 +26,25 @@
             @endphp
 
             <x-ui.card>
-                <p class="font-semibold leading-relaxed mb-2">{{ $body }}</p>
+                {{-- المدرّس يصحّح ما رآه الطالب: معادلةً معروضة لا صياغةَ TeX خاماً --}}
+                <x-ui.math class="font-semibold mb-2">{{ $body }}</x-ui.math>
 
-                <div class="rounded-md bg-surface-sunken p-3 text-sm leading-relaxed whitespace-pre-line mb-3">
-                    {{ is_array($value) ? implode(' · ', $value) : ($value ?: __('لم يُجب الطالب.')) }}
-                </div>
+                <x-ui.math class="rounded-md bg-surface-sunken p-3 text-sm mb-3">{{ is_array($value) ? implode(' · ', $value) : ($value ?: __('لم يُجب الطالب.')) }}</x-ui.math>
 
                 @if(filled($answer->question?->options))
                     <details class="mb-3">
-                        <summary class="text-xs text-muted cursor-pointer py-1">{{ __('الإجابة النموذجية') }}</summary>
-                        <p class="text-xs text-muted mt-1 font-mono">{{ implode(' · ', (array) $answer->question->correct) }}</p>
+                        <summary class="text-xs text-muted cursor-pointer min-h-11 flex items-center">{{ __('الإجابة النموذجية وخطواتها') }}</summary>
+                        <div class="mt-2 grid gap-2">
+                            <p class="text-xs text-muted">
+                                @foreach((array) $answer->question->correct as $key)
+                                    <x-ui.math inline class="me-2">{{ $answer->question->options[$key] ?? $key }}</x-ui.math>
+                                @endforeach
+                            </p>
+                            @php $steps = $frozen['steps'][app()->getLocale()] ?? $frozen['steps']['ar'] ?? $answer->question?->getTranslation('steps', 'ar'); @endphp
+                            @if(filled($steps))
+                                <x-ui.solution-steps :steps="$steps" />
+                            @endif
+                        </div>
                     </details>
                 @endif
 

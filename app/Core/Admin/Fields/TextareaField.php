@@ -31,6 +31,6 @@ final class TextareaField extends Field
 
     public function props(): array
     {
-        return ['rows' => $this->rows, 'placeholder' => $this->placeholder];
+        return ['rows' => $this->rows, 'placeholder' => $this->placeholder, 'math' => $this->math];
     }
 }

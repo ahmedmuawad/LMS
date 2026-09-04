@@ -1,4 +1,4 @@
-@props(['name', 'label', 'hint' => null, 'required' => false, 'value' => [], 'locales' => ['ar', 'en'], 'long' => false])
+@props(['name', 'label', 'hint' => null, 'required' => false, 'value' => [], 'locales' => ['ar', 'en'], 'long' => false, 'math' => false])
 @php
     $current = (array) old($name, $value ?? []);
     $meta    = config('locales.supported', []);
@@ -15,9 +15,13 @@
                 <span class="text-2xs text-subtle font-mono">{{ $meta[$locale]['native'] ?? $locale }}</span>
                 @if($long)
                     <x-ui.textarea :name="$name.'['.$locale.']'" rows="3" :dir="$dir"
+                                   :data-math-input="$math ? '' : null"
+                                   :data-math-label="$math ? $label.' · '.($meta[$locale]['native'] ?? $locale) : null"
                                    :invalid="$errors->has($name.'.'.$locale)">{{ $current[$locale] ?? '' }}</x-ui.textarea>
                 @else
                     <x-ui.input :name="$name.'['.$locale.']'" :value="$current[$locale] ?? ''" :dir="$dir"
+                                :data-math-input="$math ? '' : null"
+                                :data-math-label="$math ? $label.' · '.($meta[$locale]['native'] ?? $locale) : null"
                                 :invalid="$errors->has($name.'.'.$locale)" />
                 @endif
             </label>

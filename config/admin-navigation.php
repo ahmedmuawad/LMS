@@ -61,6 +61,8 @@ return [
                 ['key' => 'groups', 'label' => 'المجموعات', 'icon' => '▩', 'module' => 'center'],
                 ['key' => 'center-students', 'label' => 'طلاب السنتر', 'icon' => '☺', 'module' => 'center'],
                 ['key' => 'schedule', 'label' => 'جدول الحصص', 'icon' => '▦', 'module' => 'center', 'route' => 'admin.center.schedule'],
+                ['key' => 'rooms-occupancy', 'label' => 'إشغال القاعات', 'icon' => '◫', 'module' => 'center', 'route' => 'admin.center.rooms'],
+                ['key' => 'center-teachers', 'label' => 'مدرّسو السنتر', 'icon' => '☰', 'module' => 'center', 'route' => 'admin.center.teachers'],
                 ['key' => 'attendance', 'label' => 'الحضور', 'icon' => '✓', 'module' => 'attendance', 'route' => 'admin.center.attendance'],
                 ['key' => 'fees', 'label' => 'الأقساط والمتأخرات', 'icon' => '⛁', 'module' => 'center-finance', 'route' => 'admin.center.arrears'],
                 ['key' => 'cashboxes', 'label' => 'الخزنة', 'icon' => '⛃', 'module' => 'center-finance', 'route' => 'admin.center.cashboxes'],

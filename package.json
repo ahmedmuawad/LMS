@@ -24,6 +24,7 @@
     "dependencies": {
         "@alpinejs/collapse": "^3.17.1",
         "@alpinejs/focus": "^3.17.1",
-        "alpinejs": "^3.17.1"
+        "alpinejs": "^3.17.1",
+        "katex": "^0.18.5"
     }
 }

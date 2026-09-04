@@ -46,10 +46,18 @@ const audit = () => {
         if (r.width === 0 || r.height === 0) return;
         if (getComputedStyle(el).position === 'fixed') return;
 
-        // مسموح: عنصر عريض داخل حاوية تمرير أفقية خاصة به
+        /*
+         | مسموح: عنصر عريض داخل حاوية تمرير أفقية خاصة به،
+         | أو **مقصوص** بحاوية تُخفي ما يفيض.
+         |
+         | القصّ ليس عيباً: المستخدم لا يصل إليه ولا يوسّع الصفحة.
+         | وKaTeX ترسم جذر العدد وأقواسه بمسار SVG عرضه 400em تقصّه
+         | حاويته عمداً — فكانت البوابة تُبلّغ عن «عنصر خارج الشاشة»
+         | في صفحة لا تتحرّك أفقياً بمقدار بكسل.
+         */
         for (let n = el.parentElement; n && n !== document.body; n = n.parentElement) {
             const ox = getComputedStyle(n).overflowX;
-            if (ox === 'auto' || ox === 'scroll') return;
+            if (ox === 'auto' || ox === 'scroll' || ox === 'hidden' || ox === 'clip') return;
         }
 
         const over = r.width - viewport;

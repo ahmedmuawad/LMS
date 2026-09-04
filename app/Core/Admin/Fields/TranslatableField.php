@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core\Admin\Fields;
 
+use Illuminate\Database\Eloquent\Model;
+
 /**
  * نصّ بلغتين في حقل واحد.
  *
@@ -28,7 +30,7 @@ final class TranslatableField extends Field
 
     public function props(): array
     {
-        return ['locales' => array_keys(config('locales.supported', ['ar' => [], 'en' => []])), 'long' => $this->long];
+        return ['locales' => array_keys(config('locales.supported', ['ar' => [], 'en' => []])), 'long' => $this->long, 'math' => $this->math];
     }
 
     public function validationRules(string $context): array
@@ -46,6 +48,27 @@ final class TranslatableField extends Field
         }
 
         return $rules;
+    }
+
+    /**
+     * المصفوفة كاملةً لا نصّ لغة العرض.
+     *
+     * `getAttribute` على حقل مترجَم يُعيد **نصّ لغة واحدة** — وهو
+     * الصواب في العرض والخطأ القاتل في التحرير: الشاشة كانت تفتح
+     * بحقول فارغة، فمن يحفظ بعد تعديل الصعوبة وحدها يمحو عنوان
+     * الكورس ونصّ السؤال بلغاته كلها.
+     *
+     * @return array<string, string>
+     */
+    public function valueFor(?Model $record): mixed
+    {
+        if ($record === null) {
+            return (array) ($this->default ?? []);
+        }
+
+        return method_exists($record, 'getTranslations')
+            ? $record->getTranslations($this->name)
+            : (array) data_get($record, $this->name);
     }
 
     public function fill(mixed $input): mixed

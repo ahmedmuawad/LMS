@@ -9,6 +9,7 @@ use App\Modules\Lms\Actions\StartQuizAttempt;
 use App\Modules\Lms\Models\Course;
 use App\Modules\Lms\Models\CourseItem;
 use App\Modules\Lms\Models\Enrollment;
+use App\Modules\Lms\Models\Question;
 use App\Modules\Lms\Models\Quiz;
 use App\Modules\Lms\Models\QuizAttempt;
 use Illuminate\Http\RedirectResponse;
@@ -49,6 +50,8 @@ final class QuizController
             'item' => $item,
             'quiz' => $item->itemable,
             'attempt' => $attempt,
+            // الحلّ يُجلب هنا لا في اللقطة: ورقة مفتوحة لا حلّ معها
+            'correct' => $this->correctFor($attempt, $item->itemable),
         ]);
     }
 
@@ -64,6 +67,29 @@ final class QuizController
 
         return redirect(url('/learn/'.$course->slug.'/quiz/'.$item->getKey().'/attempt/'.$attempt->getKey()))
             ->with('status', __('سُلّم اختبارك.'));
+    }
+
+    /**
+     * الإجابات الصحيحة — للورقة المسلَّمة وحدها، وبإذن إعداد الاختبار.
+     *
+     * @return array<int, list<string>>
+     */
+    private function correctFor(QuizAttempt $attempt, mixed $quiz): array
+    {
+        $allowed = ! $attempt->isOpen() && match ($quiz?->show_answers) {
+            'after_submit' => true,
+            'after_pass' => (bool) $attempt->passed,
+            default => false,
+        };
+
+        if (! $allowed) {
+            return [];
+        }
+
+        return Question::whereIn('id', collect($attempt->snapshot ?? [])->pluck('id'))
+            ->pluck('correct', 'id')
+            ->map(fn ($v): array => array_map('strval', (array) $v))
+            ->all();
     }
 
     /** @return array{0: Course, 1: Enrollment, 2: CourseItem} */

@@ -6,6 +6,7 @@ namespace App\Modules\Lms\Models;
 
 use App\Core\Support\Concerns\HasTranslations;
 use App\Core\Support\Concerns\TracksCreator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -66,16 +67,82 @@ final class Quiz extends Model
         return $this->shuffle_questions ? $questions->shuffle()->values() : $questions->values();
     }
 
+    /**
+     * سحب من البنك بخلطة صعوبات لا بمستوًى واحد.
+     *
+     * ورقة كلها سهل لا تُميّز طالباً عن طالب، وكلها صعب تُسقط الصفّ.
+     * الامتحان الحقيقي خلطة: خمسة سهلة تُطمئن، وثلاث متوسطة تفرز،
+     * واثنتان صعبتان تكشفان المتفوّق. فالبِركة تُوصف بعدد لكل مستوى.
+     *
+     * والنقص لا يُسكَت عنه: بنك فيه سؤالان صعبان وطُلب منه ثلاثة
+     * يُعطي اثنين — وترك الفراغ خيرٌ من إبدال صعب بسهل خفيةً.
+     */
     private function pooledQuestions(): Collection
     {
         $pool = $this->question_pool ?? [];
 
-        return Question::query()
+        $base = fn (): Builder => Question::query()
             ->when(filled($pool['category_id'] ?? null), fn ($q) => $q->where('category_id', $pool['category_id']))
-            ->when(filled($pool['difficulty'] ?? null), fn ($q) => $q->where('difficulty', $pool['difficulty']))
-            ->inRandomOrder()
-            ->limit(max(1, (int) $this->questions_count))
-            ->get();
+            ->when(filled($pool['type'] ?? null), fn ($q) => $q->where('type', $pool['type']));
+
+        $counts = array_filter([
+            'easy' => (int) ($pool['easy'] ?? 0),
+            'medium' => (int) ($pool['medium'] ?? 0),
+            'hard' => (int) ($pool['hard'] ?? 0),
+        ], fn (int $n): bool => $n > 0);
+
+        // بلا خلطة معلَنة: السلوك القديم — عدد واحد بمستوى واحد أو بلا مستوى
+        if ($counts === []) {
+            return $base()
+                ->when(filled($pool['difficulty'] ?? null), fn ($q) => $q->where('difficulty', $pool['difficulty']))
+                ->inRandomOrder()
+                ->limit(max(1, (int) $this->questions_count))
+                ->get();
+        }
+
+        $questions = new Collection;
+
+        foreach ($counts as $difficulty => $count) {
+            $questions = $questions->concat(
+                $base()->where('difficulty', $difficulty)->inRandomOrder()->limit($count)->get(),
+            );
+        }
+
+        return $questions->values();
+    }
+
+    /**
+     * ما تعِد به البِركة مقابل ما يقدر عليه البنك.
+     *
+     * تُعرض لمن يبني الاختبار قبل أن يُسنده لطلابه، لا بعد أن يشتكوا
+     * من ورقة ناقصة.
+     *
+     * @return list<array{difficulty:string,wanted:int,available:int}>
+     */
+    public function poolShortfall(): array
+    {
+        $pool = $this->question_pool ?? [];
+        $rows = [];
+
+        foreach (['easy', 'medium', 'hard'] as $difficulty) {
+            $wanted = (int) ($pool[$difficulty] ?? 0);
+
+            if ($wanted <= 0) {
+                continue;
+            }
+
+            $available = Question::query()
+                ->when(filled($pool['category_id'] ?? null), fn ($q) => $q->where('category_id', $pool['category_id']))
+                ->when(filled($pool['type'] ?? null), fn ($q) => $q->where('type', $pool['type']))
+                ->where('difficulty', $difficulty)
+                ->count();
+
+            if ($available < $wanted) {
+                $rows[] = compact('difficulty', 'wanted', 'available');
+            }
+        }
+
+        return $rows;
     }
 
     public function marksFor(Question $question): float

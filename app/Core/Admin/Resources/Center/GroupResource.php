@@ -10,6 +10,7 @@ use App\Core\Admin\Columns\TextColumn;
 use App\Core\Admin\Fields\NumberField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
+use App\Core\Admin\Fields\TextField;
 use App\Core\Admin\Fields\TranslatableField;
 use App\Core\Admin\Filters\SelectFilter;
 use App\Core\Admin\Resource;
@@ -18,6 +19,7 @@ use App\Modules\Center\Models\Branch;
 use App\Modules\Center\Models\Grade;
 use App\Modules\Center\Models\Group;
 use App\Modules\Center\Models\Subject;
+use App\Modules\Center\Models\SubjectTeacher;
 use App\Modules\Center\Models\Term;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -49,9 +51,16 @@ final class GroupResource extends Resource
         return Group::query()->with(['subject', 'grade', 'teacher', 'branch']);
     }
 
+    /**
+     * صفّ المجموعة يفتح مواعيدها.
+     *
+     * كان يشير إلى `/admin/groups/{id}` — ولا مسار بهذا الاسم، فكل
+     * صفّ في الشاشة رابطٌ مكسور. وأول ما تريده الإدارة من مجموعة هو
+     * موعدها وقاعتها، فهذه وجهته الصحيحة.
+     */
     public function recordUrl(Model $record, string $key): ?string
     {
-        return url('/admin/groups/'.$record->getKey());
+        return url('/admin/groups/'.$record->getKey().'/slots');
     }
 
     public function columns(): array
@@ -67,6 +76,13 @@ final class GroupResource extends Resource
 
             TextColumn::make('teacher_id')->label(__('المدرّس'))
                 ->using(fn ($v, Group $g): string => (string) ($g->teacher?->name ?? '—')),
+
+            TextColumn::make('venue')->label(__('المكان'))
+                ->using(fn ($v, Group $g): string => $g->venueLabel()),
+
+            BadgeColumn::make('kind')->label(__('الشكل'))->sortable()
+                ->tones(['private' => 'accent', 'group' => 'neutral'])
+                ->labels(array_map(fn (string $l): string => __($l), Group::KINDS)),
 
             TextColumn::make('enrolled_count')->label(__('الطلاب'))->mono()->align('end')->sortable()
                 ->using(fn ($v, Group $g): string => $v.' / '.$g->capacity),
@@ -91,6 +107,12 @@ final class GroupResource extends Resource
             SelectFilter::make('subject_id')->label(__('المادة'))
                 ->options(Subject::get()->mapWithKeys(fn (Subject $s): array => [$s->getKey() => (string) $s->name])->all()),
 
+            SelectFilter::make('venue')->label(__('المكان'))
+                ->options(array_map(fn (string $l): string => __($l), Group::VENUES)),
+
+            SelectFilter::make('kind')->label(__('الشكل'))
+                ->options(array_map(fn (string $l): string => __($l), Group::KINDS)),
+
             SelectFilter::make('branch_id')->label(__('الفرع'))
                 ->options(Branch::get()->mapWithKeys(fn (Branch $b): array => [$b->getKey() => (string) $b->name])->all()),
         ];
@@ -102,15 +124,34 @@ final class GroupResource extends Resource
             Section::make(__('المجموعة'))->fields([
                 TranslatableField::make('name')->label(__('الاسم'))->required()
                     ->hint(__('اسم يعرفه الطلاب: «فيزياء ٣ث — سبت ٤م».')),
-                SelectField::make('branch_id')->label(__('الفرع'))->half()->required()
-                    ->options(Branch::get()->mapWithKeys(fn (Branch $b): array => [$b->getKey() => (string) $b->name])->all()),
+                SelectField::make('kind')->label(__('الشكل'))->half()
+                    ->options(array_map(fn (string $l): string => __($l), Group::KINDS))
+                    ->default('group')
+                    ->hint(__('الفردي سعته طالب واحد.')),
+                SelectField::make('venue')->label(__('المكان'))->half()
+                    ->options(array_map(fn (string $l): string => __($l), Group::VENUES))
+                    ->default('branch'),
+                SelectField::make('branch_id')->label(__('الفرع'))->half()
+                    ->options(Branch::get()->mapWithKeys(fn (Branch $b): array => [$b->getKey() => (string) $b->name])->all())
+                    ->hint(__('للمجموعات في الفروع وحدها — اتركه فارغاً للأونلاين وللبيت.')),
+                TextField::make('meeting_url')->label(__('رابط الحصة'))->url()->half()
+                    ->hint(__('للأونلاين — يصل الطالب برابطه لا باسم الفرع.')),
+                TextField::make('location')->label(__('العنوان'))->half()
+                    ->hint(__('للدرس في البيت — يُكتب لولي الأمر.')),
                 SelectField::make('subject_id')->label(__('المادة'))->half()
                     ->options(Subject::get()->mapWithKeys(fn (Subject $s): array => [$s->getKey() => (string) $s->name])->all()),
                 SelectField::make('grade_id')->label(__('الصف'))->half()
                     ->options(Grade::with('stage')->get()
                         ->mapWithKeys(fn (Grade $g): array => [$g->getKey() => trim(($g->stage?->name ?? '').' — '.$g->name, ' —')])->all()),
+                /*
+                 | المدرّس يُعرَض بمادته لا مجرّداً.
+                 |
+                 | كانت القائمة تعرض **كل** مستخدم بدور إداري، فيُسنَد
+                 | صفّ الكيمياء إلى مدرّس اللغة العربية بضغطة سهو —
+                 | ولا شيء في النظام يعترض.
+                 */
                 SelectField::make('teacher_id')->label(__('المدرّس'))->half()
-                    ->options(User::whereIn('role', ['instructor', 'owner', 'admin'])->pluck('name', 'id')->all()),
+                    ->options(self::teacherOptions()),
                 SelectField::make('term_id')->label(__('الترم'))->half()
                     ->options(Term::get()->mapWithKeys(fn (Term $t): array => [$t->getKey() => (string) $t->name])->all()),
             ]),
@@ -134,6 +175,27 @@ final class GroupResource extends Resource
                 NumberField::make('end_date')->label(__('تاريخ الانتهاء'))->half()->replaceRules(['nullable', 'date']),
             ]),
         ];
+    }
+
+    /**
+     * المدرّسون بموادّهم — ومن لا مادة له في الذيل.
+     *
+     * @return array<int, string>
+     */
+    private static function teacherOptions(): array
+    {
+        $subjects = SubjectTeacher::active()->with(['teacher', 'subject'])->get()
+            ->groupBy('user_id')
+            ->map(fn ($rows): string => $rows->map(fn ($row) => (string) $row->subject?->name)->filter()->unique()->implode(' · '));
+
+        return User::whereIn('role', ['instructor', 'owner', 'admin'])
+            ->orderBy('name')->get()
+            ->sortBy(fn (User $user): int => $subjects->has($user->getKey()) ? 0 : 1)
+            ->mapWithKeys(fn (User $user): array => [
+                $user->getKey() => filled($subjects[$user->getKey()] ?? null)
+                    ? $user->name.' — '.$subjects[$user->getKey()]
+                    : $user->name,
+            ])->all();
     }
 
     public function emptyState(): array

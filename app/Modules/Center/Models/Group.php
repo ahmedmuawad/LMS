@@ -28,6 +28,24 @@ final class Group extends Model
         'cancelled' => 'ملغاة',
     ];
 
+    /**
+     * أين تُعطى المجموعة.
+     *
+     * المدرّس الواحد يُعطي أونلاين، وفي بيته، وفي سنترين لا يملكهما —
+     * فالمكان بُعدٌ مستقلّ عن الفرع، والفرع اختياري لأجله.
+     */
+    public const VENUES = [
+        'branch' => 'في الفرع',
+        'online' => 'أونلاين',
+        'home' => 'في البيت',
+    ];
+
+    /** مجموعة أم درس فردي — والفردي سعته واحد لا أكثر. */
+    public const KINDS = [
+        'group' => 'مجموعة',
+        'private' => 'فردي',
+    ];
+
     public const PRICE_TYPES = [
         'monthly' => 'شهري',
         'per_session' => 'بالحصة',
@@ -115,5 +133,35 @@ final class Group extends Model
     public function label(): string
     {
         return trim(($this->name ?? '').' — '.($this->subject?->name ?? ''), ' —');
+    }
+
+    public function isPrivate(): bool
+    {
+        return $this->kind === 'private';
+    }
+
+    public function isOnline(): bool
+    {
+        return $this->venue === 'online';
+    }
+
+    /**
+     * أين تُعطى — نصّاً يقرأه ولي الأمر لا رمزاً في القاعدة.
+     *
+     * الأونلاين يُذكر برابطه، والفرع باسمه، والبيت بعنوانه إن كُتب:
+     * «أونلاين» وحدها لا تقول للطالب من أين يدخل.
+     */
+    public function venueLabel(): string
+    {
+        return match ($this->venue) {
+            'online' => __('أونلاين'),
+            'home' => filled($this->location) ? (string) $this->location : __('في البيت'),
+            default => (string) ($this->branch?->name ?? __('في الفرع')),
+        };
+    }
+
+    public function scopeAtVenue(Builder $query, string $venue): Builder
+    {
+        return $query->where('venue', $venue);
     }
 }
