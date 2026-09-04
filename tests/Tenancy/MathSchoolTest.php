@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Core\Admin\Fields\ChoicesField;
 use App\Core\Admin\Fields\TranslatableField;
+use App\Core\Admin\Resources\Lms\QuestionResource;
 use App\Core\Tenancy\Models\Tenant;
 use App\Modules\Center\Models\Grade;
 use App\Modules\Center\Models\Group;
@@ -276,4 +277,88 @@ it('يزرع مثال مدرسة الرياضيات بالأعداد المطل�
     });
 
     $tenant->delete();
+});
+
+// ------------------------------------------------------------------
+// محرّر المعادلات المرئي
+// ------------------------------------------------------------------
+
+it('يعرض لوحة الرموز في شاشة السؤال ولا يعرضها حيث لا معادلة', function (): void {
+    $tenant = provision();
+
+    tenancy()->initialize($tenant);
+    actingAsOwner($tenant);
+
+    // بنك الأسئلة يقبل معادلات فتظهر اللوحة
+    tenantGet($tenant, '/admin/questions/create')
+        ->assertOk()
+        ->assertSee('math-palette', false)
+        ->assertSee(__('محرّر المعادلات'), false);
+
+    // الكوبونات لا معادلة فيها — واللوحة عبءٌ بلا معنى
+    tenantGet($tenant, '/admin/coupons/create')
+        ->assertOk()
+        ->assertDontSee('math-palette', false);
+});
+
+it('يضع علامة المعادلات على الحقل الذي أعلنها وحده', function (): void {
+    // النموذج يبني خياراته من جداول المشترك، فلا يُقرأ خارج سياقه
+    provision()->run(function (): void {
+        $fields = collect(app(QuestionResource::class)->form())
+            ->flatMap(fn ($section) => $section->getFields())
+            ->keyBy(fn ($field) => $field->name);
+
+        // نصّ السؤال وخطواته وشرحه معادلات، ودرجته رقم
+        expect($fields['body']->acceptsMath())->toBeTrue()
+            ->and($fields['steps']->acceptsMath())->toBeTrue()
+            ->and($fields['explanation']->acceptsMath())->toBeTrue()
+            ->and($fields['marks']->acceptsMath())->toBeFalse()
+            ->and($fields['difficulty']->acceptsMath())->toBeFalse();
+    });
+});
+
+it('يحمل كل رمز في اللوحة صياغته ومعاينته واسمه', function (): void {
+    $groups = config('math-symbols.groups', []);
+
+    expect($groups)->not->toBeEmpty();
+
+    foreach ($groups as $key => $group) {
+        expect($group)->toHaveKeys(['label', 'icon', 'symbols'], "المجموعة [{$key}]")
+            ->and($group['symbols'])->not->toBeEmpty("المجموعة [{$key}] بلا رموز");
+
+        foreach ($group['symbols'] as $index => $symbol) {
+            expect($symbol)->toHaveKeys(['tex', 'preview', 'label'], "الرمز [{$key}.{$index}]")
+                ->and(trim($symbol['tex']))->not->toBe('')
+                ->and(trim($symbol['label']))->not->toBe('');
+        }
+    }
+
+    foreach (config('math-symbols.templates', []) as $index => $template) {
+        expect($template)->toHaveKeys(['tex', 'preview', 'label'], "القالب [{$index}]")
+            // القالب معادلة كاملة بعلامتيها، والرمز جزءٌ منها
+            ->and(trim($template['tex']))->toStartWith('$');
+    }
+});
+
+it('لا يبتلع تعريفُ الرمز شرطةً مائلة', function (): void {
+    /*
+     | صياغة TeX مليئة بـ`\\`، والنصّ ذو العلامة الواحدة في PHP
+     | يبتلع واحدة من كل اثنتين. فـ`a\\\\c` صارت `a\\c` في أيقونة
+     | المصفوفة، وعجز المحرّك عن رسمها — ولا يظهر ذلك في أي اختبار
+     | PHP، إنما مربّعاً أحمر أمام المدرّس.
+     */
+    $all = collect(config('math-symbols.groups', []))
+        ->flatMap(fn (array $group): array => [
+            ['tex' => $group['icon'], 'label' => 'أيقونة '.$group['label']],
+            ...$group['symbols'],
+        ])
+        ->concat(config('math-symbols.templates', []));
+
+    foreach ($all as $symbol) {
+        foreach ([$symbol['tex'], $symbol['preview'] ?? ''] as $tex) {
+            // فاصل السطر في TeX شرطتان لا واحدة
+            expect($tex)->not->toMatch('/(?<!\\\\)\\\\(?![a-zA-Z\\\\{}\\[\\],;:!\\s%&_^$#])/',
+                "صياغة مكسورة في [{$symbol['label']}]: {$tex}");
+        }
+    }
 });

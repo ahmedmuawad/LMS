@@ -21,9 +21,17 @@ export function renderMathIn(root = document) {
     return engine().then((module) => module.renderAll(root));
 }
 
+/** يعرض نصّاً داخل عنصر بعينه — للمعاينة الحيّة أثناء الكتابة. */
+export function renderMathInto(el, text) {
+    return engine().then((module) => {
+        el.innerHTML = module.renderMath(text);
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => renderMathIn());
 
 // المحتوى الذي يصل بعد التحميل (تبويب يُفتح، سؤال يُجلب) يُعرض أيضاً
 document.addEventListener('math:render', (event) => renderMathIn(event.detail?.root ?? document));
 
 window.renderMathIn = renderMathIn;
+window.renderMathInto = renderMathInto;

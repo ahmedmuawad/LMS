@@ -69,7 +69,9 @@
                 <input type="hidden" :name="`{{ $name }}[${i}][key]`" :value="row.key">
                 <input type="hidden" :name="`{{ $name }}[${i}][correct]`" :value="row.correct">
 
+                {{-- الخيار قد يكون معادلة كاملة، فيقبل لوحة الرموز كنصّ السؤال --}}
                 <input type="text" x-model="row.text" :name="`{{ $name }}[${i}][text]`"
+                       data-math-input :data-math-label="'{{ __('الخيار') }} ' + (i + 1)"
                        class="flex-1 min-w-0 h-11 px-3 rounded-md border border-line-strong bg-surface text-sm
                               focus:outline-none focus:ring-2 focus:ring-primary"
                        :placeholder="'{{ __('الخيار') }} ' + (i + 1)">
@@ -90,7 +92,7 @@
     </button>
 
     <p class="text-xs text-subtle mt-2">
-        {{ $hint ?? __('اضغط المربّع بجانب الخيار الصحيح. تُكتب المعادلات بين علامتَي $ هكذا: $x^2+1$') }}
+        {{ $hint ?? __('اضغط المربّع بجانب الخيار الصحيح. والخيار قد يكون معادلة — استعمل لوحة الرموز أعلاه.') }}
     </p>
     @error($name)<p class="text-xs text-danger mt-1">{{ $message }}</p>@enderror
 </fieldset>

@@ -33,6 +33,17 @@
         @csrf
         @if($isEdit) @method('PUT') @endif
 
+        @php
+            // اللوحة تظهر مرة واحدة، وفقط إن كان في النموذج ما يقبل معادلة
+            $acceptsMath = collect($resource->form())
+                ->flatMap(fn ($section) => $section->getFields())
+                ->contains(fn ($field) => $field->acceptsMath());
+        @endphp
+
+        @if($acceptsMath)
+            <x-admin.math-toolbar />
+        @endif
+
         <div class="flex flex-col gap-4">
             @foreach($resource->form() as $section)
                 <x-ui.card :title="$section->title" :subtitle="$section->getDescription()">

@@ -3,6 +3,7 @@ import focus from '@alpinejs/focus';
 import collapse from '@alpinejs/collapse';
 
 import './math.js';
+import mathEditor from './math-editor.js';
 
 Alpine.plugin(focus);
 Alpine.plugin(collapse);
@@ -41,6 +42,8 @@ Alpine.store('theme', {
         else root.setAttribute('data-theme', this.current);
     },
 });
+
+Alpine.data('mathEditor', mathEditor);
 
 window.Alpine = Alpine;
 Alpine.start();

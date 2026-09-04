@@ -30,7 +30,7 @@ final class TranslatableField extends Field
 
     public function props(): array
     {
-        return ['locales' => array_keys(config('locales.supported', ['ar' => [], 'en' => []])), 'long' => $this->long];
+        return ['locales' => array_keys(config('locales.supported', ['ar' => [], 'en' => []])), 'long' => $this->long, 'math' => $this->math];
     }
 
     public function validationRules(string $context): array

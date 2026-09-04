@@ -99,7 +99,7 @@ jobs:
           GATE_EMAIL=nour@t.test GATE_PASSWORD=password \
             node tests/Browser/responsive.mjs http://demo.localhost:8899 /admin/dashboard /admin/students /admin/students/2 /admin/discussions /admin/discussions/1 /admin/announcements /admin/earnings /admin/statistics
           GATE_EMAIL=mona@math.test GATE_PASSWORD=password \
-            node tests/Browser/responsive.mjs http://math.localhost:8899 /admin/questions /admin/questions/1/edit /admin/quizzes/1/edit /admin/groups /admin/schedule /admin/attendance
+            node tests/Browser/responsive.mjs http://math.localhost:8899 /admin/questions /admin/questions/1/edit /admin/quizzes/1/edit /admin/groups /admin/schedule /admin/attendance /admin/questions/create
 
       - name: فحص التباين (WCAG AA · فاتح وداكن)
         env:
@@ -125,7 +125,16 @@ jobs:
           GATE_EMAIL=nour@t.test GATE_PASSWORD=password \
             node tests/Browser/contrast.mjs http://demo.localhost:8899 /admin/dashboard /admin/students /admin/students/2 /admin/discussions /admin/discussions/1 /admin/announcements /admin/earnings /admin/statistics
           GATE_EMAIL=mona@math.test GATE_PASSWORD=password \
-            node tests/Browser/contrast.mjs http://math.localhost:8899 /admin/questions /admin/questions/1/edit /admin/quizzes/1/edit /admin/groups /admin/schedule /admin/attendance
+            node tests/Browser/contrast.mjs http://math.localhost:8899 /admin/questions /admin/questions/1/edit /admin/quizzes/1/edit /admin/groups /admin/schedule /admin/attendance /admin/questions/create
+
+      # لوحة الرموز ٨٩ زرّاً مكتوبةً في config، وخطأ مطبعيّ في صياغة
+      # واحد منها يمرّ صامتاً في كل اختبار PHP ولا يظهر إلا للمدرّس
+      - name: فحص محرّر المعادلات
+        env:
+          PLAYWRIGHT_CHROMIUM: ''
+          GATE_EMAIL: mona@math.test
+          GATE_PASSWORD: password
+        run: node tests/Browser/math.mjs http://math.localhost:8899 /admin/questions/create
 
       - name: فحص السلوك والوصولية
         env:

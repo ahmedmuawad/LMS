@@ -90,9 +90,9 @@ final class QuestionResource extends Resource
     {
         return [
             Section::make(__('السؤال'))
-                ->description(__('تُكتب المعادلات بصياغة TeX بين علامتَي $ — مثل $x^2 + 3x - 4 = 0$ — وتُعرض للطالب مضبوطة.'))
+                ->description(__('استعمل لوحة الرموز أعلاه: تضغط الرمز فيُكتب، وترى المعادلة مرسومة قبل أن يراها الطالب.'))
                 ->fields([
-                    TranslatableField::make('body')->label(__('نص السؤال'))->long()->required(),
+                    TranslatableField::make('body')->label(__('نص السؤال'))->long()->required()->math(),
                     SelectField::make('type')->label(__('النوع'))->half()
                         ->options(array_map(fn (string $l): string => __($l), Question::TYPES))
                         ->default('single_choice'),
@@ -115,9 +115,9 @@ final class QuestionResource extends Resource
             Section::make(__('ما يراه الطالب بعد التصحيح'))
                 ->description(__('هنا يتعلّم فعلاً: الدرجة وحدها لا تُصلح خطأً.'))
                 ->fields([
-                    TranslatableField::make('steps')->label(__('خطوات الحل'))->long()
-                        ->hint(__('سطر لكل خطوة، بالترتيب. المعادلات بين علامتَي $.')),
-                    TranslatableField::make('explanation')->label(__('شرح الإجابة'))->long(),
+                    TranslatableField::make('steps')->label(__('خطوات الحل'))->long()->math()
+                        ->hint(__('سطر لكل خطوة، بالترتيب.')),
+                    TranslatableField::make('explanation')->label(__('شرح الإجابة'))->long()->math(),
                 ]),
         ];
     }
