@@ -1,18 +1,14 @@
 /**
- * محرّر المعادلات المرئي.
+ * لوحة رموز المعادلات — تُملي على سطح الكتابة المرئي.
  *
- * المدرّس لا يحفظ صياغة TeX ولا يجوز أن نطلب منه ذلك: يضغط الرمز
- * فيُكتب في مكان المؤشّر، ويرى نتيجته مرسومة تحت الحقل وهو يكتب.
+ * المدرّس لا يحفظ صياغة TeX ولا يراها: يضغط الرمز فيُدرَج في المعادلة
+ * المفتوحة، أو تُنشأ معادلة جديدة عند المؤشّر وتُفتح لتحريرها مرئياً.
+ * السطح نفسه (`math-surface.js`) هو من يعرف أين المؤشّر وأي معادلة
+ * مفتوحة؛ هذه اللوحة تُرسل الطلب ولا تمسّ النصّ.
  *
  * لوحة واحدة تخدم كل حقول النموذج لا لوحة لكل حقل: نتتبّع آخر حقل
- * لمسه المدرّس، فتعمل اللوحة مع نصّ السؤال وخياراته وخطوات حلّه
- * بالتساوي — وشاشةٌ فيها ثماني لوحات لا تُستعمل.
+ * لمسه المدرّس، فتعمل مع نصّ السؤال وخياراته وخطوات حلّه بالتساوي.
  */
-import { renderMathInto } from './math.js';
-
-/** الفراغ الذي يُملأ — يُرسَم مربّعاً ويُحدَّد بعد الإدراج. */
-const HOLE = '\\square';
-
 export default function mathEditor(initialGroup = 'basic') {
     return {
         group: initialGroup,
@@ -24,140 +20,70 @@ export default function mathEditor(initialGroup = 'basic') {
          | خارج الشاشة — فتُطوى هناك.
          */
         open: typeof window !== 'undefined' && window.innerWidth >= 1024,
-        field: null,          // آخر حقل لمسه المدرّس
         fieldLabel: '',
-        preview: '',
-        holes: 0,
+
+        /*
+         | ترسو أسفل الشاشة ما دام المدرّس يكتب معادلة.
+         |
+         | اللوحة في أعلى النموذج والحقل قد يكون في آخره: من يكتب خطوات
+         | الحلّ لا يجوز أن يصعد ليضغط رمزاً ثم ينزل ليرى أين وقع.
+         */
+        docked: false,
 
         init() {
-            /*
-             | نتتبّع التركيز على مستوى المستند لا بربط كل حقل:
-             | حقول الخيارات تُضاف وتُحذف من Alpine أثناء الكتابة،
-             | ومستمعٌ لكل واحد يتسرّب مع كل حذف.
-             */
-            document.addEventListener('focusin', (event) => {
-                const el = event.target.closest?.('[data-math-input]');
-                if (el) this.attach(el);
+            // من لمس حقل معادلة يريد اللوحة: تُفتح له وترسو معه
+            document.addEventListener('math:focus', (event) => {
+                this.fieldLabel = event.detail?.label ?? '';
+                this.open = true;
+                this.docked = true;
+                this.$nextTick(() => this.announce());
             });
 
-            document.addEventListener('input', (event) => {
-                if (event.target === this.field) this.refresh();
+            document.addEventListener('math:blur', () => {
+                this.docked = false;
+                this.announce();
             });
 
-            const first = document.querySelector('[data-math-input]');
-            if (first) this.attach(first, false);
-        },
-
-        attach(el, focus = true) {
-            this.field = el;
-            this.fieldLabel = el.dataset.mathLabel || '';
-            if (focus) this.open = true;
-            this.refresh();
-        },
-
-        refresh() {
-            if (! this.field) return;
-
-            const value = this.field.value || '';
-            this.holes = (value.match(/\\square/g) || []).length;
-
-            // المعاينة تعرض السطر الذي عليه المؤشّر: خطوات الحل
-            // سطرٌ لكل خطوة، ومعاينتها كلّها دفعةً تُخفي ما يُحرَّر
-            const upto = value.slice(0, this.field.selectionStart ?? value.length);
-            const start = upto.lastIndexOf('\n') + 1;
-            const end = value.indexOf('\n', start);
-            const line = value.slice(start, end === -1 ? value.length : end);
-
-            this.preview = line.trim() === '' ? value : line;
-
-            const target = this.$refs.preview;
-            if (target) renderMathInto(target, this.preview);
-        },
-
-        /**
-         * يُدرج في مكان المؤشّر، ويلفّ بعلامتَي $ إن لم تكن المعادلة
-         * مفتوحة أصلاً — فمن يضغط «كسر» في نصّ عادي يريد معادلة، لا
-         * صياغةً تظهر للطالب كما هي.
-         */
-        insert(tex) {
-            const el = this.field ?? document.querySelector('[data-math-input]');
-            if (! el) return;
-
-            this.field = el;
-
-            const value = el.value || '';
-            const start = el.selectionStart ?? value.length;
-            const end = el.selectionEnd ?? start;
-
             /*
-             | أربع حالات لا حالتان.
+             | نراقب ارتفاع اللوحة نفسه لا نقيسه مرة واحدة.
              |
-             | القالب معادلة كاملة بعلامتيها، والرمز جزءٌ منها. وإدراج
-             | قالب والمؤشّر داخل معادلة قائمة كان يُنتج تعشيشاً
-             | مكسوراً: `$\frac{1}{4$c^2=a^2+b^2$}$`. فنُجرّد القالب
-             | من علامتيه حين يدخل معادلةً قائمة، ونُلبسهما الرمز
-             | حين يخرج إلى نصّ عادي.
+             | الطيّ والفتح حركةٌ لها زمن، وتبديل مجموعة الرموز يغيّر عدد
+             | الصفوف؛ فالقياس في `$nextTick` يقيس ارتفاعاً في منتصف
+             | الطريق — فتُحشى الصفحة بأقلّ ممّا تحجبه اللوحة.
              */
-            const selfDelimited = tex.trim().startsWith('$');
-            const inside = this.insideMath(value, start);
+            const panel = this.$el.firstElementChild;
 
-            const snippet = inside
-                ? (selfDelimited ? tex.trim().replace(/^\$+|\$+$/g, '') : tex)
-                : (selfDelimited ? tex : '$' + tex + '$');
-
-            /*
-             | مسافة تفصل معادلةً عن جارتها.
-             |
-             | إلصاق معادلتين ينتج `$$` — وهي في صياغتنا فاتحةُ معادلة
-             | في سطر مستقلّ، فتُقرأ نيّة المدرّس عكسَ ما أراد.
-             */
-            const before = value.slice(0, start);
-            const after = value.slice(end);
-            const pad = (a, b) => (a.endsWith('$') && b.startsWith('$') ? ' ' : '');
-
-            el.value = before + pad(before, snippet) + snippet + pad(snippet, after) + after;
-
-            // نُحدّد أول فراغ داخل ما أُدرج ليكتب فوقه مباشرة
-            const holeAt = el.value.indexOf(HOLE, start);
-            const inserted = before.length + pad(before, snippet).length + snippet.length;
-
-            if (holeAt !== -1 && holeAt < inserted) {
-                el.setSelectionRange(holeAt, holeAt + HOLE.length);
-            } else {
-                // أُضيفت علامة الإغلاق من عندنا: نقف قبلها لا بعدها
-                const caret = ! inside && ! selfDelimited ? inserted - 1 : inserted;
-                el.setSelectionRange(caret, caret);
+            if (panel && 'ResizeObserver' in window) {
+                new ResizeObserver(() => this.announce()).observe(panel);
             }
 
-            el.focus();
-            el.dispatchEvent(new Event('input', { bubbles: true }));
-            this.refresh();
-        },
-
-        /** الفراغ التالي — للتنقّل بين خانات الكسر والمصفوفة. */
-        nextHole() {
-            const el = this.field;
-            if (! el) return;
-
-            const from = (el.selectionEnd ?? 0);
-            let at = el.value.indexOf(HOLE, from);
-
-            if (at === -1) at = el.value.indexOf(HOLE);   // نلتفّ من البداية
-            if (at === -1) return;
-
-            el.focus();
-            el.setSelectionRange(at, at + HOLE.length);
-            this.refresh();
+            window.addEventListener('resize', () => this.announce());
         },
 
         /**
-         * هل المؤشّر داخل معادلة؟ عددُ علامات الدولار قبله فردٌ يعني نعم.
+         * تُعلن ارتفاع ما تحجبه من الشاشة.
          *
-         * تقدير لا يقين، وهو ما يكفي: أسوأ ما يحدث أن يُدرج المدرّس
-         * علامتين زائدتين فيراهما ويحذفهما.
+         | اللوحة المرساة تغطّي أسفل الصفحة — وفيه الحقل الذي يُكتب فيه.
+         | فنُفسح للصفحة أسفلها بمقدار ارتفاعها، ونُخبر السطح ليرفع
+         | نفسه فوقها. بغير هذا يكتب المدرّس في حقل لا يراه.
          */
-        insideMath(value, index) {
-            return (value.slice(0, index).match(/\$/g) || []).length % 2 === 1;
+        announce() {
+            const panel = this.$el.firstElementChild;
+            const height = this.docked ? (panel?.offsetHeight ?? 0) : 0;
+
+            document.documentElement.style.setProperty('--math-dock-height', height + 'px');
+            document.body.classList.toggle('math-docked', height > 0);
+
+            document.dispatchEvent(new CustomEvent('math:dock', { detail: { height } }));
+        },
+
+        insert(tex) {
+            document.dispatchEvent(new CustomEvent('math:insert', { detail: { tex } }));
+        },
+
+        /** الفراغ التالي داخل المعادلة المفتوحة — للتنقّل بين خانات الكسر والمصفوفة. */
+        nextHole() {
+            document.dispatchEvent(new CustomEvent('math:next-hole'));
         },
     };
 }

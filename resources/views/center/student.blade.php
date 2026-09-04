@@ -88,6 +88,28 @@
                     </x-ui.empty>
                 </x-ui.card>
             @endif
+
+            {{-- التسجيل من هنا أيضاً: من فتح ملف الطالب لا يُرسَل إلى صفحة أخرى ليسجّله --}}
+            @if($openGroups->isNotEmpty())
+                <x-ui.card :title="__('سجّله في مجموعة')">
+                    <form method="POST" action="" class="flex flex-wrap items-end gap-3"
+                          x-data="{ group: '' }" x-bind:action="group ? @js(url('/admin/groups')) + '/' + group + '/enrol' : ''">
+                        @csrf
+                        <input type="hidden" name="student_id" value="{{ $student->id }}">
+                        <x-ui.field :label="__('المجموعة')" for="enrol-group" class="mb-0 min-w-64 flex-1" :error="$errors->first('student_id')">
+                            <x-ui.select id="enrol-group" name="group" x-model="group" required>
+                                <option value="">{{ __('اختر…') }}</option>
+                                @foreach($openGroups as $group)
+                                    <option value="{{ $group->id }}">
+                                        {{ $group->name }} · {{ $group->venueLabel() }} · {{ $group->enrolled_count }}/{{ $group->capacity }}
+                                    </option>
+                                @endforeach
+                            </x-ui.select>
+                        </x-ui.field>
+                        <x-ui.button type="submit" x-bind:disabled="! group">{{ __('سجّل') }}</x-ui.button>
+                    </form>
+                </x-ui.card>
+            @endif
         </div>
 
         <div class="grid gap-4 min-w-0">

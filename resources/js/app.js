@@ -5,6 +5,11 @@ import collapse from '@alpinejs/collapse';
 import './math.js';
 import mathEditor from './math-editor.js';
 
+/* سطح الكتابة المرئي للمعادلات: يُحمَّل فقط حيث يوجد حقل رياضيات */
+if (document.querySelector('[data-math-input]')) {
+    import('./math-surface.js');
+}
+
 Alpine.plugin(focus);
 Alpine.plugin(collapse);
 

@@ -7,7 +7,7 @@
 <main id="main" class="max-w-[820px] mx-auto px-4 sm:px-6 py-8">
 
     <header class="text-center mb-8 pb-6 border-b border-line">
-        <p class="text-xs text-subtle mb-1">{{ setting()->translated('general.site_name') ?: tenant('name') }}</p>
+        <p class="text-xs text-subtle mb-1">{{ site_name() }}</p>
         <h1 class="text-2xl font-bold">{{ __('التقرير الشهري') }}</h1>
         <p class="text-sm text-muted mt-1">
             {{ $student->name() }} · {{ $student->grade?->name }} ·

@@ -49,3 +49,101 @@
 .katex .frac-line {
     border-bottom-color: currentColor;
 }
+
+/*
+ | سطح الكتابة المرئي: نصّ عادي ومعادلات مرسومة في الحقل نفسه.
+ |
+ | المدرّسة لا ترى `$\frac{1}{2}$` أبداً — ترى الكسر. الصياغة تعيش في
+ | الحقل الأصلي المخفيّ وتُرسَل مع النموذج، والسطح مرآتها المقروءة.
+ */
+.math-surface {
+    min-height: 2.75rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    line-height: 1.9;
+    cursor: text;
+}
+
+.math-surface:empty::before {
+    content: attr(data-placeholder);
+    color: var(--sem-text-subtle);
+}
+
+.math-chip {
+    display: inline-block;
+    padding: 0.05em 0.35em;
+    margin: 0 0.1em;
+    border-radius: 0.375rem;
+    border: 1px solid transparent;
+    background: color-mix(in oklab, var(--color-primary) 10%, transparent);
+    cursor: pointer;
+    vertical-align: middle;
+    user-select: none;
+    transition: border-color 120ms, background-color 120ms;
+}
+
+.math-chip:hover,
+.math-chip.is-editing {
+    border-color: var(--color-primary);
+    background: color-mix(in oklab, var(--color-primary) 18%, transparent);
+}
+
+.math-chip.is-empty::after {
+    content: '…';
+    color: var(--sem-text-subtle);
+}
+
+/*
+ | الفراغ: مربّع متقطّع ملوّن يقول «اكتب هنا».
+ |
+ | المربّع الصلب `□` يُقرأ رمزاً رياضياً لا مكاناً ينتظر رقماً — وهو
+ | أول ما يسأل عنه من أدرج كسراً.
+ */
+.math-hole {
+    display: inline-block;
+    min-width: 0.85em;
+    border: 1px dashed var(--color-primary);
+    border-radius: 0.2em;
+    background: color-mix(in oklab, var(--color-primary) 12%, transparent);
+}
+
+/*
+ | مساحة أسفل الصفحة بقدر اللوحة المرساة.
+ |
+ | بغيرها لا يمكن تمرير آخر الحقول فوقها: تبقى محجوبة مهما مُرّرت
+ | الصفحة، لأن الصفحة انتهت واللوحة فوقها.
+ */
+body.math-docked {
+    padding-bottom: calc(var(--math-dock-height, 0px) + 1rem);
+}
+
+/* نافذة تحرير المعادلة — لوحة مرئية تعرض الكسر كسراً والجذر جذراً وهي تُكتب */
+.math-popover {
+    position: absolute;
+    z-index: 40;
+    inline-size: min(28rem, calc(100vw - 2rem));
+    border-radius: 0.75rem;
+    border: 1px solid var(--sem-line-strong);
+    background: var(--sem-surface);
+    box-shadow: 0 12px 32px rgb(0 0 0 / 0.25);
+    padding: 0.75rem;
+}
+
+.math-popover math-field {
+    display: block;
+    inline-size: 100%;
+    min-block-size: 3rem;
+    font-size: 1.35rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--sem-line-strong);
+    background: var(--sem-surface-sunken);
+    color: var(--sem-text);
+    direction: ltr;
+}
+
+.math-popover math-field:focus-within {
+    border-color: var(--color-primary);
+    outline: none;
+    box-shadow: 0 0 0 3px var(--sem-primary-subtle);
+}

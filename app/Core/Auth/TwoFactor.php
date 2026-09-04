@@ -122,7 +122,7 @@ final class TwoFactor
     /** رمز QR كـSVG مُضمَّن — بلا خدمة خارجية ترى سرّ المستخدم. */
     public function qrSvg(User $user, string $secret): string
     {
-        $issuer = (string) (setting()->translated('general.site_name') ?: tenant('name') ?? config('app.name'));
+        $issuer = site_name();
 
         $url = $this->engine->getQRCodeUrl($issuer, (string) $user->email, $secret);
 

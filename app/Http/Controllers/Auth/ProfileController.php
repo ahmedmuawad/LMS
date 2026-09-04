@@ -11,6 +11,8 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -71,6 +73,101 @@ final class ProfileController
         ])->save();
 
         return back()->with('status', __('حُفظت بياناتك.'));
+    }
+
+    /**
+     * طلب تغيير بريد الدخول.
+     *
+     * لا يُبدَّل في مكانه: يبقى معلّقاً حتى يُفتح رابطه من الصندوق
+     * الجديد. خطأ مطبعي واحد في التبديل المباشر يقفل الحساب على
+     * صاحبه، ومن استولى على جلسة يحوّل الحساب إلى بريده ثم يطلب
+     * «نسيت كلمة المرور». وكلمة المرور الحالية تُطلب هنا لهذا.
+     */
+    public function requestEmailChange(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        $input = $request->validate([
+            'email' => ['required', 'email', 'max:190', Rule::unique('users', 'email')->ignore($user->getKey())],
+            'current_password' => ['required', 'string'],
+        ], [], ['email' => __('البريد الجديد'), 'current_password' => __('كلمة المرور الحالية')]);
+
+        if (! Hash::check($input['current_password'], (string) $user->password)) {
+            throw ValidationException::withMessages(['current_password' => __('كلمة المرور غير صحيحة.')]);
+        }
+
+        if (strcasecmp($input['email'], (string) $user->email) === 0) {
+            return back()->with('status', __('هذا بريدك الحالي بالفعل.'));
+        }
+
+        $token = Str::random(48);
+
+        $user->forceFill([
+            'pending_email' => $input['email'],
+            'pending_email_token' => hash('sha256', $token),
+            'pending_email_sent_at' => now(),
+        ])->save();
+
+        /*
+         | الرابط يُرسَل إلى العنوان الجديد لا الحالي: التأكيد هو
+         | إثبات أن الصندوق الجديد صندوقه هو. ولهذا يُرسَل بالبريد
+         | مباشرةً لا عبر `notify()` — تلك تُرسل إلى بريد المستخدم
+         | المسجَّل، وهو ما نحاول تغييره.
+         */
+        Mail::send('mail.email-change', [
+            'user' => $user,
+            'url' => url('/account/email/'.$token),
+        ], fn ($message) => $message->to($input['email'])->subject(__('تأكيد بريدك الجديد')));
+
+        return back()->with('status', __('أرسلنا رابط تأكيد إلى :email — افتحه من هناك لإتمام التغيير.', [
+            'email' => $input['email'],
+        ]));
+    }
+
+    /** تأكيد البريد الجديد من صندوقه — هنا وحدها يُبدَّل فعلاً. */
+    public function confirmEmailChange(Request $request, string $token): RedirectResponse
+    {
+        $user = $request->user();
+
+        $valid = filled($user->pending_email)
+            && filled($user->pending_email_token)
+            && hash_equals((string) $user->pending_email_token, hash('sha256', $token))
+            && $user->pending_email_sent_at?->gt(now()->subHour());
+
+        if (! $valid) {
+            return redirect(url('/account'))->withErrors([
+                'email' => __('انتهت صلاحية الرابط أو أنه غير صحيح. اطلب تغييراً جديداً.'),
+            ]);
+        }
+
+        // سُجّل العنوان لغيره بين الطلب والتأكيد
+        if (User::where('email', $user->pending_email)->whereKeyNot($user->getKey())->exists()) {
+            $user->forceFill(['pending_email' => null, 'pending_email_token' => null])->save();
+
+            return redirect(url('/account'))->withErrors(['email' => __('هذا البريد صار مستعملاً. اختر غيره.')]);
+        }
+
+        $user->forceFill([
+            'email' => $user->pending_email,
+            'email_verified_at' => now(),
+            'pending_email' => null,
+            'pending_email_token' => null,
+            'pending_email_sent_at' => null,
+        ])->save();
+
+        return redirect(url('/account'))->with('status', __('صار بريد دخولك :email.', ['email' => $user->email]));
+    }
+
+    /** إلغاء طلب معلّق — لمن غيّر رأيه أو أخطأ في الكتابة. */
+    public function cancelEmailChange(Request $request): RedirectResponse
+    {
+        $request->user()->forceFill([
+            'pending_email' => null,
+            'pending_email_token' => null,
+            'pending_email_sent_at' => null,
+        ])->save();
+
+        return back()->with('status', __('أُلغي طلب تغيير البريد.'));
     }
 
     public function updatePassword(Request $request): RedirectResponse

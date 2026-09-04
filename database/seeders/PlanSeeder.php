@@ -33,7 +33,7 @@ final class PlanSeeder extends Seeder
                 'name' => ['ar' => 'النمو', 'en' => 'Growth'],
                 'tagline' => ['ar' => 'الأكثر طلباً', 'en' => 'Most popular'],
                 'prices' => ['EGP' => 149900, 'SAR' => 24900, 'AED' => 24900, 'USD' => 5900],
-                'modes' => ['solo', 'marketplace'],
+                'modes' => ['solo', 'teacher', 'marketplace'],
                 'trial' => 14,
                 'features' => [
                     'students' => '1000', 'instructors' => '10', 'staff' => '5', 'courses' => 'unlimited',
@@ -54,7 +54,7 @@ final class PlanSeeder extends Seeder
                 'name' => ['ar' => 'الاحترافية', 'en' => 'Professional'],
                 'tagline' => ['ar' => 'لمن يبني مؤسسة', 'en' => 'For institutions'],
                 'prices' => ['EGP' => 299900, 'SAR' => 49900, 'AED' => 49900, 'USD' => 11900],
-                'modes' => ['solo', 'marketplace', 'center', 'hybrid'],
+                'modes' => ['solo', 'teacher', 'marketplace', 'center', 'hybrid'],
                 'trial' => 14,
                 'features' => [
                     'students' => 'unlimited', 'instructors' => 'unlimited', 'staff' => 'unlimited',
@@ -83,7 +83,7 @@ final class PlanSeeder extends Seeder
                 'name' => ['ar' => 'السنتر', 'en' => 'Learning Center'],
                 'tagline' => ['ar' => 'للسناتر التعليمية الأرضية', 'en' => 'For physical learning centers'],
                 'prices' => ['EGP' => 199900, 'SAR' => 34900, 'AED' => 34900, 'USD' => 8900],
-                'modes' => ['center', 'hybrid'],
+                'modes' => ['teacher', 'center', 'hybrid'],
                 'trial' => 14,
                 'features' => [
                     'students' => '2000', 'instructors' => '50', 'staff' => '20', 'courses' => 'unlimited',

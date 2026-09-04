@@ -56,7 +56,7 @@ final class Seo
     /** العنوان الكامل كما يظهر في التبويب ونتيجة البحث. */
     public function title(?string $title, string $template = 'seo.title_template'): string
     {
-        $site = (string) (setting()->translated('general.site_name') ?: tenant('name') ?? config('app.name'));
+        $site = site_name();
 
         if ($title === null || $title === '') {
             return $site;
@@ -140,7 +140,7 @@ final class Seo
      */
     public function siteSchema(): array
     {
-        $name = (string) (setting()->translated('general.site_name') ?: tenant('name') ?? config('app.name'));
+        $name = site_name();
 
         $organisation = array_filter([
             '@context' => 'https://schema.org',
@@ -204,7 +204,7 @@ final class Seo
                 'inLanguage' => app()->getLocale(),
                 'provider' => [
                     '@type' => 'Organization',
-                    'name' => (string) (setting()->translated('general.site_name') ?: tenant('name')),
+                    'name' => site_name(),
                     'sameAs' => url('/'),
                 ],
                 'aggregateRating' => (int) $course->ratings_count > 0 ? [
@@ -277,7 +277,7 @@ final class Seo
                 'url' => url('/services/'.$service->slug),
                 'provider' => [
                     '@type' => 'Organization',
-                    'name' => (string) (setting()->translated('general.site_name') ?: tenant('name')),
+                    'name' => site_name(),
                 ],
                 'offers' => $service->needsQuote() ? null : [
                     '@type' => 'Offer',

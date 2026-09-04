@@ -12,12 +12,9 @@ use App\Modules\Center\Actions\EnrolStudent;
 use App\Modules\Center\Actions\GenerateSessions;
 use App\Modules\Center\Actions\IssueInvoices;
 use App\Modules\Center\Actions\TakeAttendance;
-use App\Modules\Center\Models\Branch;
-use App\Modules\Center\Models\Cashbox;
 use App\Modules\Center\Models\Grade;
 use App\Modules\Center\Models\Group;
 use App\Modules\Center\Models\Guardian;
-use App\Modules\Center\Models\Room;
 use App\Modules\Center\Models\Schedule;
 use App\Modules\Center\Models\Session;
 use App\Modules\Center\Models\Stage;
@@ -50,16 +47,47 @@ final class SeedMathSchool extends Command
 
     protected $description = 'يزرع مثال مدرسة رياضيات كاملاً: أونلاين وبيت وسنترين وبنك أسئلة';
 
-    /** مجموعات السنترين: [الفرع, الصف, اليوم, الساعة, العدد] */
+    /**
+     * مجموعات السنترين: [السنتر, الصف, اليوم, الساعة, العدد].
+     *
+     * مواعيد السنترين ثابتة لأن السنتر هو من يحدّدها لا المدرّسة؛
+     * وما سواها يُوزَّع على ما بقي من الأسبوع بلا تزامن — المدرّسة
+     * واحدة، والمحرّك يرفض أن تكون في مكانين في ساعة واحدة.
+     */
     private const CENTER_GROUPS = [
-        ['future', 3, 6, 16, 12],
+        ['future', 3, 6, 15, 12],
         ['future', 5, 1, 17, 15],
-        ['future', 7, 3, 18, 11],
+        ['future', 7, 3, 19, 11],
         ['creative', 2, 0, 15, 10],
-        ['creative', 4, 2, 16, 13],
-        ['creative', 6, 4, 17, 9],
-        ['creative', 8, 5, 18, 14],
+        ['creative', 4, 2, 17, 13],
+        ['creative', 6, 4, 15, 9],
+        ['creative', 8, 5, 19, 14],
     ];
+
+    /** الحصة ساعة ونصف، فالشبكة كل ساعتين كي لا تتلامس حصّتان */
+    private const HOURS = [13, 15, 17, 19, 21];
+
+    /** @var list<array{0:int,1:int}> ما لم يُمنح بعد من مواعيد الأسبوع */
+    private array $freeSlots = [];
+
+    /** @return array{0:int,1:int} [اليوم, الساعة] — موعد لم يُشغَل بعد */
+    private function nextSlot(): array
+    {
+        if ($this->freeSlots === []) {
+            $reserved = array_map(fn (array $g): string => $g[2].':'.$g[3], self::CENTER_GROUPS);
+
+            foreach (self::HOURS as $hour) {
+                foreach (range(0, 6) as $weekday) {
+                    if (! in_array($weekday.':'.$hour, $reserved, true)) {
+                        $this->freeSlots[] = [$weekday, $hour];
+                    }
+                }
+            }
+        }
+
+        return array_shift($this->freeSlots)
+            ?? throw new \RuntimeException('نفدت مواعيد الأسبوع — قلّل المجموعات أو وسّع الشبكة.');
+    }
 
     public function handle(): int
     {
@@ -81,7 +109,7 @@ final class SeedMathSchool extends Command
             'owner_email' => 'mona@math.test',
             'owner_name' => 'أ. منى عبد العزيز',
             'plan_key' => 'professional',
-            'platform_mode' => 'hybrid',
+            'platform_mode' => 'teacher',
             // بذرة تجربة لا إنتاج — كلمة مرور موحّدة تُذكر في المخرَج
             'password' => 'password',
         ]);
@@ -107,11 +135,10 @@ final class SeedMathSchool extends Command
                 'icon' => '∑',
             ]);
 
-            $branches = $this->seedBranches();
             $this->seedQuestionBank($grades);
             $this->seedOnlineAndHome($teacher, $subject, $grades);
-            $this->seedCenters($teacher, $subject, $grades, $branches);
-            $this->fillAttendanceAndFees($branches);
+            $this->seedCenters($teacher, $subject, $grades);
+            $this->fillAttendanceAndFees();
         });
 
         $this->info('تم زرع مثال مدرسة الرياضيات.');
@@ -155,38 +182,15 @@ final class SeedMathSchool extends Command
         return [$stages, $grades];
     }
 
-    /** @return array<string, Branch> */
-    private function seedBranches(): array
-    {
-        $branches = [
-            'future' => Branch::create([
-                'name' => ['ar' => 'سنتر فيوتشر', 'en' => 'Future Center'],
-                'code' => 'FUT', 'phone' => '0223110011', 'is_active' => true,
-            ]),
-            'creative' => Branch::create([
-                'name' => ['ar' => 'سنتر جيل مبدع', 'en' => 'Creative Generation Center'],
-                'code' => 'CRE', 'phone' => '0223220022', 'is_active' => true,
-            ]),
-        ];
-
-        foreach ($branches as $key => $branch) {
-            foreach (['قاعة ١', 'قاعة ٢'] as $index => $name) {
-                Room::create([
-                    'branch_id' => $branch->getKey(),
-                    'name' => ['ar' => $name],
-                    'capacity' => 20,
-                ]);
-            }
-
-            Cashbox::create([
-                'branch_id' => $branch->getKey(),
-                'name' => ['ar' => 'خزنة '.($key === 'future' ? 'فيوتشر' : 'جيل مبدع')],
-                'currency' => 'EGP', 'opening_minor' => 0, 'balance_minor' => 0,
-            ]);
-        }
-
-        return $branches;
-    }
+    /*
+     | السنتران لا تملكهما المدرّسة — هي تُدرّس فيهما. فلا فرع ولا قاعة
+     | ولا خزنة لهما: المكان اسمٌ على المجموعة يقرأه ولي الأمر، والحصة
+     | تُولَّد بلا حجز قاعة لأن القاعة ليست قاعتها.
+     */
+    private const CENTERS = [
+        'future' => 'سنتر فيوتشر',
+        'creative' => 'سنتر جيل مبدع',
+    ];
 
     /**
      * بنك أسئلة رياضيات: معادلات وخطوات حلّ بثلاث درجات صعوبة.
@@ -374,9 +378,10 @@ final class SeedMathSchool extends Command
                 'meeting_url' => 'https://meet.example.test/'.($index + 1).'-private',
             ], $teacher, $subject, $grades[$gradeNumber]);
 
-            $this->makeSchedule($group, weekday: $index % 7, hour: 15 + ($index % 4));
+            [$weekday, $hour] = $this->nextSlot();
+            $this->makeSchedule($group, $weekday, $hour);
 
-            $student = $this->makeStudent($name, 'online'.($index + 1), $grades[$gradeNumber], null);
+            $student = $this->makeStudent($name, 'online'.($index + 1), $grades[$gradeNumber]);
             app(EnrolStudent::class)->handle($student, $group->refresh());
         }
 
@@ -387,10 +392,11 @@ final class SeedMathSchool extends Command
             'meeting_url' => 'https://meet.example.test/g4-online',
         ], $teacher, $subject, $grades[4]);
 
-        $this->makeSchedule($onlineGroup, weekday: 2, hour: 19);
+        [$weekday, $hour] = $this->nextSlot();
+        $this->makeSchedule($onlineGroup, $weekday, $hour);
 
         foreach (['هنا عصام', 'كنزي رامي', 'أدهم فادي', 'سلمى نبيل', 'يوسف ماهر'] as $index => $name) {
-            $student = $this->makeStudent($name, 'og'.($index + 1), $grades[4], null);
+            $student = $this->makeStudent($name, 'og'.($index + 1), $grades[4]);
             app(EnrolStudent::class)->handle($student, $onlineGroup->refresh());
         }
 
@@ -408,9 +414,10 @@ final class SeedMathSchool extends Command
                 'location' => 'منزل الطالب — يُتّفق على العنوان مع ولي الأمر',
             ], $teacher, $subject, $grades[$gradeNumber]);
 
-            $this->makeSchedule($group, weekday: ($index + 3) % 7, hour: 16 + ($index % 3));
+            [$weekday, $hour] = $this->nextSlot();
+            $this->makeSchedule($group, $weekday, $hour);
 
-            $student = $this->makeStudent($name, 'home'.($index + 1), $grades[$gradeNumber], null);
+            $student = $this->makeStudent($name, 'home'.($index + 1), $grades[$gradeNumber]);
             app(EnrolStudent::class)->handle($student, $group->refresh());
         }
     }
@@ -419,34 +426,28 @@ final class SeedMathSchool extends Command
      * السنتران: فيوتشر ٣ مجموعات، وجيل مبدع ٤ — لمراحل مختلفة.
      *
      * @param  array<int, Grade>  $grades
-     * @param  array<string, Branch>  $branches
      */
-    private function seedCenters(User $teacher, Subject $subject, array $grades, array $branches): void
+    private function seedCenters(User $teacher, Subject $subject, array $grades): void
     {
         $counter = 0;
 
-        foreach (self::CENTER_GROUPS as [$branchKey, $gradeNumber, $weekday, $hour, $size]) {
-            $branch = $branches[$branchKey];
+        foreach (self::CENTER_GROUPS as [$centerKey, $gradeNumber, $weekday, $hour, $size]) {
+            $center = self::CENTERS[$centerKey];
             $grade = $grades[$gradeNumber];
 
             $group = $this->makeGroup([
-                'name' => ['ar' => (string) $grade->name.' — '.$branch->name],
-                'venue' => 'branch', 'kind' => 'group', 'capacity' => 20,
+                'name' => ['ar' => (string) $grade->name.' — '.$center],
+                'venue' => 'center', 'kind' => 'group', 'capacity' => 20,
+                'location' => $center,
                 'price_minor' => 30000, 'price_type' => 'monthly',
-                'branch_id' => $branch->getKey(),
             ], $teacher, $subject, $grade);
 
-            $this->makeSchedule($group, $weekday, $hour, Room::where('branch_id', $branch->getKey())->inRandomOrder()->value('id'));
+            $this->makeSchedule($group, $weekday, $hour);
 
             foreach (range(1, $size) as $n) {
                 $counter++;
 
-                $student = $this->makeStudent(
-                    $this->pupilName($counter),
-                    'c'.$counter,
-                    $grade,
-                    $branch,
-                );
+                $student = $this->makeStudent($this->pupilName($counter), 'c'.$counter, $grade);
 
                 app(EnrolStudent::class)->handle($student, $group->refresh());
             }
@@ -486,7 +487,7 @@ final class SeedMathSchool extends Command
         );
     }
 
-    private function makeStudent(string $name, string $handle, Grade $grade, ?Branch $branch): Student
+    private function makeStudent(string $name, string $handle, Grade $grade): Student
     {
         $user = User::create([
             'name' => $name,
@@ -501,7 +502,7 @@ final class SeedMathSchool extends Command
         $student = Student::create([
             'user_id' => $user->getKey(),
             'code' => Student::nextCode(),
-            'branch_id' => $branch?->getKey(),
+            'branch_id' => null,
             'stage_id' => $grade->stage_id,
             'grade_id' => $grade->getKey(),
             'joined_at' => now()->subMonths(random_int(1, 6))->toDateString(),
@@ -529,8 +530,7 @@ final class SeedMathSchool extends Command
         return $first[$n % count($first)].' '.$last[intdiv($n, count($first)) % count($last)];
     }
 
-    /** @param  array<string, Branch>  $branches */
-    private function fillAttendanceAndFees(array $branches): void
+    private function fillAttendanceAndFees(): void
     {
         foreach (Group::all() as $group) {
             app(IssueInvoices::class)->handle($group, now()->format('Y-m'));

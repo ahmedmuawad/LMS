@@ -124,7 +124,7 @@ final class SendNotification implements ShouldQueue
             'name' => $name,
             'first_name' => explode(' ', trim($name))[0] ?: $name,
             'email' => (string) $user->email,
-            'site_name' => (string) (setting()->translated('general.site_name') ?: tenant('name') ?? config('app.name')),
+            'site_name' => site_name(),
             'site_url' => url('/'),
         ];
     }

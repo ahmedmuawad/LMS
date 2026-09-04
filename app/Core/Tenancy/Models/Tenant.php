@@ -116,7 +116,8 @@ final class Tenant extends BaseTenant implements TenantWithDatabase
 
     public function managesCenter(): bool
     {
-        return $this->center_enabled || $this->isMode('center', 'hybrid');
+        // المدرّس المستقل يدير حصصه ومجموعاته وإن لم يملك سنتراً
+        return $this->center_enabled || $this->isMode('teacher', 'center', 'hybrid');
     }
 
     public function offersLive(): bool

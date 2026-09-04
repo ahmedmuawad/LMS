@@ -8,7 +8,7 @@
     $description = $meta->description;
     $canonical = $meta->canonical ?: $seo->canonical();
     $image = $meta->image;
-    $siteName = setting()->translated('general.site_name') ?: (tenant('name') ?? config('app.name'));
+    $siteName = site_name();
 
     $schemas = [...$seo->siteSchema(), ...$meta->schema];
     $crumbs = $seo->breadcrumbSchema($meta->breadcrumbs);

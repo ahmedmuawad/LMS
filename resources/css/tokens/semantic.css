@@ -21,6 +21,15 @@
   --sem-border:          var(--c-slate-200);
   --sem-border-strong:   var(--c-slate-300);
 
+  /* الأضواء الكاشفة: لوح داكن كامل العرض يكسر رتابة الأسطح الفاتحة.
+     دور مستقل لا انعكاس للسطح — يبقى داكناً في الوضعين، ونصّه معه. */
+  --sem-spot:            var(--c-teal-900);
+  --sem-spot-raised:     var(--c-teal-800);
+  --sem-spot-line:       var(--c-teal-800);
+  --sem-on-spot:         var(--c-teal-50);
+  --sem-on-spot-muted:   var(--c-teal-200);
+  --sem-on-spot-accent:  var(--c-gold-300);
+
   /* الأدوار */
   --sem-primary:         var(--c-teal-600);
   --sem-primary-hover:   var(--c-teal-700);
@@ -78,6 +87,12 @@
     --sem-text-inverse:   var(--c-dark-bg);
     --sem-border:         var(--c-dark-border);
     --sem-border-strong:  var(--c-dark-border-strong);
+    --sem-spot:            var(--c-teal-800);
+    --sem-spot-raised:     var(--c-teal-700);
+    --sem-spot-line:       var(--c-teal-700);
+    --sem-on-spot:         var(--c-teal-50);
+    --sem-on-spot-muted:   var(--c-teal-200);
+    --sem-on-spot-accent:  var(--c-gold-300);
     --sem-primary:        var(--c-dark-primary);
     --sem-primary-hover:  var(--c-dark-primary-hover);
     --sem-primary-subtle: var(--c-dark-primary-subtle);
@@ -121,6 +136,12 @@
   --sem-text-inverse:   var(--c-dark-bg);
   --sem-border:         var(--c-dark-border);
   --sem-border-strong:  var(--c-dark-border-strong);
+  --sem-spot:            var(--c-teal-800);
+  --sem-spot-raised:     var(--c-teal-700);
+  --sem-spot-line:       var(--c-teal-700);
+  --sem-on-spot:         var(--c-teal-50);
+  --sem-on-spot-muted:   var(--c-teal-200);
+  --sem-on-spot-accent:  var(--c-gold-300);
   --sem-primary:        var(--c-dark-primary);
   --sem-primary-hover:  var(--c-dark-primary-hover);
   --sem-primary-subtle: var(--c-dark-primary-subtle);

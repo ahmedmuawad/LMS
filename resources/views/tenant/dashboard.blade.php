@@ -1,8 +1,8 @@
 @php
-    $modes = [
-        'solo' => 'مدرّس فردي', 'marketplace' => 'متعدد المدرّسين',
-        'center' => 'سنتر تعليمي', 'hybrid' => 'شامل',
-    ];
+    // من الإعداد نفسه: نمط يُضاف هناك لا يُنسى هنا
+    $modes = collect(config('platform-modes.modes'))
+        ->map(fn (array $m): string => $m['name'][app()->getLocale()] ?? $m['name']['ar'])
+        ->all();
     $deliveries = ['recorded' => 'مسجّل', 'live' => 'مباشر', 'blended' => 'مدمج'];
     $roles = [
         'owner' => 'المالك', 'admin' => 'مدير', 'instructor' => 'مدرّس',
@@ -13,7 +13,7 @@
 <x-layouts.admin :title="__('اللوحة')" current="dashboard">
 <div class="max-w-[1400px]">
 
-    <x-ui.page-header :title="__('أهلاً بك في :name', ['name' => $tenant->name])"
+    <x-ui.page-header :title="__('أهلاً بك في :name', ['name' => site_name()])"
                       :subtitle="__('نظرة سريعة على منصّتك: من فيها، وما استهلكته من باقتك.')" />
 
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">

@@ -20,26 +20,17 @@
         </x-slot:actions>
     </x-ui.page-header>
 
-    {{-- المسح السريع: الكارنيه أو الكود، بلا إعادة تحميل --}}
-    <x-ui.card :title="__('تسجيل سريع')" :subtitle="__('امسح الكارنيه أو اكتب كود الطالب واضغط Enter.')" class="mb-4">
-        <form @submit.prevent="scan()" class="flex items-end gap-2">
-            <x-ui.field :label="__('كود الطالب')" for="scan" class="mb-0 flex-1">
-                <x-ui.input id="scan" x-model="code" x-ref="scan" autofocus autocomplete="off"
-                            class="font-mono text-lg tracking-wider" placeholder="ST00001" />
-            </x-ui.field>
-            <x-ui.button type="submit" size="lg" class="shrink-0">{{ __('تسجيل') }}</x-ui.button>
-        </form>
-
-        <p x-show="message" x-cloak class="mt-3 text-sm rounded-md px-3 py-2"
-           :class="ok ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'"
-           x-text="message" role="status" aria-live="polite"></p>
-    </x-ui.card>
-
+    {{--
+        الكشف أولاً: المدرّس يعرف طلابه بأسمائهم، ويعلّم الغائب بنقرة.
+        أمّا قارئ الكارنيه فلمن عنده كارنيهات وبوابة — يُطوى تحت الكشف
+        ولا يتصدّره، فمن لا يستعمله لا يراه.
+    --}}
     <form method="POST" action="{{ url('/admin/attendance/'.$session->id) }}">
         @csrf
 
         <x-ui.card :title="__('كشف الحضور')"
-                   :subtitle="__('الافتراضي حاضر — علّم الغائبين وحدهم ثم احفظ.')" :padding="false">
+                   :subtitle="trans_choice('{0} لا طلاب|{1} طالب واحد|{2} طالبان|[3,10] :count طلاب|[11,*] :count طالباً', $students->count(), ['count' => $students->count()]).' · '.__('الافتراضي حاضر — علّم الغائبين وحدهم ثم احفظ.')"
+                   :padding="false">
             @if($students->isEmpty())
                 <div class="p-5">
                     <x-ui.empty :title="__('لا طلاب في هذه المجموعة')">
@@ -90,6 +81,28 @@
             </p>
         </div>
     </form>
+
+    @if(in_array('code', (array) setting('center.attendance_methods', []), true) || in_array('qr', (array) setting('center.attendance_methods', []), true))
+        <details class="mt-4 group">
+            <summary class="cursor-pointer text-sm font-semibold text-muted hover:text-content py-2 min-h-11 flex items-center gap-2 select-none">
+                <span class="transition-transform group-open:rotate-90" aria-hidden="true">›</span>
+                {{ __('تسجيل بالكارنيه أو بالكود') }}
+            </summary>
+            <x-ui.card :subtitle="__('امسح الكارنيه أو اكتب كود الطالب واضغط Enter — يُعلَّم في الكشف أعلاه.')" class="mt-2">
+                <form @submit.prevent="scan()" class="flex items-end gap-2">
+                    <x-ui.field :label="__('كود الطالب')" for="scan" class="mb-0 flex-1">
+                        <x-ui.input id="scan" x-model="code" x-ref="scan" autocomplete="off"
+                                    class="font-mono text-lg tracking-wider" placeholder="ST00001" />
+                    </x-ui.field>
+                    <x-ui.button type="submit" size="lg" class="shrink-0">{{ __('تسجيل') }}</x-ui.button>
+                </form>
+
+                <p x-show="message" x-cloak class="mt-3 text-sm rounded-md px-3 py-2"
+                   :class="ok ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'"
+                   x-text="message" role="status" aria-live="polite"></p>
+            </x-ui.card>
+        </details>
+    @endif
 </div>
 
 @push('scripts')

@@ -9,6 +9,10 @@ use App\Http\Controllers\Admin\ResourceController;
 use App\Http\Controllers\Admin\SuperAdminController;
 use App\Http\Controllers\Admin\SuperAuthController;
 use App\Http\Controllers\Admin\TenantController;
+use App\Http\Controllers\Marketing\LandingController;
+use App\Http\Controllers\Marketing\OwnerLoginController;
+use App\Http\Controllers\Marketing\PlatformCheckoutController;
+use App\Http\Controllers\Marketing\SignupController;
 use App\Http\Middleware\EnsureSuperAdmin;
 use Illuminate\Support\Facades\Route;
 
@@ -22,7 +26,30 @@ use Illuminate\Support\Facades\Route;
  */
 
 $central = function (): void {
-    Route::view('/', 'welcome')->name('home');
+    Route::get('/', LandingController::class)->name('home');
+
+    /*
+     | التسجيل والدفع — من صفحة الأسعار إلى منصّة عاملة.
+     |
+     | محدودة المعدّل: التسجيل يُنشئ قاعدة بيانات، وفحص النطاق يكشف
+     | أي الأسماء محجوز. كلاهما باب لمن يجرّب ألف اسم في الدقيقة.
+     */
+    Route::get('/start', [SignupController::class, 'show'])->name('start');
+    Route::get('/start/slug', [SignupController::class, 'checkSlug'])
+        ->middleware('throttle:60,1')->name('start.slug');
+    Route::post('/start', [SignupController::class, 'store'])
+        ->middleware('throttle:5,10')->name('start.store');
+
+    Route::get('/start/{slug}/checkout', [SignupController::class, 'checkout'])->name('start.checkout');
+    Route::post('/start/{slug}/trial', [SignupController::class, 'startTrial'])->name('start.trial');
+    Route::post('/start/{slug}/pay', [PlatformCheckoutController::class, 'pay'])->name('start.pay');
+    Route::get('/start/{slug}/return/{gateway}', [PlatformCheckoutController::class, 'return'])->name('start.return');
+    Route::post('/start/{slug}/enter', [PlatformCheckoutController::class, 'enter'])->name('start.enter');
+
+    // «ادخل إلى منصّتك» — دلالةٌ على نطاقه لا مصادقة عندنا
+    Route::get('/login', [OwnerLoginController::class, 'show'])->name('owner.login');
+    Route::post('/login', [OwnerLoginController::class, 'find'])
+        ->middleware('throttle:10,1')->name('owner.login.find');
 
     /*
      | robots للنطاق المركزي.

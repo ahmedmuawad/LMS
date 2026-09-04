@@ -34,10 +34,16 @@ final class Group extends Model
      * المدرّس الواحد يُعطي أونلاين، وفي بيته، وفي سنترين لا يملكهما —
      * فالمكان بُعدٌ مستقلّ عن الفرع، والفرع اختياري لأجله.
      */
+    /*
+     | «في الفرع» فرعٌ يملكه المشترك وله قاعات تُحجز؛ و«في سنتر» مكانٌ
+     | يُدرّس فيه المدرّس ولا يملكه — يُذكر باسمه ولا يُحجز له قاعة ولا
+     | يُفتح له فرع. الخلط بينهما كان يحوّل لوحة مدرّس إلى لوحة صاحب سنتر.
+     */
     public const VENUES = [
-        'branch' => 'في الفرع',
         'online' => 'أونلاين',
         'home' => 'في البيت',
+        'center' => 'في سنتر',
+        'branch' => 'في الفرع',
     ];
 
     /** مجموعة أم درس فردي — والفردي سعته واحد لا أكثر. */
@@ -156,6 +162,7 @@ final class Group extends Model
         return match ($this->venue) {
             'online' => __('أونلاين'),
             'home' => filled($this->location) ? (string) $this->location : __('في البيت'),
+            'center' => filled($this->location) ? (string) $this->location : __('في سنتر'),
             default => (string) ($this->branch?->name ?? __('في الفرع')),
         };
     }

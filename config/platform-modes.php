@@ -54,13 +54,38 @@ return [
             ],
         ],
 
+        /*
+         | مدرّس يُدرّس في أكثر من مكان: أونلاين، وفي بيته، وفي سناتر
+         | لا يملكها. له مجموعات وحصص وحضور وأقساط وأولياء أمور —
+         | وليس له فروع ولا قاعات ولا «مدرّسو سنتر»: تلك أدوات صاحب
+         | السنتر، وعرضها على مدرّس تحويلٌ للوحته إلى لوحة غيره.
+         */
+        'teacher' => [
+            'name' => ['ar' => 'مدرّس مستقل', 'en' => 'Independent teacher'],
+            'summary' => ['ar' => 'مجموعاتك وحصصك أينما تُدرّس: أونلاين أو في البيت أو في سنتر.', 'en' => 'Your groups and sessions wherever you teach: online, at home, or at a center.'],
+            'icon' => '👩‍🏫',
+            'theme' => 'solo-academy',
+            'modules' => [...$core, ...$lms, ...$shop,
+                'center', 'attendance', 'center-finance', 'parent-portal', 'content',
+            ],
+            'settings' => [
+                'lms.instructor_signup' => false,
+                'center.enabled' => true,
+                'center.attendance_methods' => ['manual', 'code'],
+                'center.notify_guardian_on_absence' => true,
+                'center.week_start' => 6,
+                'commerce.guest_checkout' => true,
+            ],
+        ],
+
         'center' => [
             'name' => ['ar' => 'سنتر تعليمي', 'en' => 'Learning center'],
             'summary' => ['ar' => 'مجموعات وجداول وحضور وأقساط وأولياء أمور.', 'en' => 'Groups, schedules, attendance, fees, parents.'],
             'icon' => '🏫',
             'theme' => 'center',
             'modules' => [...$core, ...$lms, ...$shop,
-                'center', 'attendance', 'center-finance', 'parent-portal',
+                'center', 'center-premises', 'center-staff',
+                'attendance', 'center-finance', 'parent-portal',
                 'inventory', 'instructors', 'content',
             ],
             'settings' => [
@@ -79,7 +104,8 @@ return [
             'theme' => 'hybrid',
             'modules' => [...$core, ...$lms, ...$shop, ...$web,
                 'instructors', 'commissions', 'payouts', 'reviews', 'community',
-                'center', 'attendance', 'center-finance', 'parent-portal', 'inventory',
+                'center', 'center-premises', 'center-staff',
+                'attendance', 'center-finance', 'parent-portal', 'inventory',
                 'services', 'bookings', 'subscriptions', 'affiliates', 'funnels',
             ],
             'settings' => [

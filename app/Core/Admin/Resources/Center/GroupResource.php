@@ -7,6 +7,7 @@ namespace App\Core\Admin\Resources\Center;
 use App\Core\Access\Ability;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\TextColumn;
+use App\Core\Admin\Fields\DateField;
 use App\Core\Admin\Fields\NumberField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
@@ -113,8 +114,10 @@ final class GroupResource extends Resource
             SelectFilter::make('kind')->label(__('الشكل'))
                 ->options(array_map(fn (string $l): string => __($l), Group::KINDS)),
 
-            SelectFilter::make('branch_id')->label(__('الفرع'))
-                ->options(Branch::get()->mapWithKeys(fn (Branch $b): array => [$b->getKey() => (string) $b->name])->all()),
+            ...(module_enabled('center-premises') ? [
+                SelectFilter::make('branch_id')->label(__('الفرع'))
+                    ->options(Branch::get()->mapWithKeys(fn (Branch $b): array => [$b->getKey() => (string) $b->name])->all()),
+            ] : []),
         ];
     }
 
@@ -130,18 +133,23 @@ final class GroupResource extends Resource
                     ->hint(__('الفردي سعته طالب واحد.')),
                 SelectField::make('venue')->label(__('المكان'))->half()
                     ->options(array_map(fn (string $l): string => __($l), Group::VENUES))
-                    ->default('branch'),
-                SelectField::make('branch_id')->label(__('الفرع'))->half()
-                    ->options(Branch::get()->mapWithKeys(fn (Branch $b): array => [$b->getKey() => (string) $b->name])->all())
-                    ->hint(__('للمجموعات في الفروع وحدها — اتركه فارغاً للأونلاين وللبيت.')),
+                    ->default(module_enabled('center-premises') ? 'branch' : 'online'),
+                TextField::make('location')->label(__('اسم المكان أو عنوانه'))->half()
+                    ->hint(__('للسنتر اكتب اسمه، وللبيت عنوانه — هذا ما يقرأه ولي الأمر.')),
                 TextField::make('meeting_url')->label(__('رابط الحصة'))->url()->half()
-                    ->hint(__('للأونلاين — يصل الطالب برابطه لا باسم الفرع.')),
-                TextField::make('location')->label(__('العنوان'))->half()
-                    ->hint(__('للدرس في البيت — يُكتب لولي الأمر.')),
+                    ->hint(__('للأونلاين — يصل الطالب برابطه.')),
+                // الفرع لمن يملك فروعاً: المدرّس المستقل لا يرى الحقل أصلاً
+                ...(module_enabled('center-premises') ? [
+                    SelectField::make('branch_id')->label(__('الفرع'))->half()
+                        ->options(Branch::get()->mapWithKeys(fn (Branch $b): array => [$b->getKey() => (string) $b->name])->all())
+                        ->hint(__('لمجموعات فروعك أنت وحدها — اتركه فارغاً لما سواها.')),
+                ] : []),
                 SelectField::make('subject_id')->label(__('المادة'))->half()
                     ->options(Subject::get()->mapWithKeys(fn (Subject $s): array => [$s->getKey() => (string) $s->name])->all()),
+                // بترتيب المرحلة ثم الصف — لا بترتيب الإدخال، وإلا جاء «أول ابتدائي» آخر القائمة
                 SelectField::make('grade_id')->label(__('الصف'))->half()
                     ->options(Grade::with('stage')->get()
+                        ->sortBy(fn (Grade $g): array => [(int) ($g->stage?->position ?? 0), (int) $g->position])
                         ->mapWithKeys(fn (Grade $g): array => [$g->getKey() => trim(($g->stage?->name ?? '').' — '.$g->name, ' —')])->all()),
                 /*
                  | المدرّس يُعرَض بمادته لا مجرّداً.
@@ -150,10 +158,19 @@ final class GroupResource extends Resource
                  | صفّ الكيمياء إلى مدرّس اللغة العربية بضغطة سهو —
                  | ولا شيء في النظام يعترض.
                  */
-                SelectField::make('teacher_id')->label(__('المدرّس'))->half()
-                    ->options(self::teacherOptions()),
-                SelectField::make('term_id')->label(__('الترم'))->half()
-                    ->options(Term::get()->mapWithKeys(fn (Term $t): array => [$t->getKey() => (string) $t->name])->all()),
+                /*
+                 | المدرّس المستقل هو مدرّس كل مجموعاته: سؤاله «من المدرّس؟»
+                 | في كل مرّة عبث، فيُخفى الحقل ويُملأ باسمه في fillable().
+                 */
+                ...(module_enabled('center-staff') ? [
+                    SelectField::make('teacher_id')->label(__('المدرّس'))->half()
+                        ->options(self::teacherOptions()),
+                ] : []),
+                // الترم يُعرض حين يكون هناك ترمات أصلاً — قائمة فارغة سؤال بلا جواب
+                ...(Term::query()->exists() ? [
+                    SelectField::make('term_id')->label(__('الترم'))->half()
+                        ->options(Term::get()->mapWithKeys(fn (Term $t): array => [$t->getKey() => (string) $t->name])->all()),
+                ] : []),
             ]),
 
             Section::make(__('السعة والتسعير'))->fields([
@@ -171,10 +188,30 @@ final class GroupResource extends Resource
             Section::make(__('المدة والحالة'))->fields([
                 SelectField::make('status')->label(__('الحالة'))->half()
                     ->options(array_map(fn (string $l): string => __($l), Group::STATUSES))->default('open'),
-                NumberField::make('start_date')->label(__('تاريخ البدء'))->half()->replaceRules(['nullable', 'date']),
-                NumberField::make('end_date')->label(__('تاريخ الانتهاء'))->half()->replaceRules(['nullable', 'date']),
+                DateField::make('start_date')->label(__('تاريخ البدء'))->half(),
+                DateField::make('end_date')->label(__('تاريخ الانتهاء'))->half()->rules(['after_or_equal:start_date']),
             ]),
         ];
+    }
+
+    /**
+     * حين لا يُعرض حقل المدرّس، المجموعة لمن ينشئها.
+     *
+     * بغير هذا تُحفظ المجموعة بلا مدرّس، فلا يكتشف المحرّك تزامن
+     * حصّتين للمدرّسة نفسها، ولا يظهر اسمها في جدولها.
+     *
+     * @param  array<string, mixed>  $input
+     * @return array<string, mixed>
+     */
+    public function fillable(array $input, string $context): array
+    {
+        $data = parent::fillable($input, $context);
+
+        if ($context === 'create' && ! module_enabled('center-staff') && ! isset($data['teacher_id'])) {
+            $data['teacher_id'] = auth()->id();
+        }
+
+        return $data;
     }
 
     /**

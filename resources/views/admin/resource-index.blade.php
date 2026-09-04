@@ -86,6 +86,9 @@
                             @endif
                         </th>
                     @endforeach
+                    <th class="bg-surface-sunken font-semibold text-xs text-muted px-4 py-3 border-b border-line whitespace-nowrap text-end w-px">
+                        <span class="sr-only">{{ __('إجراءات') }}</span>
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -107,6 +110,26 @@
                                 @if($rowUrl)</a>@endif
                             </td>
                         @endforeach
+
+                        {{--
+                            إجراءات الصف في مكان واحد لكل قائمة: تعديل وحذف.
+                            كان الوصول إلى التعديل بالنقر على الخليّة الأولى وحدها، والحذف
+                            مدفوناً أسفل شاشة التعديل — فمن لا يعرف لا يجد.
+                        --}}
+                        <td class="px-2 py-2 border-b border-line align-top whitespace-nowrap text-end">
+                            <div class="inline-flex items-center gap-1">
+                                @if($resource->form() !== [])
+                                    <x-ui.button size="sm" variant="ghost" :href="url('/admin/'.$key.'/'.$record->getKey().'/edit')"
+                                                 :aria-label="__('تعديل')">{{ __('تعديل') }}</x-ui.button>
+                                @endif
+                                <form method="POST" action="{{ url('/admin/'.$key.'/'.$record->getKey()) }}"
+                                      onsubmit="return confirm(@js(__('حذف هذا السجلّ نهائياً؟')))">
+                                    @csrf @method('DELETE')
+                                    <x-ui.button type="submit" size="sm" variant="ghost" class="text-danger hover:bg-danger-subtle"
+                                                 :aria-label="__('حذف')">{{ __('حذف') }}</x-ui.button>
+                                </form>
+                            </div>
+                        </td>
                     </tr>
                 @endforeach
             </tbody>

@@ -10,7 +10,7 @@
         <div class="text-center mb-6">
             <a href="{{ url('/') }}" class="size-12 rounded-xl grid place-items-center text-primary-on font-bold text-xl mx-auto mb-3"
                style="background-color: var(--sem-primary-hover); background-image: linear-gradient(140deg, var(--color-primary), var(--sem-primary-hover));"
-               aria-label="{{ __('الرئيسية') }}">{{ mb_substr((string) (setting()->translated('general.site_name') ?: tenant('name') ?? 'أ'), 0, 1) }}</a>
+               aria-label="{{ __('الرئيسية') }}">{{ mb_substr(site_name(), 0, 1) }}</a>
             <h1 class="text-xl font-bold">{{ $title }}</h1>
             @if($subtitle)<p class="text-sm text-muted mt-1 leading-relaxed">{{ $subtitle }}</p>@endif
         </div>

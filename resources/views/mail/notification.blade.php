@@ -2,7 +2,7 @@
     $locale = $delivery->locale;
     $dir = in_array($locale, ['ar', 'fa', 'ur', 'he'], true) ? 'rtl' : 'ltr';
     $brand = setting('appearance.brand_color') ?: '#0f766e';
-    $siteName = setting()->translated('general.site_name') ?: (tenant('name') ?? config('app.name'));
+    $siteName = site_name();
 @endphp
 {{-- قالب البريد بجداول وأنماط داخلية: عملاء البريد لا يفهمون غيرهما،
      ولا شبكة CSS ولا ملف خارجي يصل إلى Outlook. --}}

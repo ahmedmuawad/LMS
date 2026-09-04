@@ -40,8 +40,13 @@ return [
         [
             'label' => 'التعليم',
             'items' => [
+                /*
+                 | الكورس هو المنهج المرتَّب الذي يشتريه الطالب؛ ومكتبة الدروس
+                 | هي المحتوى الخام (فيديو · نصّ · ملف) الذي يُركَّب منه
+                 | أكثر من كورس. التسمية تقول ذلك لا التخمين.
+                 */
                 ['key' => 'courses', 'label' => 'الكورسات', 'icon' => '▤', 'module' => 'lms'],
-                ['key' => 'lessons', 'label' => 'الدروس', 'icon' => '▶', 'module' => 'lms'],
+                ['key' => 'lessons', 'label' => 'مكتبة الدروس', 'icon' => '▶', 'module' => 'lms'],
                 ['key' => 'quizzes', 'label' => 'الاختبارات', 'icon' => '◫', 'module' => 'quizzes'],
                 ['key' => 'questions', 'label' => 'بنك الأسئلة', 'icon' => '❓', 'module' => 'quizzes'],
                 ['key' => 'assignments', 'label' => 'الواجبات', 'icon' => '✎', 'module' => 'assignments'],
@@ -49,26 +54,41 @@ return [
                 ['key' => 'certificates', 'label' => 'الشهادات', 'icon' => '◈', 'module' => 'certificates'],
                 ['key' => 'enrollments', 'label' => 'التسجيلات', 'icon' => '☑', 'module' => 'lms'],
                 ['key' => 'taxonomies', 'label' => 'التصنيفات', 'icon' => '◱', 'module' => 'lms'],
-                ['key' => 'students', 'label' => 'الطلاب', 'icon' => '☻', 'module' => 'lms', 'route' => 'admin.instructor.students', 'ability' => Ability::STUDENTS_VIEW],
+                /*
+                 | طلاب الكورسات المسجّلة. حين تكون إدارة الحصص مفعّلة يصير
+                 | «الطلاب» هم طلاب المجموعات، وهذه الشاشة فارغة بالبنية —
+                 | فتُخفى بدل أن تعرض «لا طلاب» لمدرسة فيها ١١٢ طالباً.
+                 */
+                ['key' => 'students', 'label' => 'الطلاب', 'icon' => '☻', 'module' => 'lms', 'unless_module' => 'center', 'route' => 'admin.instructor.students', 'ability' => Ability::STUDENTS_VIEW],
                 ['key' => 'discussions', 'label' => 'الأسئلة والردود', 'icon' => '❓', 'module' => 'community', 'route' => 'admin.instructor.discussions', 'ability' => Ability::DISCUSSIONS_MODERATE],
                 ['key' => 'announcements', 'label' => 'الإعلانات', 'icon' => '◈', 'module' => 'lms', 'route' => 'admin.instructor.announcements', 'ability' => Ability::ANNOUNCEMENTS_MANAGE],
             ],
         ],
 
         [
-            'label' => 'السنتر',
+            /*
+             | ترتيب اليوم لا ترتيب القاعدة: ما يفتحه المدرّس صباحاً
+             | (حصص اليوم والحضور) أولاً، ثم من يُدرّسهم، ثم ما يُحاسِب
+             | عليه. والفروع والقاعات ومدرّسو السنتر أدوات صاحب السنتر
+             | (`center-premises` · `center-staff`)، لا تظهر لمدرّس مستقل.
+             */
+            'label' => 'الحصص والمجموعات',
             'items' => [
-                ['key' => 'groups', 'label' => 'المجموعات', 'icon' => '▩', 'module' => 'center'],
-                ['key' => 'center-students', 'label' => 'طلاب السنتر', 'icon' => '☺', 'module' => 'center'],
                 ['key' => 'schedule', 'label' => 'جدول الحصص', 'icon' => '▦', 'module' => 'center', 'route' => 'admin.center.schedule'],
-                ['key' => 'rooms-occupancy', 'label' => 'إشغال القاعات', 'icon' => '◫', 'module' => 'center', 'route' => 'admin.center.rooms'],
-                ['key' => 'center-teachers', 'label' => 'مدرّسو السنتر', 'icon' => '☰', 'module' => 'center', 'route' => 'admin.center.teachers'],
                 ['key' => 'attendance', 'label' => 'الحضور', 'icon' => '✓', 'module' => 'attendance', 'route' => 'admin.center.attendance'],
+                ['key' => 'groups', 'label' => 'المجموعات', 'icon' => '▩', 'module' => 'center'],
+                ['key' => 'center-students', 'label' => 'الطلاب', 'icon' => '☺', 'module' => 'center'],
+                // ما تُبنى عليه المجموعة: لم يكن له شاشة، فكان يُزرع من الأوامر وحدها
+                ['key' => 'subjects', 'label' => 'المواد', 'icon' => '∑', 'module' => 'center'],
+                ['key' => 'grades', 'label' => 'الصفوف', 'icon' => '▤', 'module' => 'center'],
+                ['key' => 'stages', 'label' => 'المراحل', 'icon' => '▥', 'module' => 'center'],
                 ['key' => 'fees', 'label' => 'الأقساط والمتأخرات', 'icon' => '⛁', 'module' => 'center-finance', 'route' => 'admin.center.arrears'],
-                ['key' => 'cashboxes', 'label' => 'الخزنة', 'icon' => '⛃', 'module' => 'center-finance', 'route' => 'admin.center.cashboxes'],
-                ['key' => 'center-invoices', 'label' => 'فواتير السنتر', 'icon' => '◨', 'module' => 'center-finance'],
-                ['key' => 'branches', 'label' => 'الفروع', 'icon' => '⌂', 'module' => 'center'],
-                ['key' => 'rooms', 'label' => 'القاعات', 'icon' => '▢', 'module' => 'center'],
+                ['key' => 'center-invoices', 'label' => 'فواتير الطلاب', 'icon' => '◨', 'module' => 'center-finance'],
+                ['key' => 'cashboxes', 'label' => 'الخزنة', 'icon' => '⛃', 'module' => 'center-premises', 'route' => 'admin.center.cashboxes'],
+                ['key' => 'rooms-occupancy', 'label' => 'إشغال القاعات', 'icon' => '◫', 'module' => 'center-premises', 'route' => 'admin.center.rooms'],
+                ['key' => 'center-teachers', 'label' => 'مدرّسو السنتر', 'icon' => '☰', 'module' => 'center-staff', 'route' => 'admin.center.teachers'],
+                ['key' => 'branches', 'label' => 'الفروع', 'icon' => '⌂', 'module' => 'center-premises'],
+                ['key' => 'rooms', 'label' => 'القاعات', 'icon' => '▢', 'module' => 'center-premises'],
             ],
         ],
 

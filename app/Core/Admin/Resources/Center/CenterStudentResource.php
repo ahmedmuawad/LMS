@@ -52,6 +52,15 @@ final class CenterStudentResource extends Resource
         return url('/admin/center-students/'.$record->getKey());
     }
 
+    /**
+     * الإنشاء له شاشة خاصة (حساب + سجلّ + ولي أمر معاً)، لا نموذج
+     * المورد العام — فالزرّ يظهر ويقود إليها.
+     */
+    public function canCreate(): bool
+    {
+        return true;
+    }
+
     public function searchableColumns(): array
     {
         return ['code'];

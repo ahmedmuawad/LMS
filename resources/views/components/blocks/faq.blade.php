@@ -32,7 +32,7 @@
 @if($content['schema'] ?? true)
     @push('head')
     <script type="application/ld+json">{!! json_encode([
-        '@context' => 'https://schema.org',
+        '@'.'context' => 'https://schema.org',
         '@type' => 'FAQPage',
         'mainEntity' => $items->map(fn (array $i): array => [
             '@type' => 'Question',

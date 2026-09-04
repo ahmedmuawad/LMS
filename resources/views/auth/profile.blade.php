@@ -61,6 +61,54 @@
         </form>
     </section>
 
+    {{-- ---------- بريد الدخول ---------- --}}
+    <section class="surface-card p-5 mb-5">
+        <h2 class="font-bold mb-1">{{ __('بريد الدخول') }}</h2>
+        <p class="text-xs text-subtle mb-4 leading-relaxed">
+            {{-- نقول لماذا لا يُبدَّل فوراً: صمتٌ هنا يبدو عطلاً --}}
+            {{ __('به تدخل وإليه تصل رسائل الحساب. لا يتغيّر إلا بعد فتح رابط التأكيد من الصندوق الجديد — فيبقى القديم صالحاً حتى ذلك الحين.') }}
+        </p>
+
+        @if(filled($user->pending_email))
+            <x-ui.alert tone="info" :title="__('في انتظار التأكيد')" class="mb-4">
+                <p class="mb-3">
+                    {{ __('أرسلنا رابطاً إلى :email. افتحه من هناك لإتمام التغيير.', ['email' => $user->pending_email]) }}
+                </p>
+                <form method="POST" action="{{ url('/account/email') }}">
+                    @csrf @method('DELETE')
+                    <x-ui.button type="submit" size="sm" variant="secondary">{{ __('ألغِ الطلب') }}</x-ui.button>
+                </form>
+            </x-ui.alert>
+        @endif
+
+        <form method="POST" action="{{ url('/account/email') }}">
+            @csrf
+            @method('PUT')
+
+            <div class="grid gap-x-4 sm:grid-cols-2">
+                <x-ui.field :label="__('بريدك الحالي')" for="current_email">
+                    <x-ui.input id="current_email" dir="ltr" :value="$user->email" readonly
+                                class="font-mono bg-surface-sunken" />
+                </x-ui.field>
+
+                <x-ui.field :label="__('البريد الجديد')" for="new_email" :required="true"
+                            :error="$errors->first('email')">
+                    <x-ui.input id="new_email" name="email" type="email" dir="ltr" required
+                                :value="old('email')" :invalid="$errors->has('email')" />
+                </x-ui.field>
+
+                <x-ui.field :label="__('كلمة المرور الحالية')" for="email_current_password" :required="true"
+                            :hint="__('نتأكّد أنك أنت — لا جلسة مفتوحة على جهاز تركته.')"
+                            :error="$errors->first('current_password')">
+                    <x-ui.input id="email_current_password" name="current_password" type="password"
+                                autocomplete="current-password" required :invalid="$errors->has('current_password')" />
+                </x-ui.field>
+            </div>
+
+            <x-ui.button type="submit">{{ __('أرسل رابط التأكيد') }}</x-ui.button>
+        </form>
+    </section>
+
     {{-- ---------- الأمان ---------- --}}
     <section class="surface-card p-5 mb-5">
         <h2 class="font-bold mb-4">{{ __('كلمة المرور') }}</h2>

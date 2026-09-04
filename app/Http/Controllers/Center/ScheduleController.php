@@ -12,6 +12,7 @@ use App\Modules\Center\Models\Group;
 use App\Modules\Center\Models\Room;
 use App\Modules\Center\Models\Schedule;
 use App\Modules\Center\Models\Session;
+use App\Modules\Center\Models\Student;
 use App\Modules\Center\Models\Subject;
 use App\Modules\Center\Models\SubjectTeacher;
 use Illuminate\Http\JsonResponse;
@@ -123,8 +124,17 @@ final class ScheduleController
     {
         $group = Group::with(['subject', 'teacher', 'branch', 'grade'])->findOrFail($groupId);
 
+        $enrollments = $group->enrollments()->active()->with(['student.user', 'student.grade'])->get();
+
         return view('center.group-slots', [
             'group' => $group,
+            'enrollments' => $enrollments,
+            // مرشّحو التسجيل: طلاب الصف نفسه أولاً، ومن سواهم بعدهم — وليس من هو فيها
+            'candidates' => Student::active()->with(['user', 'grade'])
+                ->whereNotIn('id', $enrollments->pluck('student_id'))
+                ->get()
+                ->sortBy(fn (Student $s): array => [$s->grade_id === $group->grade_id ? 0 : 1, $s->name()])
+                ->values(),
             'slots' => $group->schedules()->with('room')->orderBy('weekday')->orderBy('starts_at')->get(),
             'rooms' => Room::with('branch')->where('is_active', true)
                 ->when($group->branch_id !== null, fn ($q) => $q->where('branch_id', $group->branch_id))

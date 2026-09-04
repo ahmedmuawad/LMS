@@ -10,7 +10,6 @@ export default defineConfig({
             refresh: true,
             fonts: [
                 bunny('Tajawal', { weights: [400, 500, 700, 800] }),
-                bunny('IBM Plex Sans Arabic', { weights: [400, 500, 600, 700] }),
                 bunny('IBM Plex Mono', { weights: [400, 500] }),
             ],
         }),

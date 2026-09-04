@@ -1,5 +1,5 @@
 @php
-    $siteName = setting()->translated('general.site_name') ?: (tenant('name') ?? config('app.name'));
+    $siteName = site_name();
 
     /*
      | الصفحات الإلزامية تُنشأ مسودّةً ليحرّرها المشترك، فلا يجوز

@@ -18,7 +18,7 @@ final class PwaController
 {
     public function manifest(): JsonResponse
     {
-        $name = (string) (setting()->translated('general.site_name') ?: tenant('name') ?? config('app.name'));
+        $name = site_name();
         $short = mb_substr($name, 0, 12);
         $brand = (string) (setting('appearance.brand_color') ?: '#0f766e');
 
@@ -86,7 +86,7 @@ final class PwaController
 
     public function icon(): Response
     {
-        $name = (string) (setting()->translated('general.site_name') ?: tenant('name') ?? config('app.name'));
+        $name = site_name();
 
         // الدرجة المضبوطة لا الخام: الحرف أبيض، ولون فاتح يجعله غير مقروء
         $brand = BrandPalette::fromHex((string) (setting('appearance.brand_color') ?: '#0f766e'))->fill;

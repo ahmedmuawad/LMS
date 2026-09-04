@@ -1,5 +1,5 @@
 @php
-    $siteName = setting()->translated('general.site_name') ?: (tenant('name') ?? config('app.name'));
+    $siteName = site_name();
     $me = auth()->user();
     $cart = app(App\Modules\Commerce\Actions\CartManager::class)->current(request(), create: false);
     $cartCount = $cart?->loadMissing('items')->count() ?? 0;

@@ -37,8 +37,10 @@
         <link rel="apple-touch-icon" href="{{ url('/icon.svg') }}">
         <meta name="theme-color" content="{{ setting('appearance.brand_color') ?: '#0f766e' }}">
         <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-title" content="{{ mb_substr((string) (setting()->translated('general.site_name') ?: tenant('name')), 0, 12) }}">
+        <meta name="apple-mobile-web-app-title" content="{{ mb_substr(site_name(), 0, 12) }}">
     @endif
+    {{-- الخطوط مستضافة ذاتياً (وثيقة 13.3): لا طلب لخادم خطوط خارجي --}}
+    @fonts
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     {{-- تخصيص المشترك: يعيد تعريف الطبقة الدلالية وحدها، وبدرجات مضبوطة التباين --}}
     @php $brand = app(App\Core\Theming\BrandCss::class)->render(); @endphp

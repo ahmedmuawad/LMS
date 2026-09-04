@@ -31,6 +31,7 @@ final class TenantResource extends Resource
 
     public const MODES = [
         'solo' => 'مدرّس فردي',
+        'teacher' => 'مدرّس مستقل',
         'marketplace' => 'متعدد المدرّسين',
         'center' => 'سنتر تعليمي',
         'hybrid' => 'شامل',

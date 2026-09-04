@@ -15,9 +15,9 @@
         <a href="{{ url('/admin/dashboard') }}" class="flex items-center gap-2.5 px-2 py-3 mb-1">
             <span class="size-9 rounded-md grid place-items-center text-primary-on font-bold shrink-0"
                   style="background-color: var(--sem-primary-hover); background-image: linear-gradient(140deg, var(--color-primary), var(--sem-primary-hover));"
-                  aria-hidden="true">{{ mb_substr((string) ($tenant?->name ?? 'أ'), 0, 1) }}</span>
+                  aria-hidden="true">{{ mb_substr(site_name(), 0, 1) }}</span>
             <span class="min-w-0">
-                <span class="block font-bold text-sm truncate">{{ $tenant?->name ?? config('app.name') }}</span>
+                <span class="block font-bold text-sm truncate">{{ site_name() }}</span>
                 <span class="block text-2xs text-subtle truncate">{{ __('لوحة التحكم') }}</span>
             </span>
         </a>
@@ -73,7 +73,14 @@
                     <p class="text-sm font-semibold truncate">{{ $me?->name }}</p>
                     <p class="text-2xs text-subtle font-mono truncate">{{ $me?->email }}</p>
                 </div>
-                <x-ui.menu-item icon="⚙" :href="url('/admin/settings')">{{ __('الإعدادات') }}</x-ui.menu-item>
+                {{--
+                    حسابي أولاً ثم إعدادات المنصّة: كانت القائمة تعرض
+                    الثانية وحدها باسم «الإعدادات»، فمن أراد تغيير اسمه
+                    أو كلمة مروره وجد إعدادات المنصّة ولم يجد نفسه.
+                --}}
+                <x-ui.menu-item icon="☺" :href="url('/account')">{{ __('حسابي') }}</x-ui.menu-item>
+                <x-ui.menu-item icon="⛨" :href="url('/account/two-factor')">{{ __('الأمان والدخول') }}</x-ui.menu-item>
+                <x-ui.menu-item icon="⚙" :href="url('/admin/settings')">{{ __('إعدادات المنصّة') }}</x-ui.menu-item>
                 <form method="POST" action="{{ url('/logout') }}">
                     @csrf
                     <x-ui.menu-item icon="↩" :danger="true" type="submit">{{ __('تسجيل الخروج') }}</x-ui.menu-item>
@@ -127,7 +134,7 @@
              x-transition:enter-end="translate-x-0"
              class="absolute inset-y-0 start-0 w-72 max-w-[85%] bg-surface border-e border-line overflow-y-auto p-3">
             <div class="flex items-center justify-between px-2 py-3 mb-1">
-                <span class="font-bold text-sm truncate">{{ $tenant?->name }}</span>
+                <span class="font-bold text-sm truncate">{{ site_name() }}</span>
                 <button type="button" @click="nav = false" class="size-8 grid place-items-center rounded-md text-muted hover:bg-surface-sunken"
                         aria-label="{{ __('إغلاق') }}">✕</button>
             </div>

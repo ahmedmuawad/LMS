@@ -36,6 +36,18 @@ final class ProvisionTenant
      */
     public function handle(array $input): Tenant
     {
+        /*
+         | التجهيز يُنشئ قاعدة ويُهاجرها: عشرات الجداول، وهو أطول من
+         | مهلة تنفيذ طلبٍ عادية. وانقطاعه في منتصفه يترك قاعدة نصف
+         | مبنيّة ومشتركاً عالقاً في «قيد التجهيز» ونطاقاً محجوزاً لا
+         | يُستعمل — وهو ما حدث فعلاً في أول تسجيلين حقيقيين.
+         |
+         | فنمنحه مهلته صراحةً، ونُنظّف خلفنا إن فشل رغم ذلك.
+         */
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(180);
+        }
+
         $slug = $this->uniqueSlug($input['slug'] ?? $input['name']);
         $plan = isset($input['plan_key']) ? Plan::find($input['plan_key']) : null;
 
@@ -106,12 +118,40 @@ final class ProvisionTenant
         } catch (Throwable $e) {
             Log::error('فشل تجهيز مشترك', ['tenant' => $tenant->id, 'error' => $e->getMessage()]);
 
-            $tenant->forceFill([
-                'status' => 'provisioning',
-                'provision_error' => Str::limit($e->getMessage(), 250),
-            ])->save();
+            /*
+             | التراجع الكامل لا التوقّف في المنتصف.
+             |
+             | مشترك عالق في «قيد التجهيز» يحجز نطاقه ولا يعمل: صاحبه
+             | لا يدخل، ولا يستطيع التسجيل بالاسم نفسه مرة أخرى. فنُزيل
+             | ما بنيناه ونترك الاسم متاحاً ليعيد المحاولة فوراً.
+             */
+            $this->rollBack($tenant);
 
             throw $e;
+        }
+    }
+
+    /**
+     * إزالة ما بُني قبل الفشل: القاعدة ثم النطاق ثم السجلّ.
+     *
+     * كلٌّ في محاولته: قاعدة تأبى الحذف يجب ألّا تمنع تحرير النطاق،
+     * وإلا بقي الاسم محجوزاً إلى الأبد بسبب ملف عالق.
+     */
+    private function rollBack(Tenant $tenant): void
+    {
+        try {
+            if ($tenant->database()->manager()->databaseExists((string) $tenant->database()->getName())) {
+                $tenant->database()->manager()->deleteDatabase($tenant);
+            }
+        } catch (Throwable $e) {
+            Log::warning('تعذّر حذف قاعدة مشترك فاشل', ['tenant' => $tenant->id, 'error' => $e->getMessage()]);
+        }
+
+        try {
+            Domain::where('tenant_id', $tenant->id)->delete();
+            $tenant->delete();
+        } catch (Throwable $e) {
+            Log::warning('تعذّر حذف سجلّ مشترك فاشل', ['tenant' => $tenant->id, 'error' => $e->getMessage()]);
         }
     }
 

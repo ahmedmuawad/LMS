@@ -11,8 +11,16 @@
     تتبع آخر حقل لمسه المدرّس، فتعمل مع نصّ السؤال وخياراته وخطوات
     حلّه بالتساوي — وشاشةٌ فيها ثماني لوحات لا تُستعمل.
 --}}
-<div x-data="mathEditor('{{ $first }}')" x-cloak
-     {{ $attributes->merge(['class' => 'rounded-lg border border-line bg-surface-sunken overflow-hidden mb-4']) }}>
+{{--
+    لا حاجز يحفظ مكانها حين ترسو: الحشو أسفل الصفحة (`body.math-docked`)
+    هو ما يفسح لها، وحاجزٌ فوقه يترك فجوة بيضاء في وسط النموذج.
+--}}
+<div x-data="mathEditor('{{ $first }}')" x-cloak data-math-toolbar
+     {{ $attributes->merge(['class' => 'mb-4']) }}>
+<div class="rounded-lg border border-line bg-surface-sunken overflow-hidden transition-shadow"
+     x-bind:class="docked
+        ? 'fixed inset-x-0 bottom-0 z-30 rounded-b-none shadow-[0_-8px_24px_rgb(0_0_0/0.25)] max-h-[60vh] overflow-y-auto'
+        : ''">
 
     <button type="button" @click="open = ! open"
             class="w-full flex items-center justify-between gap-3 px-4 min-h-12 text-start hover:bg-surface transition-colors"
@@ -24,17 +32,14 @@
             <span class="text-2xs text-subtle truncate hidden sm:inline" x-show="fieldLabel"
                   x-text="'← ' + fieldLabel"></span>
         </span>
-        <span class="text-muted shrink-0" aria-hidden="true" x-text="open ? '▴' : '▾'"></span>
+        <span class="flex items-center gap-2 shrink-0">
+            <span class="text-2xs text-subtle hidden sm:inline" x-show="docked">{{ __('مرساة أثناء الكتابة') }}</span>
+            <span class="text-muted" aria-hidden="true" x-text="open ? '▾' : '▴'"></span>
+        </span>
     </button>
 
     <div id="math-palette" x-show="open" x-collapse>
         <div class="border-t border-line p-3 grid gap-3">
-
-            {{-- المعاينة أولاً: يرى المدرّس ما سيراه الطالب وهو يكتب --}}
-            <div class="rounded-md border border-line bg-surface px-3 py-2.5 min-h-14 flex items-center">
-                <div x-ref="preview" class="text-base min-w-0 overflow-x-auto"></div>
-                <span class="text-xs text-subtle" x-show="! preview">{{ __('اكتب أو اضغط رمزاً — تظهر المعاينة هنا.') }}</span>
-            </div>
 
             {{-- تبويبات المجموعات: شريط يُمرَّر أفقياً لا يُكسر السطر --}}
             <div class="overflow-x-auto -mx-1 px-1">
@@ -88,17 +93,21 @@
 
             <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
                 <p class="text-2xs text-subtle">
-                    {{ __('المعادلة بين علامتَي $ — تُضافان تلقائياً عند إدراج رمز في نصّ عادي.') }}
+                    {{ __('اكتب النصّ كالمعتاد، واضغط رمزاً لتبدأ معادلة عند المؤشّر. المعادلة تُرسم في مكانها — اضغطها لتعديلها.') }}
+                    <span class="inline-flex items-center gap-1 ms-1">
+                        <span data-math aria-hidden="true">$\square$</span>
+                        {{ __('= مكان فارغ تكتب فيه.') }}
+                    </span>
                 </p>
                 {{-- التنقّل بين الفراغات: الكسر خانتان والمصفوفة أربع --}}
-                <button type="button" @click="nextHole()" x-show="holes > 0"
+                <button type="button" @click="nextHole()"
                         class="inline-flex items-center gap-1.5 min-h-11 px-3 rounded-md text-xs font-medium
                                text-primary hover:bg-primary-subtle transition-colors">
                     <span data-math aria-hidden="true">$\square$</span>
                     {{ __('الفراغ التالي') }}
-                    <span class="font-mono tabular" x-text="'(' + holes + ')'"></span>
                 </button>
             </div>
         </div>
     </div>
+</div>
 </div>

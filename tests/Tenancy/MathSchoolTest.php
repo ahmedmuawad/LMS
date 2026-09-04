@@ -6,6 +6,7 @@ use App\Core\Admin\Fields\ChoicesField;
 use App\Core\Admin\Fields\TranslatableField;
 use App\Core\Admin\Resources\Lms\QuestionResource;
 use App\Core\Tenancy\Models\Tenant;
+use App\Modules\Center\Models\Branch;
 use App\Modules\Center\Models\Grade;
 use App\Modules\Center\Models\Group;
 use App\Modules\Lms\Actions\EnrollStudent;
@@ -210,7 +211,7 @@ it('لا تحمل لقطة المحاولة الإجابة الصحيحة', func
 // ------------------------------------------------------------------
 
 it('يقبل النموذج مجموعة أونلاين بلا فرع', function (): void {
-    $tenant = provision(['platform_mode' => 'hybrid', 'plan_key' => 'professional']);
+    $tenant = provision(['platform_mode' => 'teacher', 'plan_key' => 'professional']);
 
     $tenant->run(function (): void {
         $group = Group::create([
@@ -230,7 +231,7 @@ it('يقبل النموذج مجموعة أونلاين بلا فرع', function
 });
 
 it('يذكر الدرسُ في البيت عنوانَه لا كلمة «البيت» وحدها', function (): void {
-    $tenant = provision(['platform_mode' => 'hybrid', 'plan_key' => 'professional']);
+    $tenant = provision(['platform_mode' => 'teacher', 'plan_key' => 'professional']);
 
     $tenant->run(function (): void {
         $group = Group::create([
@@ -264,13 +265,21 @@ it('يزرع مثال مدرسة الرياضيات بالأعداد المطل�
             ->and($count('online', 'group'))->toBe(5)
             ->and($count('home', 'private'))->toBe(9);
 
-        $byBranch = Group::whereNotNull('branch_id')
-            ->join('center_branches', 'center_branches.id', '=', 'center_groups.branch_id')
-            ->selectRaw('center_branches.code, count(*) as total')
-            ->groupBy('center_branches.code')->pluck('total', 'code');
+        /*
+         | السنتران ليسا فرعين: المدرّسة تُدرّس فيهما ولا تملكهما.
+         | فلا صفّ في center_branches، والمكان اسم على المجموعة.
+         */
+        $byCenter = Group::where('venue', 'center')
+            ->selectRaw('location, count(*) as total')
+            ->groupBy('location')->pluck('total', 'location');
 
-        expect((int) $byBranch['FUT'])->toBe(3)
-            ->and((int) $byBranch['CRE'])->toBe(4);
+        expect((int) $byCenter['سنتر فيوتشر'])->toBe(3)
+            ->and((int) $byCenter['سنتر جيل مبدع'])->toBe(4)
+            ->and(Group::whereNotNull('branch_id')->count())->toBe(0)
+            ->and(Branch::count())->toBe(0);
+
+        // لكل مجموعة حصص مولَّدة — لا مجموعة بلا حصة يُؤخذ فيها حضور
+        expect(Group::doesntHave('sessions')->count())->toBe(0);
 
         // بنك الأسئلة يغطّي الخلطة التي يطلبها الاختبار
         expect(Quiz::first()->poolShortfall())->toBe([]);

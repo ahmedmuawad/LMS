@@ -116,7 +116,7 @@
         <section id="type" class="mb-16 scroll-mt-6">
             <div class="flex items-baseline gap-3 pb-3 mb-3 border-b border-line">
                 <h2 class="text-xl">{{ __('الطباعة') }}</h2>
-                <span class="text-2xs text-subtle font-mono">Tajawal + IBM Plex Sans Arabic</span>
+                <span class="text-2xs text-subtle font-mono">Tajawal</span>
             </div>
             <p class="text-muted text-sm mb-6 max-w-[70ch]">
                 {{ __('خطّان عربيان بدورين مختلفين: تجوّل للعناوين لأنه هندسي وواثق، وبلكس العربي للنصوص لأنه الأوضح في الأحجام الصغيرة. الأرقام بخط أحادي المسافة لتصطف في الجداول.') }}

@@ -24,7 +24,7 @@ const INLINE = '$';
 const BLOCK = '$$';
 
 /** يقسم النصّ إلى قطع: نصّ عادي ومعادلات. */
-function split(text) {
+export function split(text) {
     const parts = [];
     let buffer = '';
     let i = 0;
@@ -77,6 +77,35 @@ function escapeHtml(value) {
     return div.innerHTML;
 }
 
+/*
+ | الفراغ يُرسَم مربّعاً متقطّعاً لا مربّعاً صامتاً.
+ |
+ | «ما هذه المربّعات؟» سؤالٌ يطرحه كل من أدرج كسراً لأول مرة: المربّع
+ | الصلب يبدو رمزاً رياضياً، لا مكاناً ينتظر رقماً. المتقطّع الملوّن
+ | يقول ما هو بلا شرح.
+ |
+ | `trust` دالّة لا `true`: نأذن لأمر واحد بصنف واحد من عندنا، ويبقى
+ | ما يكتبه المستخدم بلا أي إذن.
+ */
+const HOLE_MACRO = { '\\square': '\\htmlClass{math-hole}{\\phantom{x}}' };
+const trustHole = (context) => context.command === '\\htmlClass' && context.class === 'math-hole';
+
+/** يرسم صياغة TeX واحدة — للمعادلة المفردة داخل رقاقة المحرّر. */
+export function renderTex(tex, block = false) {
+    try {
+        return katex.renderToString(String(tex ?? ''), {
+            displayMode: block,
+            throwOnError: false,
+            strict: false,
+            maxExpand: 400,
+            macros: HOLE_MACRO,
+            trust: trustHole,
+        });
+    } catch (e) {
+        return escapeHtml(tex);
+    }
+}
+
 /** يحوّل نصّاً فيه TeX إلى HTML آمن. */
 export function renderMath(text) {
     return split(String(text ?? ''))
@@ -92,7 +121,8 @@ export function renderMath(text) {
                     strict: false,
                     // الماكرو الذي يُعرّف نفسه بنفسه يُعلّق المتصفّح
                     maxExpand: 400,
-                    trust: false,
+                    macros: HOLE_MACRO,
+                    trust: trustHole,
                 });
             } catch (e) {
                 return escapeHtml(part.value);

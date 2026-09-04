@@ -45,7 +45,7 @@ final class MailChannel implements Channel
                 ->subject($delivery->subject)
                 ->from(
                     (string) setting('notifications.from_email'),
-                    (string) (setting()->translated('notifications.from_name') ?: setting('general.site_name')),
+                    (string) (setting()->translated('notifications.from_name') ?: site_name()),
                 )
                 ->html(view('mail.notification', ['delivery' => $delivery])->render())
                 ->text($delivery->body);

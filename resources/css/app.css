@@ -35,6 +35,14 @@
   --color-line:           var(--sem-border);
   --color-line-strong:    var(--sem-border-strong);
 
+  /* اللوح الكاشف — دور مستقل يبقى داكناً في الوضعين */
+  --color-spot:            var(--sem-spot);
+  --color-spot-raised:     var(--sem-spot-raised);
+  --color-spot-line:       var(--sem-spot-line);
+  --color-on-spot:         var(--sem-on-spot);
+  --color-on-spot-muted:   var(--sem-on-spot-muted);
+  --color-on-spot-accent:  var(--sem-on-spot-accent);
+
   /* الأدوار */
   --color-primary:        var(--sem-primary);
   --color-primary-hover:  var(--sem-primary-hover);
@@ -71,9 +79,16 @@
   --color-due:       var(--sem-due);
   --color-overdue:   var(--sem-overdue);
 
-  /* الخطوط */
+  /*
+   | الخطوط — «تجوّال» وحده لكل النظام.
+   |
+   | خطّان عربيّان في صفحة واحدة يُنتجان اختلافاً في وزن الحرف وارتفاع
+   | سطره بين عنوانٍ وجدول، فتبدو الشاشة مجموعةَ قصاصات لا واجهةً
+   | واحدة. والأرقام تبقى على خطّ أحادي المسافة لأن الجداول تُقرأ
+   | عمودياً: رقمٌ تحت رقم بعرض واحد.
+   */
   --font-display: 'Tajawal', 'Segoe UI', system-ui, sans-serif;
-  --font-sans:    'IBM Plex Sans Arabic', 'Tajawal', system-ui, sans-serif;
+  --font-sans:    'Tajawal', 'Segoe UI', system-ui, sans-serif;
   --font-mono:    'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
 
   /* السلّم الطباعي (مقاس/ارتفاع سطر) */
@@ -183,4 +198,54 @@
   display: inline-block;
   padding-block: 0.5rem;
   margin-block: -0.5rem;
+}
+
+/*
+ | توسيط عمود المحتوى في لوحة التحكم.
+ |
+ | `<main>` ممتدّ، وكل شاشة تحصر محتواها بعرض أقصى للقراءة. وبلا
+ | توسيط يلتصق ذلك العمود بحافة البداية — يمين الشاشة في العربية —
+ | فتبقى مساحة فارغة واسعة على اليسار تبدو خللاً لا اختياراً.
+ |
+ | قاعدة واحدة هنا تكفي كل الشاشات، والقائمة عليها لاحقاً ترثها.
+ */
+main > [class*="max-w-"] {
+  margin-inline: auto;
+}
+
+/*
+ | رفع خفيف عند المرور: يوحي بأن البطاقة قابلة للتفاعل بلا زخرفة.
+ | محكوم بـ prefers-reduced-motion من القاعدة العامة في الأساس.
+ */
+@utility lift {
+  transition: transform var(--duration-base, 200ms) var(--ease-out-soft),
+              box-shadow var(--duration-base, 200ms) var(--ease-out-soft),
+              border-color var(--duration-base, 200ms) var(--ease-out-soft);
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-line-strong);
+  }
+}
+
+/*
+ | شريط منساب: أسماء المنافسين تمرّ بلا توقّف. الحركة زخرفية بحتة،
+ | فتتوقّف كاملةً عند تفضيل تقليل الحركة ويبقى المحتوى مقروءاً.
+ */
+@utility marquee-track {
+  display: flex;
+  inline-size: max-content;
+  animation: marquee-slide 46s linear infinite;
+}
+
+@keyframes marquee-slide {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+[dir="rtl"] .marquee-track { animation-direction: reverse; }
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track { animation: none; }
 }

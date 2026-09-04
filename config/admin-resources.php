@@ -4,8 +4,11 @@ declare(strict_types=1);
 use App\Core\Admin\Resources\Center\BranchResource;
 use App\Core\Admin\Resources\Center\CenterInvoiceResource;
 use App\Core\Admin\Resources\Center\CenterStudentResource;
+use App\Core\Admin\Resources\Center\GradeResource;
 use App\Core\Admin\Resources\Center\GroupResource;
 use App\Core\Admin\Resources\Center\RoomResource;
+use App\Core\Admin\Resources\Center\StageResource;
+use App\Core\Admin\Resources\Center\SubjectResource;
 use App\Core\Admin\Resources\Central\InvoiceResource;
 use App\Core\Admin\Resources\Central\SubscriptionResource;
 use App\Core\Admin\Resources\Central\TenantResource;
@@ -79,6 +82,9 @@ return [
         // السنتر
         'groups' => GroupResource::class,
         'center-students' => CenterStudentResource::class,
+        'stages' => StageResource::class,
+        'grades' => GradeResource::class,
+        'subjects' => SubjectResource::class,
         'branches' => BranchResource::class,
         'rooms' => RoomResource::class,
         'center-invoices' => CenterInvoiceResource::class,

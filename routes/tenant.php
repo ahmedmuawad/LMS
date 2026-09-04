@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Center\AttendanceController;
 use App\Http\Controllers\Center\FinanceController;
+use App\Http\Controllers\Center\GroupEnrolmentController;
 use App\Http\Controllers\Center\GuardianPortalController;
 use App\Http\Controllers\Center\ScheduleController;
 use App\Http\Controllers\Center\StudentFileController;
@@ -196,6 +197,15 @@ $tenantRoutes = function (): void {
         Route::get('/account', [ProfileController::class, 'show'])->name('account');
         Route::put('/account', [ProfileController::class, 'update'])->name('account.update');
         Route::put('/account/password', [ProfileController::class, 'updatePassword'])->name('account.password');
+
+        /*
+         | تغيير بريد الدخول — الرابط يُفتح من الصندوق الجديد، فيُبدَّل.
+         | محدود المعدّل: كل طلب يُرسل بريداً إلى عنوان يكتبه المستخدم.
+         */
+        Route::put('/account/email', [ProfileController::class, 'requestEmailChange'])
+            ->middleware('throttle:5,10')->name('account.email');
+        Route::delete('/account/email', [ProfileController::class, 'cancelEmailChange'])->name('account.email.cancel');
+        Route::get('/account/email/{token}', [ProfileController::class, 'confirmEmailChange'])->name('account.email.confirm');
         Route::delete('/account', [ProfileController::class, 'destroy'])->name('account.destroy');
 
         Route::get('/account/two-factor', [TwoFactorController::class, 'setup'])->name('account.two-factor');
@@ -245,6 +255,11 @@ $tenantRoutes = function (): void {
             Route::get('/cashboxes', [FinanceController::class, 'cashboxes'])->name('cashboxes');
             Route::post('/cashboxes/{cashbox}/close', [FinanceController::class, 'close'])->name('cashboxes.close');
 
+            // الإنشاء قبل {id}، وإلا قُرئت «create» معرّفاً
+            Route::get('/center-students/create', [StudentFileController::class, 'create'])->name('student.create');
+            Route::post('/center-students', [StudentFileController::class, 'store'])->name('student.store');
+            Route::post('/groups/{group}/enrol', [GroupEnrolmentController::class, 'store'])->name('enrol');
+            Route::delete('/groups/{group}/enrol/{enrollment}', [GroupEnrolmentController::class, 'destroy'])->name('enrol.drop');
             Route::get('/center-students/{id}', [StudentFileController::class, 'show'])->name('student');
             Route::get('/center-students/{id}/report', [StudentFileController::class, 'monthly'])->name('student.report');
         });
