@@ -107,7 +107,14 @@ return new class extends Migration
             $table->timestamp('graded_at')->nullable();
             $table->timestamps();
 
-            $table->unique(['enrollment_id', 'assignment_id', 'attempt_no']);
+            /*
+             | الاسم صريح لا مولَّد: اسم MySQL للمعرّف يقف عند ٦٤ محرفاً،
+             | والمولَّد هنا `assignment_submissions_enrollment_id_
+             | assignment_id_attempt_no_unique` سبعة وستون — فيسقط
+             | تجهيز كل مشترك على MySQL. وSQLite لا تحدّ الاسم، فلم
+             | يظهر العطل محلياً ولا في الاختبارات.
+             */
+            $table->unique(['enrollment_id', 'assignment_id', 'attempt_no'], 'submissions_attempt_unique');
         });
 
         Schema::create('certificate_templates', function (Blueprint $table): void {
