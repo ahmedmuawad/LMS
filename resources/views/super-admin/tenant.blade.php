@@ -154,13 +154,13 @@
                         <tbody>
                             @foreach($people['staff'] as $person)
                                 <tr class="hover:bg-surface-sunken transition-colors">
-                                    <td class="px-4 py-3 border-b border-line text-sm font-medium">{{ $person->name }}</td>
-                                    <td class="px-4 py-3 border-b border-line font-mono text-xs">{{ $person->email }}</td>
+                                    <td class="px-4 py-3 border-b border-line text-sm font-medium">{{ $person['name'] }}</td>
+                                    <td class="px-4 py-3 border-b border-line font-mono text-xs">{{ $person['email'] }}</td>
                                     <td class="px-4 py-3 border-b border-line">
-                                        <x-ui.badge :tone="$person->role === 'owner' ? 'primary' : 'neutral'">{{ __($roles[$person->role] ?? $person->role) }}</x-ui.badge>
+                                        <x-ui.badge :tone="$person['role'] === 'owner' ? 'primary' : 'neutral'">{{ __($roles[$person['role']] ?? $person['role']) }}</x-ui.badge>
                                     </td>
                                     <td class="px-4 py-3 border-b border-line text-xs text-subtle whitespace-nowrap">
-                                        {{ $person->last_seen_at?->diffForHumans() ?? __('لم يدخل بعد') }}
+                                        {{ $person['last_seen'] ?? __('لم يدخل بعد') }}
                                     </td>
                                 </tr>
                             @endforeach

@@ -34,6 +34,26 @@ it('opens a tenant file with its plan, people and health', function () {
         ->assertSee('owner@example.test');
 });
 
+/*
+ | المشترك المُجهَّز حديثاً لا `last_seen_at` له، والقيمة الفارغة تتخطّى
+ | تحويل التاريخ — فكان الاختبار السابق يمرّ بينما الصفحة تسقط على كل
+ | مشترك حقيقي. النموذج الذي يغادر سياق المشترك يحمل اسم اتصاله معه،
+ | وأوّل حقل تاريخ يُقرأ بعد انتهاء السياق يسأل اتصالاً مُلغى عن صيغة
+ | تاريخه. الشرط هنا: مستخدم دخل فعلاً.
+ */
+it('opens a tenant file whose people already signed in', function () {
+    $tenant = provision();
+
+    $tenant->run(function (): void {
+        DB::table('users')->where('role', 'owner')->update(['last_seen_at' => now()->subMinutes(5)]);
+    });
+
+    $this->get('/admin/tenants/'.$tenant->id)
+        ->assertOk()
+        ->assertSee('owner@example.test')
+        ->assertDontSee('لم يدخل بعد');
+});
+
 it('shows what the plan grants next to what is an exception', function () {
     $tenant = provision();
 

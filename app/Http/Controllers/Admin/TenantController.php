@@ -164,7 +164,13 @@ final class TenantController
     /**
      * من في منصّته — نقرأ من قاعدته هو، ولا نحتفظ بنسخة عندنا.
      *
-     * @return array{staff:Collection, students:int, total:int}|null
+     * نُخرج قيماً جاهزة لا نماذج: النموذج الذي يغادر سياق المشترك يحمل
+     * اسم اتصاله `tenant` معه، وذلك الاتصال يُلغى بانتهاء السياق. فأوّل
+     * حقل تاريخ يُقرأ في العرض يسأل الاتصال عن صيغة تاريخه فيسقط بـ
+     * «Database connection [tenant] not configured» — والحقول النصّية
+     * تمرّ سالمة، فيبدو العطل عشوائياً وهو حتميّ.
+     *
+     * @return array{staff:Collection<int, array{name:string, email:string, role:string, last_seen:?string}>, students:int, total:int}|null
      */
     private function people(Tenant $tenant): ?array
     {
@@ -172,8 +178,19 @@ final class TenantController
             return $tenant->run(function (): array {
                 $byRole = User::query()->selectRaw('role, count(*) as total')->groupBy('role')->pluck('total', 'role');
 
+                $staff = User::whereIn('role', User::panelRoles())
+                    ->orderByRaw("role = 'owner' desc")
+                    ->limit(10)
+                    ->get()
+                    ->map(fn (User $user): array => [
+                        'name' => (string) $user->name,
+                        'email' => (string) $user->email,
+                        'role' => (string) $user->role,
+                        'last_seen' => $user->last_seen_at?->diffForHumans(),
+                    ]);
+
                 return [
-                    'staff' => User::whereIn('role', User::panelRoles())->orderByRaw("role = 'owner' desc")->limit(10)->get(),
+                    'staff' => $staff,
                     'students' => (int) ($byRole['student'] ?? 0),
                     'total' => (int) $byRole->sum(),
                 ];

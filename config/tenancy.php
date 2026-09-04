@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Tenancy\Bootstrappers\TenantMediaUrlBootstrapper;
 use App\Core\Tenancy\Models\Domain;
 use App\Core\Tenancy\Models\Tenant;
 use Stancl\Tenancy\Bootstrappers\CacheTenancyBootstrapper;
@@ -47,6 +48,8 @@ return [
         DatabaseTenancyBootstrapper::class,
         CacheTenancyBootstrapper::class,
         FilesystemTenancyBootstrapper::class,
+        // بعد بوتستراب الملفات: ذاك يضبط الجذر، وهذا يضبط الرابط
+        TenantMediaUrlBootstrapper::class,
         QueueTenancyBootstrapper::class,
         // Stancl\Tenancy\Bootstrappers\RedisTenancyBootstrapper::class, // Note: phpredis is needed
     ],
