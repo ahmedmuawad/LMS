@@ -43,6 +43,7 @@ use App\Http\Controllers\Lms\GradingController;
 use App\Http\Controllers\Lms\LearnController;
 use App\Http\Controllers\Lms\MyCoursesController;
 use App\Http\Controllers\Lms\QuizController;
+use App\Http\Controllers\Lms\StudentAreaController;
 use App\Http\Controllers\Lms\StudentDashboardController;
 use App\Http\Controllers\Notifications\InboxController;
 use App\Http\Controllers\Notifications\NotificationAdminController;
@@ -132,6 +133,26 @@ $tenantRoutes = function (): void {
 
         // حصص الطالب ومجموعاته ورابط دخولها — كان الرابط يُحفظ ولا يصل صاحبه
         Route::get('/my-classes', MyClassesController::class)->name('my-classes');
+
+        /*
+         | بقية لوحة الطالب.
+         |
+         | كانت قائمته تعرض هذه الروابط الستة قبل بناء شاشاتها،
+         | فيقع على ٤٠٤ من يضغطها. لا يُعرض في قائمة رابطٌ لا تفتحه
+         | شاشة — وهذه القاعدة تُغلق هنا.
+         */
+        Route::get('/my-certificates', [StudentAreaController::class, 'certificates'])->name('my-certificates');
+        Route::get('/my-badges', [StudentAreaController::class, 'badges'])->name('my-badges');
+        Route::get('/my-orders', [StudentAreaController::class, 'orders'])->name('my-orders');
+        Route::get('/my-services', [StudentAreaController::class, 'services'])->name('my-services');
+
+        Route::get('/my-notes', [StudentAreaController::class, 'notes'])->name('notes');
+        Route::post('/my-notes', [StudentAreaController::class, 'storeNote'])->name('notes.store');
+        Route::put('/my-notes/{id}', [StudentAreaController::class, 'updateNote'])->name('notes.update');
+        Route::delete('/my-notes/{id}', [StudentAreaController::class, 'destroyNote'])->name('notes.destroy');
+
+        Route::get('/wishlist', [StudentAreaController::class, 'wishlist'])->name('wishlist');
+        Route::post('/wishlist', [StudentAreaController::class, 'toggleWishlist'])->name('wishlist.toggle');
 
         // ---------- المجتمع والتحفيز ----------
         Route::post('/courses/{slug}/discussions', [DiscussionController::class, 'store'])->name('discussions.store');

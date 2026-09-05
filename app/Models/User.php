@@ -8,10 +8,13 @@ use App\Core\Access\Roles;
 use App\Core\Auth\TwoFactor;
 use App\Modules\Gamification\Models\Badge;
 use App\Modules\Gamification\Models\LearningStreak;
+use App\Modules\Lms\Models\Note;
+use App\Modules\Lms\Models\Wishlist;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -151,6 +154,17 @@ class User extends Authenticatable implements MustVerifyEmail
     public function streak(): HasOne
     {
         return $this->hasOne(LearningStreak::class);
+    }
+
+    /** ملاحظاته أثناء التعلّم — تُنشأ عبر العلاقة فيُملأ `user_id` من الجالس لا من الطلب */
+    public function notes(): HasMany
+    {
+        return $this->hasMany(Note::class);
+    }
+
+    public function wishlist(): HasMany
+    {
+        return $this->hasMany(Wishlist::class);
     }
 
     protected function casts(): array

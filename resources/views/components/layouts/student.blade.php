@@ -29,8 +29,13 @@
                 <span class="text-muted" aria-hidden="true" x-text="nav ? '▴' : '▾'"></span>
             </button>
 
-            <nav id="student-nav" x-show="nav || window.innerWidth >= 1024" x-cloak
-                 class="lg:sticky lg:top-20 grid gap-4 rounded-lg border border-line bg-surface p-3 lg:border-0 lg:bg-transparent lg:p-0"
+            {{--
+                الإظهار بـCSS لا بـ`window.innerWidth` في x-show: تلك
+                تُقرأ مرة واحدة عند التحميل، فمن فتح الصفحة ضيّقاً ثم
+                وسّع نافذته تبقى قائمته مخفيّة حتى يُعيد التحميل.
+            --}}
+            <nav id="student-nav" :class="nav ? '!grid' : ''"
+                 class="hidden lg:grid lg:sticky lg:top-20 gap-4 rounded-lg border border-line bg-surface p-3 lg:border-0 lg:bg-transparent lg:p-0"
                  aria-label="{{ __('قائمة لوحة الطالب') }}">
 
                 @foreach($groups as $group)
