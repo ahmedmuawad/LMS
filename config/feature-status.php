@@ -20,18 +20,13 @@ return [
     'coming_soon' => [
 
         // تعلّم متقدّم — لا مشغّل ولا تتبّع
-        'scorm',
         'h5p',
         'xapi',
-        'interactive_video',
-        'adaptive_learning',
-        'proctoring',
 
         // حماية المحتوى — لا شيء منها مبنيّ
         'drm',
         'screenshot_block',
         'offline_download',
-        'device_limit',
 
         /*
          | الحصص المباشرة: الموجود حقلُ رابطٍ يلصق فيه المدرّس رابطاً
@@ -47,7 +42,6 @@ return [
         'ai_assistant',
         'ai_course_builder',
         'ai_exam_from_pdf',
-        'api_access',
         'whatsapp_api',
 
         // الأجهزة والهوية

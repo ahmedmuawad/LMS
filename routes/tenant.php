@@ -60,6 +60,7 @@ use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Seo\SitemapController;
 use App\Http\Controllers\Services\ServiceController;
 use App\Http\Controllers\Tenant\AuthController;
+use App\Http\Controllers\Tenant\ApiTokenController;
 use App\Http\Controllers\Tenant\BillingController;
 use App\Http\Controllers\Tenant\DashboardController;
 use App\Http\Controllers\Tenant\HomeController;
@@ -68,7 +69,9 @@ use App\Http\Controllers\Tenant\OnboardingController;
 use App\Http\Controllers\Tenant\PlatformModeController;
 use App\Http\Controllers\Tenant\SettingsController;
 use App\Http\Controllers\Tenant\UsageController;
+use App\Http\Controllers\Api\ApiController;
 use App\Http\Middleware\ApplyTenantTheme;
+use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\EnsureAbility;
 use App\Http\Middleware\EnsurePanelAccess;
 use App\Http\Middleware\RequireOnboarding;
@@ -103,6 +106,40 @@ $tenantRoutes = function (): void {
     // استلام تذكرة «الدخول كمشترك» القادمة من لوحتنا العليا
     Route::get('/impersonate/{token}', ImpersonationController::class)
         ->name('impersonate');
+
+    /*
+     | الواجهة البرمجية العامة.
+     |
+     | خارج مِدلوير الويب: التكامل يعمل من خادمٍ آخر بلا كوكيّات
+     | ولا CSRF، والمفتاح في ترويسة `Authorization` هو ما تفهمه كل
+     | أداة. وكل نقطة تُحرَس بنطاقها، فمفتاحُ القراءة لا يكتب.
+     */
+    Route::prefix('api/v1')->name('api.')->group(function (): void {
+        Route::middleware(AuthenticateApiToken::class)->group(function (): void {
+            Route::get('/me', [ApiController::class, 'me'])->name('me');
+        });
+
+        Route::get('/courses', [ApiController::class, 'courses'])
+            ->middleware(AuthenticateApiToken::class.':courses:read')->name('courses');
+
+        Route::get('/students', [ApiController::class, 'students'])
+            ->middleware(AuthenticateApiToken::class.':students:read')->name('students');
+
+        Route::get('/groups', [ApiController::class, 'groups'])
+            ->middleware(AuthenticateApiToken::class.':groups:read')->name('groups');
+
+        Route::get('/enrollments', [ApiController::class, 'enrollments'])
+            ->middleware(AuthenticateApiToken::class.':enrollments:read')->name('enrollments');
+
+        Route::post('/enrollments', [ApiController::class, 'enrol'])
+            ->middleware(AuthenticateApiToken::class.':enrollments:write')->name('enrol');
+
+        Route::get('/attendance', [ApiController::class, 'attendance'])
+            ->middleware(AuthenticateApiToken::class.':attendance:read')->name('attendance');
+
+        Route::get('/invoices', [ApiController::class, 'invoices'])
+            ->middleware(AuthenticateApiToken::class.':invoices:read')->name('invoices');
+    });
 
     // ---------- الكتالوج العام ----------
     Route::get('/courses', [CatalogController::class, 'index'])->name('courses.index');
@@ -423,6 +460,14 @@ $tenantRoutes = function (): void {
         ->group(function (): void {
             // استهلاك الحدود — الحدّ الذي لا يُرى يُصطدَم به فجأةً
             Route::get('/admin/usage', UsageController::class)->name('admin.usage');
+
+            /*
+             | مفاتيح الواجهة البرمجية — محروسةٌ بالميزة والصلاحية.
+             */
+            Route::get('/admin/api', [ApiTokenController::class, 'index'])->name('admin.api');
+            Route::post('/admin/api', [ApiTokenController::class, 'store'])->name('admin.api.store');
+            Route::delete('/admin/api/{id}', [ApiTokenController::class, 'destroy'])
+                ->whereNumber('id')->name('admin.api.destroy');
 
             /*
              | مرفقات الدرس شاشةٌ مستقلّة لا حقلٌ في نموذجه.
