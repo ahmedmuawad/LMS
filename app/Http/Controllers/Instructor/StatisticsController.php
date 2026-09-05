@@ -15,6 +15,7 @@ use App\Modules\Lms\Models\Enrollment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 /**
@@ -87,6 +88,19 @@ final class StatisticsController
                 ->count(),
             'newReviews' => CourseReview::whereIn('course_id', $ids)
                 ->where('created_at', '>=', now()->subDays(self::DAYS))->count(),
+
+            /*
+             | محصَّل الأقساط — للمشترك الذي يدير مجموعات.
+             |
+             | هذه الشاشة بُنيت لمدرّس يبيع كورسات: إيرادها من
+             | «أرباح المدرّسين» على بيع الكورسات. ومدرّسُ المجموعات
+             | يحصّل نقداً كل يوم ثم يقرأ هنا «الإيراد ٠٫٠٠» فيظنّ
+             | النظام لا يحسب ما قبضه.
+             |
+             | `null` لمن لا مجموعات عنده، فلا تُعرض بطاقةٌ بصفرٍ
+             | لا معنى له.
+             */
+            'feesCollected' => $this->feesCollected($currency),
             'days' => self::DAYS,
         ]);
     }
@@ -134,5 +148,20 @@ final class StatisticsController
         $user = $request->user();
 
         return $user instanceof User ? $user : null;
+    }
+
+    /** ما حُصِّل من أقساط في المدة، أو null إن كانت الأقساط مطفأة */
+    private function feesCollected(string $currency): ?Money
+    {
+        if (! module_enabled('center-finance') || ! Schema::hasTable('center_payments')) {
+            return null;
+        }
+
+        return Money::fromMinor(
+            (int) DB::table('center_payments')
+                ->where('paid_at', '>=', now()->subDays(self::DAYS))
+                ->sum('amount_minor'),
+            $currency,
+        );
     }
 }

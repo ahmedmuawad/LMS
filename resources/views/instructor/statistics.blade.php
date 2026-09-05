@@ -11,6 +11,11 @@
     <div class="grid gap-4 sm:grid-cols-3 mb-6">
         <x-ui.stat :label="__('إيراد آخر :n يوماً', ['n' => $days])" :value="$revenue->format()" />
         <x-ui.stat :label="__('عمليات بيع')" :value="number_format($sales)" />
+
+        @if($feesCollected)
+            <x-ui.stat :label="__('محصَّل الأقساط (:days يوماً)', ['days' => $days])"
+                       :value="$feesCollected->format()" />
+        @endif
         <x-ui.stat :label="__('تقييمات جديدة')" :value="number_format($newReviews)" />
     </div>
 

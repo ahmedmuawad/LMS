@@ -90,7 +90,7 @@ final class AuthController
          | ويُفحص قبل التوثيق بخطوتين كذلك: لا معنى لأن يُطالَب برمزٍ
          | ثم يُقال له إن جهازه غير مسموح.
          */
-        $device = $this->devices->register($request, $user, $this->deviceLimit());
+        $device = $this->devices->register($request, $user, $this->deviceLimitFor($user));
 
         if (! $device->allowed) {
             throw ValidationException::withMessages(['email' => $device->message()]);
@@ -142,5 +142,23 @@ final class AuthController
         $limit = $tenant->limitOf('device_limit');
 
         return $limit === null || $limit < 1 ? null : $limit;
+    }
+
+    /**
+     * الحدّ يخصّ الطلبة لا فريق المنصة.
+     *
+     * الغرض منه منع تداول حساب الطالب بين عشرة. أمّا صاحب المنصة
+     * ومدرّسوها وموظّفوها فيدخلون من حاسوب المكتب وهاتفهم وحاسوب
+     * البيت وجهاز الاحتياط — وقفلُ حساب صاحب المركز عن منصّته
+     * لأنه بدّل متصفّحه ثلاث مرات كارثةٌ لا حماية.
+     *
+     * ولا يُقاس هذا بالدور وحده: من يدير المنصة يدخل ليعمل، ومن
+     * يتعلّم فيها يدخل ليشاهد — والتداول يقع في الثاني.
+     */
+    private function deviceLimitFor(User $user): ?int
+    {
+        return in_array($user->role, User::panelRoles(), true)
+            ? null
+            : $this->deviceLimit();
     }
 }

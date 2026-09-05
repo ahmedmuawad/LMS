@@ -17,6 +17,7 @@ use App\Modules\Lms\Models\QuizAttempt;
 use App\Modules\Services\Models\Booking;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * التقارير.
@@ -67,6 +68,19 @@ final class ReportBuilder
         $captured = (int) Payment::where('status', 'captured')
             ->whereBetween('paid_at', [$from, $to])->sum('amount_minor');
 
+        /*
+         | تحصيل الأقساط إيرادٌ أيضاً.
+         |
+         | للمنصة نظاما مال: مدفوعات المتجر (بيع الكورسات) وتحصيل
+         | أقساط الطلبة. وكان التقرير يقرأ الأول وحده — فمدرّسٌ يدير
+         | مجموعات ويحصّل نقداً كل يوم يقرأ «الإيراد ٠٫٠٠» ويظنّ
+         | النظام لا يحسب ما قبضه.
+         |
+         | والجمع لا يُكرّر: القسط لا يمرّ بجدول مدفوعات المتجر أبداً.
+         */
+        $fees = $this->centerCollected($from, $to);
+        $captured += $fees;
+
         $refunded = (int) Refund::where('status', 'processed')
             ->whereBetween('handled_at', [$from, $to])->sum('amount_minor');
 
@@ -79,6 +93,7 @@ final class ReportBuilder
         return [
             'currency' => $currency,
             'revenue' => Money::fromMinor($captured, $currency),
+            'fees_collected' => Money::fromMinor($fees, $currency),
             'refunds' => Money::fromMinor($refunded, $currency),
             'net' => Money::fromMinor(max(0, $captured - $refunded), $currency),
             'orders' => $orders->count(),
@@ -195,5 +210,22 @@ final class ReportBuilder
         }
 
         return $series;
+    }
+
+    /**
+     * ما حُصِّل من أقساط الطلبة في المدة.
+     *
+     * صفرٌ إن كان موديول الأقساط مطفأً أو جدوله غير موجود: التقرير
+     * يخدم كل الأنماط، وأكاديميةٌ أونلاين صِرفة لا مركز لها.
+     */
+    private function centerCollected(Carbon $from, Carbon $to): int
+    {
+        if (! module_enabled('center-finance') || ! Schema::hasTable('center_payments')) {
+            return 0;
+        }
+
+        return (int) DB::table('center_payments')
+            ->whereBetween('paid_at', [$from, $to])
+            ->sum('amount_minor');
     }
 }
