@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Core\Localization;
 
+use Illuminate\Contracts\Translation\Loader;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Translation\FileLoader;
 use Throwable;
 
 /**
@@ -17,6 +17,16 @@ use Throwable;
  * `__()` تُنادى في آلاف المواضع وفي حزم لارافيل نفسها. واستبدالها
  * يعني موضعاً يُنسى، ورسالةَ تحقّقٍ تخرج بالإنجليزية وسط شاشةٍ عربية.
  * والمحمّل نقطةٌ واحدة يمرّ بها كلُّ نصّ.
+ *
+ * ## ومغلِّفٌ لا وارث
+ *
+ * الوراثةُ من `FileLoader` تعني تسجيلَ صنفٍ بديل في الحاوية، وترتيبُ
+ * المزوّدين يحسم أيّهما يبقى — وقد جرّبتُها فبقي محمّل لارافيل
+ * وذهبت ترجماتُ المشترك بلا خطأ ولا أثر.
+ *
+ * والتغليف بـ`extend` يُطبَّق لحظة الطلب لا لحظة التسجيل، فلا يهمّ
+ * ترتيبُ أحد. ويحتفظ بالمحمّل الأصلي كما هو بمساراته ونطاقاته
+ * المسجَّلة من الحزم.
  *
  * ## والقراءة مرّةً لكل طلب لا لكل نصّ
  *
@@ -29,19 +39,36 @@ use Throwable;
  * لا نُرجع فراغاً لمفتاحٍ بلا ترجمة: صفحةٌ نصفها فارغ أسوأ من صفحةٍ
  * نصفها بلغةٍ أخرى — الثانية تُقرأ، والأولى تبدو معطوبة.
  */
-final class DatabaseTranslationLoader extends FileLoader
+final class DatabaseTranslationLoader implements Loader
 {
     /** كم يبقى الكاش — والتحرير يُبطله فوراً على أي حال */
     private const TTL_MINUTES = 60;
 
+    public function __construct(private readonly Loader $inner) {}
+
     /**
      * @param  string  $locale
-     * @return array<string, string>
+     * @param  string  $group
+     * @param  string|null  $namespace
+     * @return array<string, mixed>
      */
-    protected function loadJsonPaths($locale)
+    public function load($locale, $group, $namespace = null)
     {
-        // الملفّات أولاً، ثم يعلوها ما كتبه المشترك: كلمتُه هي الأخيرة
-        return array_merge(parent::loadJsonPaths($locale), $this->fromDatabase($locale));
+        $lines = $this->inner->load($locale, $group, $namespace);
+
+        /*
+         | نصوص JSON وحدها.
+         |
+         | `$group === '*'` هي نداء لارافيل لنصوص `__('نصّ كامل')`؛
+         | أمّا المجموعات (`validation.php` وأخواتها) فمفاتيحُها رموزٌ
+         | لا نصوص، ولا يحرّرها المشترك من الشاشة.
+         */
+        if ($group !== '*' || $namespace !== '*') {
+            return $lines;
+        }
+
+        // ما كتبه المشترك يعلو على الملفّات: كلمتُه هي الأخيرة
+        return array_merge($lines, $this->fromDatabase((string) $locale));
     }
 
     /** @return array<string, string> */
@@ -82,5 +109,26 @@ final class DatabaseTranslationLoader extends FileLoader
         if ($tenant !== null) {
             Cache::forget('translations:'.$tenant->getTenantKey().':'.$locale);
         }
+    }
+
+    /**
+     * @param  string  $namespace
+     * @param  string  $hint
+     */
+    public function addNamespace($namespace, $hint): void
+    {
+        $this->inner->addNamespace($namespace, $hint);
+    }
+
+    /** @param  string  $path */
+    public function addJsonPath($path): void
+    {
+        $this->inner->addJsonPath($path);
+    }
+
+    /** @return array<string, string> */
+    public function namespaces()
+    {
+        return $this->inner->namespaces();
     }
 }

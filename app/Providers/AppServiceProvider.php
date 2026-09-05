@@ -17,6 +17,7 @@ use App\Modules\Commerce\Observers\CourseObserver;
 use App\Modules\Content\Models\Page;
 use App\Modules\Content\Models\Post;
 use App\Modules\Lms\Models\Course;
+use Illuminate\Contracts\Translation\Loader;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -39,13 +40,15 @@ class AppServiceProvider extends ServiceProvider
          | فاستبدالها يعني موضعاً يُنسى تخرج منه رسالةٌ بلغةٍ أخرى.
          | والمحمّل نقطةٌ واحدة يمرّ بها كلُّ نصّ.
          |
-         | ويُسجَّل في `register` لا في `boot`: مُحمِّلٌ يُبدَّل بعد
-         | بناء المترجِم لا يراه أحد.
+         | و`extend` لا `singleton`: التسجيل بصنفٍ بديل يجعل ترتيبَ
+         | المزوّدين يحسم أيّهما يبقى — جرّبتُها فبقي محمّل لارافيل
+         | وذهبت ترجماتُ المشترك بلا خطأ ولا أثر. والتغليف يُطبَّق
+         | لحظة الطلب لا لحظة التسجيل، فلا يهمّ ترتيبُ أحد.
          */
-        $this->app->singleton('translation.loader', fn ($app) => new DatabaseTranslationLoader(
-            $app['files'],
-            $app['path.lang'],
-        ));
+        $this->app->extend(
+            'translation.loader',
+            fn (Loader $loader): Loader => new DatabaseTranslationLoader($loader),
+        );
 
         // مفردة إلزاماً: تحتفظ بمسارات العرض الأصلية،
         // ونسخة جديدة لكل طلب تلتقط مسارات ملوّثة كأنها الأصل.
