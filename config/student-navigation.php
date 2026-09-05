@@ -26,6 +26,7 @@ return [
             'items' => [
                 ['key' => 'dashboard', 'label' => 'لوحتي', 'icon' => '◧', 'url' => '/me'],
                 ['key' => 'my-courses', 'label' => 'كورساتي', 'icon' => '▤', 'url' => '/my-courses', 'module' => 'lms'],
+                ['key' => 'my-classes', 'label' => 'حصصي', 'icon' => '◷', 'url' => '/my-classes', 'module' => 'center'],
                 ['key' => 'progress', 'label' => 'تقدّمي', 'icon' => '◔', 'url' => '/my-progress', 'module' => 'lms'],
                 ['key' => 'notes', 'label' => 'ملاحظاتي', 'icon' => '✎', 'url' => '/my-notes', 'module' => 'lms'],
                 ['key' => 'certificates', 'label' => 'شهاداتي', 'icon' => '◈', 'url' => '/my-certificates', 'module' => 'certificates'],

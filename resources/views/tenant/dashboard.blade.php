@@ -72,7 +72,10 @@
                 <x-ui.description-list :items="[
                     __('النمط')        => __($modes[$tenant->platform_mode] ?? $tenant->platform_mode),
                     __('طريقة التقديم') => __($deliveries[$tenant->delivery_mode] ?? $tenant->delivery_mode),
-                    __('إدارة السنتر')  => $tenant->managesCenter() ? __('مفعّلة') : __('غير مفعّلة'),
+                    {{-- «السنتر» لفظٌ يخصّ من يملك مبنى؛ والمدرّس المستقل
+                         يقرأ «إدارة السنتر: مفعّلة» فيظنّ أنه اشترى ما لم يشترِه.
+                         السطر يصف الأداة لا المكان. --}}
+                    __('المجموعات والحضور') => $tenant->managesCenter() ? __('مفعّلة') : __('غير مفعّلة'),
                     __('الدولة والعملة') => $tenant->country.' · '.$tenant->currency,
                     __('لغة الواجهة')   => $tenant->locale === 'ar' ? __('العربية') : __('الإنجليزية'),
                 ]" />

@@ -17,7 +17,7 @@
         <x-ui.description-list :items="[
             __('نمط المنصة')     => config('platform-modes.modes.'.$tenant->platform_mode.'.name.'.$locale),
             __('طريقة التقديم')  => config('platform-modes.delivery.'.$tenant->delivery_mode.'.name.'.$locale),
-            __('إدارة السنتر')   => $tenant->center_enabled ? __('مفعّلة') : __('غير مفعّلة'),
+            __('المجموعات والحضور') => $tenant->managesCenter() ? __('مفعّلة') : __('غير مفعّلة'),
             __('الثيم')          => $themeName,
             __('الدولة')         => $country,
             __('العملة')         => $currency.' · '.$tenant->currency,

@@ -13,6 +13,7 @@ use App\Http\Controllers\Center\AttendanceController;
 use App\Http\Controllers\Center\FinanceController;
 use App\Http\Controllers\Center\GroupEnrolmentController;
 use App\Http\Controllers\Center\GuardianPortalController;
+use App\Http\Controllers\Center\MyClassesController;
 use App\Http\Controllers\Center\ScheduleController;
 use App\Http\Controllers\Center\StudentFileController;
 use App\Http\Controllers\Commerce\AdminOrderController;
@@ -128,6 +129,9 @@ $tenantRoutes = function (): void {
         Route::get('/me', StudentDashboardController::class)->name('me');
 
         Route::get('/my-courses', MyCoursesController::class)->name('my-courses');
+
+        // حصص الطالب ومجموعاته ورابط دخولها — كان الرابط يُحفظ ولا يصل صاحبه
+        Route::get('/my-classes', MyClassesController::class)->name('my-classes');
 
         // ---------- المجتمع والتحفيز ----------
         Route::post('/courses/{slug}/discussions', [DiscussionController::class, 'store'])->name('discussions.store');

@@ -8,6 +8,7 @@ use App\Core\Access\Ability;
 use App\Core\Access\Scope;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\TextColumn;
+use App\Core\Admin\Fields\DateField;
 use App\Core\Admin\Fields\NumberField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
@@ -79,41 +80,88 @@ final class LessonResource extends Resource
 
     public function form(): array
     {
-        return [
+        $form = [
             Section::make(__('الدرس'))->fields([
                 TranslatableField::make('title')->label(__('العنوان'))->required(),
-                /*
-                 | النوع الافتراضي يتبع نوع تقديم المشترك.
-                 |
-                 | من اختار «حصص مباشرة» في تهيئته كان يجد كل درس جديد
-                 | مضبوطاً على «فيديو» فيصحّحه في كل مرة — والافتراض
-                 | الخاطئ المتكرّر أثقل من غياب الافتراض.
-                 */
                 SelectField::make('type')->label(__('النوع'))->half()
-                    ->options(array_map(fn (string $l): string => __($l), Lesson::TYPES))
-                    ->default(tenant()?->delivery_mode === 'live' ? 'live' : 'video'),
+                    ->options($this->types())->default('video')
+                    ->hint($this->manages()
+                        ? __('الحصة موعدٌ لمجموعة، لا درساً: مواعيدها وحضورها وروابطها في «الحصص والمجموعات».')
+                        : null),
                 NumberField::make('duration_seconds')->label(__('المدة'))->suffix(__('ثانية'))
                     ->range(0, 86400)->half()->default(0),
                 TranslatableField::make('content')->label(__('المحتوى النصّي'))->long(),
             ]),
-
-            Section::make(__('الفيديو'))
-                ->description(__('الرابط المباشر لا يُخزَّن: يُوقَّع عند كل مشاهدة وينتهي بدقائق.'))
-                ->fields([
-                    SelectField::make('video_provider')->label(__('المزوّد'))->half()
-                        ->options([
-                            'bunny' => 'Bunny Stream', 'cloudflare' => 'Cloudflare Stream',
-                            'vimeo' => 'Vimeo', 'youtube' => 'YouTube', 'file' => __('ملف مرفوع'),
-                        ]),
-                    TextField::make('video_id')->label(__('معرّف الفيديو'))->half(),
-                    SwitchField::make('is_downloadable')->label(__('يسمح بالتنزيل'))
-                        ->hint(__('التنزيل يعني خروج الملف من حمايتك.')),
-                ]),
         ];
+
+        /*
+         | قسم الحصة لمن لا يدير مجموعات فقط.
+         |
+         | من عنده «الحصص والمجموعات» له مكانٌ واحد للحصة يجمع موعدها
+         | وحضورها ورابطها. وتكرار الرابط هنا يصنع نسختين من الحقيقة،
+         | فيدخل نصف الطلبة على رابط ونصفهم على آخر — والأكاديمية
+         | الأونلاين الصِّرفة وحدها هي التي تحتاج الحصة داخل المنهج.
+         */
+        if (! $this->manages()) {
+            $form[] = Section::make(__('الحصة المباشرة'))
+                ->description(__('لدرسٍ نوعه «حصة مباشرة» — يُفتح الرابط للطالب المشترك في الكورس.'))
+                ->fields([
+                    TextField::make('live_url')->label(__('رابط الاجتماع'))
+                        ->placeholder('https://meet.google.com/…'),
+                    DateField::make('live_starts_at')->label(__('موعد البدء'))->withTime()->half(),
+                    NumberField::make('live_minutes')->label(__('مدة الحصة'))
+                        ->suffix(__('دقيقة'))->range(0, 600)->half(),
+                ]);
+        }
+
+        $form[] = Section::make(__('الفيديو'))
+            ->description(__('الرابط المباشر لا يُخزَّن: يُوقَّع عند كل مشاهدة وينتهي بدقائق.'))
+            ->fields([
+                SelectField::make('video_provider')->label(__('المزوّد'))->half()
+                    ->options([
+                        'bunny' => 'Bunny Stream', 'cloudflare' => 'Cloudflare Stream',
+                        'vimeo' => 'Vimeo', 'youtube' => 'YouTube', 'file' => __('ملف مرفوع'),
+                    ]),
+                TextField::make('video_id')->label(__('معرّف الفيديو'))->half(),
+                SwitchField::make('is_downloadable')->label(__('يسمح بالتنزيل'))
+                    ->hint(__('التنزيل يعني خروج الملف من حمايتك.')),
+            ]);
+
+        return $form;
     }
 
     public function emptyState(): array
     {
-        return ['title' => __('لا دروس بعد'), 'body' => __('الدرس هو أصغر وحدة تعليمية — أنشئه ثم ضعه في منهج كورس.')];
+        return [
+            'title' => __('لا دروس بعد'),
+            'body' => $this->manages()
+                ? __('الدرس محتوى داخل كورس: فيديو أو ملف أو نص يفتحه الطالب متى شاء. أمّا حصص مجموعاتك ومواعيدها وحضورها ففي «الحصص والمجموعات».')
+                : __('الدرس هو أصغر وحدة تعليمية — أنشئه ثم ضعه في منهج كورس.'),
+        ];
+    }
+
+    /**
+     * أنواع الدروس المتاحة لهذا المشترك.
+     *
+     * «حصة مباشرة» تُحذف ممّن يدير مجموعات: للحصة عنده مكانٌ واحد
+     * فيه الموعد والحضور والرابط معاً، وإبقاء النوع هنا يفتح للحصة
+     * باباً ثانياً لا يعرف أيّهما الصحيح.
+     *
+     * @return array<string, string>
+     */
+    private function types(): array
+    {
+        $types = Lesson::TYPES;
+
+        if ($this->manages()) {
+            unset($types['live']);
+        }
+
+        return array_map(fn (string $label): string => __($label), $types);
+    }
+
+    private function manages(): bool
+    {
+        return tenant()?->managesCenter() ?? false;
     }
 }
