@@ -25,6 +25,7 @@ final class FeatureSeeder extends Seeder
             ['branches',        'عدد الفروع',            'Branches',          'limit', 'فرع',    'limits', null],
             ['groups',          'عدد المجموعات',         'Groups',            'limit', 'مجموعة', 'limits', null],
             // ---------- الحصص المتجدّدة شهرياً ----------
+            ['ai_requests',     'طلبات الذكاء الاصطناعي', 'AI requests',      'quota', 'طلب',    'quotas', 'month'],
             ['video_minutes',   'دقائق مشاهدة الفيديو',  'Video minutes',     'quota', 'دقيقة',  'quotas', 'month'],
             ['live_hours',      'ساعات البث المباشر',    'Live hours',        'quota', 'ساعة',   'quotas', 'month'],
             ['emails',          'رسائل البريد',          'Emails',            'quota', 'رسالة',  'quotas', 'month'],

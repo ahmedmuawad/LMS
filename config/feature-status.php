@@ -45,7 +45,6 @@ return [
         // الذكاء الاصطناعي والتكامل
         'ai_assistant',
         'ai_course_builder',
-        'ai_exam_from_pdf',
         'whatsapp_api',
 
         /*

@@ -79,6 +79,19 @@ final class IntegrationSettings extends SettingsGroup
                 PasswordField::make('bbb_secret')->label(__('السرّ المشترك'))->half(),
             ]),
 
+            Section::make(__('الذكاء الاصطناعي'))
+                ->description(__('اتركها فارغة لتستعمل مفتاح المنصة بحدّ باقتك. وضعُ مفتاحك يجعلك تدفع لمزوّدك مباشرةً بلا حدّ منّا.'))
+                ->fields([
+                    SelectField::make('ai_provider')->label(__('المزوّد'))->half()
+                        ->options(['openai' => 'OpenAI', 'anthropic' => 'Anthropic'])
+                        ->default('openai'),
+                    TextField::make('ai_model')->label(__('النموذج'))->half()
+                        ->placeholder('gpt-4o-mini')
+                        ->hint(__('اتركه فارغاً للنموذج الافتراضي.')),
+                    PasswordField::make('ai_key')->label(__('مفتاحك الخاص'))
+                        ->hint(__('لا يُعرض بعد الحفظ. وما يُرسَل من مادتك لا نحفظه: يُحفظ عدد الطلبات للمحاسبة وحده.')),
+                ]),
+
             Section::make(__('التخزين'))->fields([
                 SelectField::make('storage_driver')->label(__('مزوّد التخزين'))->half()
                     ->options(['local' => __('القرص المحلي'), 's3' => 'S3', 'spaces' => 'DigitalOcean Spaces', 'r2' => 'Cloudflare R2'])

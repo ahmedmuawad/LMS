@@ -149,7 +149,7 @@ final class Quota
      */
     public function overview(): array
     {
-        $keys = [...array_keys(self::COUNTABLE), self::STORAGE, 'video_minutes', 'emails'];
+        $keys = [...array_keys(self::COUNTABLE), self::STORAGE, 'video_minutes', 'emails', 'ai_requests'];
         $rows = [];
 
         foreach ($keys as $key) {

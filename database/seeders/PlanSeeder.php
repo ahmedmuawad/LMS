@@ -71,7 +71,7 @@ final class PlanSeeder extends Seeder
                     'offline_download' => '1', 'live_zoom' => '1', 'live_meet' => '1',
                     'live_bbb' => '1', 'live_jitsi' => '1', 'email_automation' => '1',
                     'whatsapp_api' => '1', 'affiliates' => '1', 'community' => '1',
-                    'api_access' => '1', 'ai_assistant' => '1',
+                    'api_access' => '1', 'ai_assistant' => '1', 'ai_exam_from_pdf' => '1', 'ai_requests' => '200',
                 ],
             ],
             'professional' => [
@@ -102,7 +102,7 @@ final class PlanSeeder extends Seeder
                     'installments' => '1', 'recharge_codes' => '1', 'coaching' => '1',
                     'funnels' => '1', 'email_automation' => '1', 'whatsapp_api' => '1',
                     'affiliates' => '1', 'page_builder' => '1', 'blog' => '1', 'community' => '1',
-                    'ai_assistant' => '1', 'ai_course_builder' => '1', 'ai_exam_from_pdf' => '1',
+                    'ai_assistant' => '1', 'ai_exam_from_pdf' => '1', 'ai_course_builder' => '1', 'ai_requests' => '500',
                     'priority_support' => '1',
                 ],
             ],
@@ -125,7 +125,7 @@ final class PlanSeeder extends Seeder
                     'video_watermark' => '1', 'screenshot_block' => '1', 'device_limit' => '2',
                     'live_zoom' => '1', 'live_meet' => '1', 'live_bbb' => '1', 'live_jitsi' => '1',
                     'recharge_codes' => '1', 'installments' => '1',
-                    'whatsapp_api' => '1', 'email_automation' => '1', 'ai_assistant' => '1',
+                    'whatsapp_api' => '1', 'email_automation' => '1', 'ai_assistant' => '1', 'ai_exam_from_pdf' => '1', 'ai_requests' => '200',
                 ],
             ],
         ];

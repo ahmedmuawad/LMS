@@ -40,6 +40,7 @@ use App\Http\Controllers\Instructor\EarningsController;
 use App\Http\Controllers\Instructor\StatisticsController;
 use App\Http\Controllers\Instructor\StudentController as InstructorStudentController;
 use App\Http\Controllers\Lms\AttachmentController;
+use App\Http\Controllers\Lms\AiQuestionController;
 use App\Http\Controllers\Lms\AssignmentController;
 use App\Http\Controllers\Lms\CatalogController;
 use App\Http\Controllers\Lms\CertificateController;
@@ -483,6 +484,10 @@ $tenantRoutes = function (): void {
              | مفاتيح الواجهة البرمجية — محروسةٌ بالميزة والصلاحية.
              */
             // أجهزة الحضور — محروسةٌ بالميزة والصلاحية
+            // توليد أسئلة من مادة — محروسٌ بالميزة والصلاحية والحدّ
+            Route::get('/admin/ai/questions', [AiQuestionController::class, 'index'])->name('admin.ai.questions');
+            Route::post('/admin/ai/questions', [AiQuestionController::class, 'store'])->name('admin.ai.questions.store');
+
             Route::get('/admin/devices', [AttendanceDeviceController::class, 'index'])->name('admin.center.devices');
             Route::post('/admin/devices', [AttendanceDeviceController::class, 'store'])->name('admin.center.devices.store');
             Route::delete('/admin/devices/{id}', [AttendanceDeviceController::class, 'destroy'])
