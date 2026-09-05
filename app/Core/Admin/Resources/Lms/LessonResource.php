@@ -20,6 +20,7 @@ use App\Core\Admin\Resource;
 use App\Models\User;
 use App\Modules\Lms\Models\Lesson;
 use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 final class LessonResource extends Resource
 {
@@ -36,6 +37,22 @@ final class LessonResource extends Resource
     public function model(): string
     {
         return Lesson::class;
+    }
+
+    /**
+     * المرفقات شاشةٌ مستقلّة، فيُدلّ عليها من النموذج.
+     *
+     * اختار مشتركٌ النوع «ملف PDF» ثم بحث عن حقل الرفع فلم يجده:
+     * فللمرفق إعداداته (يُنزَّل؟ يُوسَم؟) وسجلّ فتحاته، ولا يسعها
+     * حقلٌ في نموذج الدرس. وشاشةٌ لا يُدَلّ عليها كأنها غير موجودة.
+     */
+    public function nextStep(Model $record, string $key): ?array
+    {
+        return [
+            'url' => url('/admin/lessons/'.$record->getKey().'/attachments'),
+            'label' => __('مرفقات الدرس'),
+            'hint' => __('ارفع ملفّات PDF أو Word هنا — يقرؤها الطالب داخل المنصة بعلامة مائية باسمه.'),
+        ];
     }
 
     public function label(): string
