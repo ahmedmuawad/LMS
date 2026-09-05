@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\ResourceController;
 use App\Http\Controllers\Admin\SuperAdminController;
 use App\Http\Controllers\Admin\SuperAuthController;
 use App\Http\Controllers\Admin\TenantController;
+use App\Http\Controllers\Admin\WhatsAppGatewayController;
 use App\Http\Controllers\Marketing\LandingController;
 use App\Http\Controllers\Marketing\OwnerLoginController;
 use App\Http\Controllers\Marketing\PlatformCheckoutController;
@@ -91,6 +92,14 @@ $central = function (): void {
         Route::get('/audit', [SuperAdminController::class, 'audit'])->name('super.audit');
 
         // بيانات التحصيل — قبل مسار الموارد العام، وإلا قُرئت مورداً
+        /*
+         | بوّابة واتساب — خادمُ المنصّة ونُسَخ المشتركين.
+         */
+        Route::get('/whatsapp-gateway', [WhatsAppGatewayController::class, 'edit'])->name('super.whatsapp');
+        Route::put('/whatsapp-gateway', [WhatsAppGatewayController::class, 'update'])->name('super.whatsapp.update');
+        Route::post('/whatsapp-gateway/{tenant}/reset', [WhatsAppGatewayController::class, 'reset'])
+            ->name('super.whatsapp.reset');
+
         Route::get('/billing-settings', [PlatformSettingsController::class, 'edit'])->name('super.billing-settings');
         Route::put('/billing-settings', [PlatformSettingsController::class, 'update'])->name('super.billing-settings.update');
 

@@ -57,9 +57,23 @@ final class PrintCode extends Model
         return $code;
     }
 
+    /**
+     * رابط الرمز — على نطاق المشترك دائماً.
+     *
+     * `url()` تقرأ نطاق الطلب، ولا طلبَ في أمر سطر أوامر ولا في
+     * طابور — فتُعطي النطاق المركزي. والرمز يُطبَع على ورق: رابطٌ
+     * خاطئ فيه لا يُصلَح بعد الطباعة، فيُبنى من نطاق المشترك نفسه.
+     */
     public function url(): string
     {
-        return url('/q/'.$this->code);
+        $domain = tenant()?->domains?->firstWhere('is_primary', true)?->domain
+            ?? tenant()?->domains?->first()?->domain;
+
+        if ($domain === null || request()?->getHost() === $domain) {
+            return url('/q/'.$this->code);
+        }
+
+        return 'https://'.$domain.'/q/'.$this->code;
     }
 
     /** الوجهة التي يُحوَّل إليها الماسح */
@@ -68,7 +82,7 @@ final class PrintCode extends Model
         return match ($this->target_type) {
             'url' => filled($this->target_url) ? (string) $this->target_url : null,
             'course' => ($slug = Course::where('id', $this->target_id)->value('slug'))
-                ? url('/courses/'.$slug)
+                ? $this->tenantUrl('/courses/'.$slug)
                 : null,
             'lesson', 'quiz' => $this->learnUrl(),
             default => null,
@@ -104,6 +118,17 @@ final class PrintCode extends Model
 
         return $item?->course === null
             ? null
-            : url('/learn/'.$item->course->slug.'/'.$item->getKey());
+            : $this->tenantUrl('/learn/'.$item->course->slug.'/'.$item->getKey());
+    }
+
+    /** عنوانٌ على نطاق المشترك — انظر [url] */
+    private function tenantUrl(string $path): string
+    {
+        $domain = tenant()?->domains?->firstWhere('is_primary', true)?->domain
+            ?? tenant()?->domains?->first()?->domain;
+
+        return $domain === null || request()?->getHost() === $domain
+            ? url($path)
+            : 'https://'.$domain.$path;
     }
 }

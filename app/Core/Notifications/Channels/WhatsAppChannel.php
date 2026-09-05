@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Core\Notifications\Channels;
 
 use App\Core\Notifications\Delivery;
+use App\Modules\Whatsapp\EvolutionApi;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
@@ -29,11 +30,26 @@ final class WhatsAppChannel implements Channel
         return __('واتساب');
     }
 
+    /**
+     * جاهزةٌ ببوّابة المنصّة أو بحساب ميتا.
+     *
+     * وبوّابة المنصّة أولاً: يربط المشترك رقمه بمسح رمزٍ في دقيقة،
+     * بلا توثيق حساب أعمال ولا قوالبَ تُراجَع أسبوعاً.
+     */
     public function isReady(): bool
     {
-        return (bool) setting('notifications.whatsapp_enabled', false)
-            && filled(setting('notifications.whatsapp_phone_id'))
-            && filled(setting('notifications.whatsapp_token'));
+        if (! setting('notifications.whatsapp_enabled', false)) {
+            return false;
+        }
+
+        return $this->viaGateway() || (filled(setting('notifications.whatsapp_phone_id'))
+            && filled(setting('notifications.whatsapp_token')));
+    }
+
+    /** هل لهذا المشترك نسخةٌ موصولة على بوّابة المنصّة؟ */
+    private function viaGateway(): bool
+    {
+        return filled(tenant()?->wa_instance) && app(EvolutionApi::class)->configured();
     }
 
     public function destinationFor(Delivery $delivery): ?string
@@ -49,6 +65,21 @@ final class WhatsAppChannel implements Channel
 
         if ($to === null) {
             return null;
+        }
+
+        /*
+         | بوّابة المنصّة ترسل نصّاً حرّاً بلا قوالب.
+         |
+         | فهي رقم المشترك نفسه، والرسالة تخرج منه كما لو كتبها —
+         | ولا شرط نافذة الأربع والعشرين ساعة ولا قالبٌ معتمد.
+         */
+        if ($this->viaGateway()) {
+            return app(EvolutionApi::class)->sendText(
+                (string) tenant()->wa_instance,
+                (string) tenant()->wa_token,
+                $to,
+                $delivery->body,
+            );
         }
 
         $response = Http::withToken((string) setting('notifications.whatsapp_token'))

@@ -153,6 +153,7 @@ return [
                 ['key' => 'usage', 'label' => 'استهلاك باقتك', 'icon' => '◑', 'route' => 'admin.usage', 'ability' => Ability::BILLING_MANAGE],
                 ['key' => 'api', 'label' => 'الواجهة البرمجية', 'icon' => '⚯', 'route' => 'admin.api', 'feature' => 'api_access', 'ability' => Ability::SETTINGS_MANAGE],
                 ['key' => 'notifications', 'label' => 'الإشعارات', 'icon' => '◔', 'route' => 'admin.notifications.matrix'],
+                ['key' => 'whatsapp', 'label' => 'ربط واتساب', 'icon' => '✆', 'route' => 'admin.whatsapp', 'ability' => Ability::SETTINGS_MANAGE],
                 ['key' => 'platform-mode', 'label' => 'نمط المنصة', 'icon' => '◎', 'route' => 'admin.platform-mode', 'ability' => Ability::SETTINGS_MANAGE],
                 ['key' => 'settings', 'label' => 'الإعدادات', 'icon' => '⚙', 'route' => 'admin.settings.index'],
             ],

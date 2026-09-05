@@ -41,6 +41,9 @@ final class Tenant extends BaseTenant implements TenantWithDatabase
             'country', 'currency', 'locale', 'timezone',
             'status', 'plan_key', 'trial_ends_at', 'suspended_at', 'archived_at',
             'db_shard', 'provision_error', 'provisioned_at',
+
+            // بوّابة واتساب: نسخة المشترك ومفتاحها ورقمه المرتبط
+            'wa_instance', 'wa_token', 'wa_number',
         ];
     }
 

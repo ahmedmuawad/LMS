@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Core\Access\Ability;
 use App\Http\Controllers\Admin\ResourceController;
+use App\Http\Controllers\Admin\WhatsAppLinkController;
 use App\Http\Controllers\Api\ApiController;
 use App\Http\Controllers\Api\XapiController;
 use App\Http\Controllers\Auth\DeviceController;
@@ -622,6 +623,15 @@ $tenantRoutes = function (): void {
                 ->whereNumber('item')->name('admin.center.inventory.movements.store');
             Route::post('/admin/inventory/movements/{movement}/return', [InventoryController::class, 'returnCustody'])
                 ->whereNumber('movement')->name('admin.center.inventory.return');
+
+            /*
+             | ربط واتساب — رقم المشترك نفسه بمسح رمز.
+             */
+            Route::get('/admin/whatsapp', [WhatsAppLinkController::class, 'show'])->name('admin.whatsapp');
+            Route::post('/admin/whatsapp/connect', [WhatsAppLinkController::class, 'connect'])->name('admin.whatsapp.connect');
+            Route::get('/admin/whatsapp/state', [WhatsAppLinkController::class, 'state'])->name('admin.whatsapp.state');
+            Route::post('/admin/whatsapp/disconnect', [WhatsAppLinkController::class, 'disconnect'])->name('admin.whatsapp.disconnect');
+            Route::post('/admin/whatsapp/test', [WhatsAppLinkController::class, 'test'])->name('admin.whatsapp.test');
 
             // رموز المذكرات المطبوعة
             Route::get('/admin/print-codes', [PrintCodeController::class, 'index'])->name('admin.print-codes');
