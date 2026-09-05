@@ -1,7 +1,6 @@
-<x-layouts.app :title="__('محفظتي')">
-<x-site.header />
+<x-layouts.student :title="__('محفظتي')" current="wallet">
 
-<main id="main" class="max-w-[820px] mx-auto px-4 sm:px-6 py-8">
+<div>
 
     <x-ui.page-header :title="__('محفظتي')" :subtitle="__('رصيدك وسجلّ حركاته، وشحن كود جديد.')" />
 
@@ -68,7 +67,6 @@
             </form>
         </x-ui.card>
     </div>
-</main>
+</div>
 
-<x-site.footer />
-</x-layouts.app>
+</x-layouts.student>

@@ -29,7 +29,7 @@ final class AuthController
         }
 
         // الطالب لا لوحة له: توجيهه إليها يُعيده 403 بعد دخول ناجح
-        return redirect(url($request->user()->canAccessPanel() ? '/admin/dashboard' : '/my-courses'));
+        return redirect(url($request->user()->canAccessPanel() ? '/admin/dashboard' : '/me'));
     }
 
     public function login(Request $request): RedirectResponse
@@ -113,7 +113,7 @@ final class AuthController
                 ->with('status', __('التوثيق بخطوتين إلزامي — فعّله لمتابعة الاستخدام.'));
         }
 
-        return redirect()->intended(url($user->canAccessPanel() ? '/admin/dashboard' : '/my-courses'));
+        return redirect()->intended(url($user->canAccessPanel() ? '/admin/dashboard' : '/me'));
     }
 
     public function logout(Request $request): RedirectResponse

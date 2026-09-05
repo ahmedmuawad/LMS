@@ -343,6 +343,8 @@ $tenantRoutes = function (): void {
             Route::post('/groups/{group}/enrol', [GroupEnrolmentController::class, 'store'])->name('enrol');
             Route::delete('/groups/{group}/enrol/{enrollment}', [GroupEnrolmentController::class, 'destroy'])->name('enrol.drop');
             Route::get('/center-students/{id}', [StudentFileController::class, 'show'])->name('student');
+            // دعوةٌ جديدة: من أُنشئ حسابه بلا كلمة مرور يعرفها أحد يحتاج باباً
+            Route::post('/center-students/{id}/invite', [StudentFileController::class, 'invite'])->name('student.invite');
             Route::get('/center-students/{id}/report', [StudentFileController::class, 'monthly'])->name('student.report');
         });
 

@@ -1,7 +1,6 @@
-<x-layouts.app :title="__('النقاش والأسئلة')">
-<x-site.header />
+<x-layouts.student :title="__('النقاش والأسئلة')" current="discussions">
 
-<main id="main" class="max-w-[900px] mx-auto px-4 sm:px-6 py-8">
+<div>
 
     <x-ui.page-header :title="__('النقاش والأسئلة')"
                       :subtitle="trans_choice('{0} لا أسئلة بعد|{1} سؤال واحد|{2} سؤالان|[3,10] :count أسئلة|[11,*] :count سؤالاً', $discussions->total(), ['count' => $discussions->total()])" />
@@ -74,7 +73,6 @@
             </div>
         @endif
     @endif
-</main>
+</div>
 
-<x-site.footer />
-</x-layouts.app>
+</x-layouts.student>

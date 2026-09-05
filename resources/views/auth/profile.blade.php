@@ -1,7 +1,6 @@
-<x-layouts.app :title="__('حسابي')">
-<x-site.header />
+<x-layouts.student :title="__('حسابي')" current="account">
 
-<main id="main" class="max-w-[760px] mx-auto px-4 sm:px-6 py-8">
+<div>
 
     <x-ui.page-header :title="__('حسابي')" :subtitle="$user->email" />
 
@@ -189,7 +188,6 @@
             </form>
         </section>
     @endif
-</main>
+</div>
 
-<x-site.footer />
-</x-layouts.app>
+</x-layouts.student>

@@ -1,7 +1,6 @@
-<x-layouts.app :title="__('كورساتي')">
-<x-site.header />
+<x-layouts.student :title="__('كورساتي')" current="my-courses">
 
-<main id="main" class="max-w-[1200px] mx-auto px-4 sm:px-6 py-8">
+<div>
 
     <x-ui.page-header :title="__('كورساتي')" :subtitle="__('ما تتعلّمه الآن، وما أنهيته، وشهاداتك.')" />
 
@@ -87,7 +86,6 @@
             </x-ui.card>
         </section>
     @endif
-</main>
+</div>
 
-<x-site.footer />
-</x-layouts.app>
+</x-layouts.student>

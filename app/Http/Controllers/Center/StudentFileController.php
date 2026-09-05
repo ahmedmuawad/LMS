@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Center;
 
+use App\Core\Auth\StudentInvite;
 use App\Models\User;
 use App\Modules\Center\Actions\MonthlyReport;
 use App\Modules\Center\Models\Grade;
@@ -24,6 +25,35 @@ use Illuminate\View\View;
 final class StudentFileController
 {
     public function __construct(private readonly MonthlyReport $report) {}
+
+    /**
+     * إعادة إرسال دعوة الدخول.
+     *
+     * الطلبة المُنشأون قبل هذا الإصلاح بلا كلمة مرور يعرفها أحد،
+     * ومن ضاعت دعوته يحتاج بديلاً — فالزرّ يُنشئ رابطاً جديداً
+     * ويُبطل القديم.
+     */
+    public function invite(Request $request, string $id, StudentInvite $invite): RedirectResponse
+    {
+        $student = Student::findOrFail($id);
+        $account = $student->user;
+
+        abort_if($account === null, 404, __('هذا الطالب بلا حساب دخول.'));
+
+        $link = $invite->linkFor($account);
+
+        if ($invite->reachable($account)) {
+            notify('account.reset_password', $account, [
+                'reset_url' => $link,
+                'expires_in' => __(':n يوماً', ['n' => StudentInvite::DAYS]),
+                'url' => url('/login'),
+            ]);
+        }
+
+        return back()
+            ->with('invite_link', $link)
+            ->with('invite_sent', $invite->reachable($account));
+    }
 
     public function show(Request $request, string $id): View
     {
@@ -118,10 +148,34 @@ final class StudentFileController
             return $student;
         });
 
+        /*
+         | الدعوة تُنشأ فوراً — حسابٌ بلا كلمة مرور حسابٌ لا يُدخَل.
+         |
+         | كانت تُولَّد كلمة مرور عشوائية لا يعرفها أحد ولا تُرسَل،
+         | فيسأل المدرّس: من أين آتي بكلمة مروره؟ ولا جواب.
+         |
+         | وتُرسَل بالبريد إن كان للطالب بريد حقيقي، ويُعرض الرابط
+         | للمدرّس على أي حال لينسخه إلى واتساب: كثيرٌ من الطلبة لا
+         | بريد لهم أو لا يفتحونه، والواتساب هو الطريق الذي يعمل.
+         */
+        $invite = app(StudentInvite::class);
+        $account = $student->user;
+        $link = $invite->linkFor($account);
+
+        if ($invite->reachable($account)) {
+            notify('account.reset_password', $account, [
+                'reset_url' => $link,
+                'expires_in' => __(':n يوماً', ['n' => StudentInvite::DAYS]),
+                'url' => url('/login'),
+            ]);
+        }
+
         return redirect(url('/admin/center-students/'.$student->getKey()))
             ->with('status', __('أُضيف :name بكود :code. سجّله الآن في مجموعة.', [
                 'name' => $input['name'], 'code' => $student->code,
-            ]));
+            ]))
+            ->with('invite_link', $link)
+            ->with('invite_sent', $invite->reachable($account));
     }
 
     /** التقرير الشهري كما يصل ولي الأمر. */

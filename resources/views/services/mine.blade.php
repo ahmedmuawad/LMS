@@ -1,7 +1,6 @@
-<x-layouts.app :title="__('حجوزاتي')">
-<x-site.header />
+<x-layouts.student :title="__('حجوزاتي')" current="bookings">
 
-<main id="main" class="max-w-[900px] mx-auto px-4 sm:px-6 py-8">
+<div>
 
     <x-ui.page-header :title="__('حجوزاتي')"
                       :subtitle="trans_choice('{0} لا حجوزات|{1} حجز واحد|{2} حجزان|[3,10] :count حجوزات|[11,*] :count حجزاً', $bookings->total(), ['count' => $bookings->total()])" />
@@ -56,7 +55,6 @@
             </div>
         @endif
     @endif
-</main>
+</div>
 
-<x-site.footer />
-</x-layouts.app>
+</x-layouts.student>

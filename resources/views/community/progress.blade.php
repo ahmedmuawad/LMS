@@ -1,7 +1,6 @@
-<x-layouts.app :title="__('تقدّمي')">
-<x-site.header />
+<x-layouts.student :title="__('تقدّمي')" current="progress">
 
-<main id="main" class="max-w-[900px] mx-auto px-4 sm:px-6 py-8">
+<div>
 
     <x-ui.page-header :title="__('تقدّمي')" :subtitle="__('نقاطك وشاراتك وأيامك المتتابعة.')">
         <x-slot:actions>
@@ -89,7 +88,6 @@
             @endif
         @endif
     </section>
-</main>
+</div>
 
-<x-site.footer />
-</x-layouts.app>
+</x-layouts.student>

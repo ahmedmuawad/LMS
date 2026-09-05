@@ -1,7 +1,6 @@
-<x-layouts.app :title="__('التوثيق بخطوتين')">
-<x-site.header />
+<x-layouts.student :title="__('التوثيق بخطوتين')" current="security">
 
-<main id="main" class="max-w-[760px] mx-auto px-4 sm:px-6 py-8">
+<div>
 
     <x-ui.page-header :title="__('التوثيق بخطوتين')"
                       :subtitle="__('طبقة ثانية: كلمة المرور وحدها لا تكفي لفتح حسابك.')"
@@ -125,7 +124,6 @@
             </div>
         @endif
     </section>
-</main>
+</div>
 
-<x-site.footer />
-</x-layouts.app>
+</x-layouts.student>

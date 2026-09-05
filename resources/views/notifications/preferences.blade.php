@@ -1,7 +1,6 @@
-<x-layouts.app :title="__('تفضيلات الإشعارات')">
-<x-site.header />
+<x-layouts.student :title="__('تفضيلات الإشعارات')" current="notifications">
 
-<main id="main" class="max-w-[900px] mx-auto px-4 sm:px-6 py-8">
+<div>
 
     <x-ui.page-header :title="__('تفضيلات الإشعارات')"
                       :subtitle="__('اختر ما يصلك وعلى أي قناة. الأحداث الأمنية لا تُطفأ.')"
@@ -107,7 +106,6 @@
             <x-ui.button type="submit" class="self-start">{{ __('حفظ التفضيلات') }}</x-ui.button>
         </form>
     @endif
-</main>
+</div>
 
-<x-site.footer />
-</x-layouts.app>
+</x-layouts.student>

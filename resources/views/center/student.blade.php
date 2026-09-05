@@ -13,10 +13,43 @@
             <x-ui.button size="sm" variant="secondary" :href="url('/admin/center-students/'.$student->id.'/report?period='.$period)">
                 {{ __('التقرير الشهري') }}
             </x-ui.button>
+
+            @if($student->user)
+                {{-- دعوة الدخول: بلا كلمة مرور يعرفها أحد، الحساب موجود ولا يُدخَل --}}
+                <form method="POST" action="{{ route('admin.center.student.invite', $student->id) }}">
+                    @csrf
+                    <x-ui.button type="submit" size="sm" variant="secondary">{{ __('رابط دخول الطالب') }}</x-ui.button>
+                </form>
+            @endif
         </x-slot:actions>
     </x-ui.page-header>
 
     @if(session('status'))<x-ui.alert tone="success" class="mb-4">{{ session('status') }}</x-ui.alert>@endif
+
+    {{--
+        رابط الدعوة يُعرض لينسخه المدرّس.
+        البريد يُرسَل، لكن كثيراً من الطلبة لا بريد لهم أو لا
+        يفتحونه — والواتساب هو الطريق الذي يعمل فعلاً.
+    --}}
+    @if(session('invite_link'))
+        <x-ui.alert tone="info" :title="__('رابط تعيين كلمة المرور')" class="mb-4">
+            <p class="text-sm mb-3">
+                {{ session('invite_sent')
+                    ? __('أُرسل الرابط إلى بريد الطالب. وهذه نسخةٌ منه أرسلها في واتساب إن لم يصله البريد — صالح :n يوماً.', ['n' => App\Core\Auth\StudentInvite::DAYS])
+                    : __('لا بريد لهذا الطالب، فأرسل له هذا الرابط ليضع كلمة مروره — صالح :n يوماً.', ['n' => App\Core\Auth\StudentInvite::DAYS]) }}
+            </p>
+
+            <div x-data="{ copied: false }" class="flex flex-wrap items-center gap-2">
+                <code class="min-w-0 flex-1 text-2xs font-mono break-all bg-surface-sunken rounded-md px-3 py-2"
+                      x-ref="link">{{ session('invite_link') }}</code>
+
+                <x-ui.button type="button" size="sm" variant="secondary"
+                             x-on:click="navigator.clipboard.writeText($refs.link.textContent.trim()); copied = true; setTimeout(() => copied = false, 2000)">
+                    <span x-text="copied ? '{{ __('نُسخ') }}' : '{{ __('انسخ') }}'"></span>
+                </x-ui.button>
+            </div>
+        </x-ui.alert>
+    @endif
 
     <div class="grid gap-4 sm:grid-cols-3 mb-6">
         <x-ui.stat :label="__('نسبة الحضور')"

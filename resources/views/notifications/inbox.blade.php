@@ -1,7 +1,6 @@
-<x-layouts.app :title="__('الإشعارات')">
-<x-site.header />
+<x-layouts.student :title="__('الإشعارات')" current="notifications">
 
-<main id="main" class="max-w-[760px] mx-auto px-4 sm:px-6 py-8">
+<div>
 
     <x-ui.page-header :title="__('الإشعارات')"
                       :subtitle="trans_choice('{0} لا جديد|{1} إشعار واحد غير مقروء|{2} إشعاران غير مقروءين|[3,10] :count إشعارات غير مقروءة|[11,*] :count إشعاراً غير مقروء', $unread, ['count' => $unread])">
@@ -76,7 +75,6 @@
     <p class="text-center mt-6">
         <a href="{{ url('/account/notifications') }}" class="tap-link text-sm text-primary font-semibold">{{ __('إدارة إشعاراتك') }}</a>
     </p>
-</main>
+</div>
 
-<x-site.footer />
-</x-layouts.app>
+</x-layouts.student>
