@@ -37,6 +37,18 @@
      | اليوم مرة أخرى عند كل إعادة مشاهدة.
      */
     $me = auth()->user();
+
+    /*
+     | الفصول والنصّ — يُقرآن مرّةً هنا لا في كل موضع.
+     */
+    $chapters = $lesson->type === 'video'
+        ? App\Modules\Lms\Models\LessonChapter::where('lesson_id', $lesson->getKey())
+            ->orderBy('at_second')->get()
+        : collect();
+
+    $transcript = is_array($lesson->transcript)
+        ? trim((string) ($lesson->transcript[app()->getLocale()] ?? $lesson->transcript['ar'] ?? ''))
+        : trim((string) ($lesson->transcript ?? ''));
     $moments = $me === null ? collect() : App\Modules\Lms\Models\VideoMoment::where('lesson_id', $lesson->getKey())
         ->with(['question', 'responses' => fn ($q) => $q->where('user_id', $me->getKey())])
         ->orderBy('at_second')
@@ -250,6 +262,89 @@
         </div>
     @endif
 
+    @if($chapters->isNotEmpty() || $transcript !== '')
+        <div x-data="{ tab: '{{ $chapters->isNotEmpty() ? 'chapters' : 'text' }}', q: '' }">
+            <x-ui.card :padding="false">
+                {{--
+                    الفصول والنصّ في بطاقةٍ واحدة بلسانين.
+                    كلاهما يجيب سؤالاً واحداً: «أين ذلك الموضع؟» —
+                    وبطاقتان تجعلان الطالب يقرأ إحداهما.
+                --}}
+                <div class="flex gap-1 p-2 border-b border-line">
+                    @if($chapters->isNotEmpty())
+                        <button type="button" @click="tab = 'chapters'"
+                                class="px-3 py-2 rounded-md text-sm font-semibold transition-colors"
+                                :class="tab === 'chapters' ? 'bg-primary text-primary-on' : 'hover:bg-surface-sunken'">
+                            {{ __('الفصول') }}
+                            <span class="font-mono text-2xs opacity-70">{{ $chapters->count() }}</span>
+                        </button>
+                    @endif
+
+                    @if($transcript !== '')
+                        <button type="button" @click="tab = 'text'"
+                                class="px-3 py-2 rounded-md text-sm font-semibold transition-colors"
+                                :class="tab === 'text' ? 'bg-primary text-primary-on' : 'hover:bg-surface-sunken'">
+                            {{ __('النصّ المكتوب') }}
+                        </button>
+                    @endif
+                </div>
+
+                @if($chapters->isNotEmpty())
+                    <div x-show="tab === 'chapters'" class="p-2 max-h-[320px] overflow-y-auto">
+                        @foreach($chapters as $chapter)
+                            <button type="button" data-seek="{{ $chapter->at_second }}"
+                                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-start
+                                           hover:bg-surface-sunken transition-colors min-h-11">
+                                <span class="font-mono text-xs tabular text-primary shrink-0">{{ $chapter->timeLabel() }}</span>
+                                <span class="min-w-0 flex-1 text-sm truncate">{{ $chapter->title }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+                @endif
+
+                @if($transcript !== '')
+                    <div x-show="tab === 'text'" x-cloak class="p-4">
+                        <label class="sr-only" for="transcript-search">{{ __('ابحث في النصّ') }}</label>
+                        <x-ui.input id="transcript-search" x-model="q" class="mb-3"
+                                    :placeholder="__('ابحث في النصّ…')" autocomplete="off" />
+
+                        <div class="max-h-[360px] overflow-y-auto grid gap-1.5 leading-relaxed text-sm">
+                            @foreach(preg_split('/
+
+|
+|
+/', $transcript) as $line)
+                                @php
+                                    $line = trim($line);
+                                    $seek = preg_match('/^(?:(\d+):)?(\d{1,2}):(\d{1,2})\s+(.*)$/u', $line, $m)
+                                        ? ((int) ($m[1] ?? 0)) * 3600 + ((int) $m[2]) * 60 + (int) $m[3]
+                                        : null;
+                                @endphp
+
+                                @continue($line === '')
+
+                                @if($seek !== null)
+                                    {{-- السطر الموقّت يقفز بالفيديو إليه --}}
+                                    <button type="button" data-seek="{{ $seek }}"
+                                            x-show="q === '' || @js($m[4]).includes(q)"
+                                            class="flex items-start gap-3 text-start rounded-md px-2 py-1.5
+                                                   hover:bg-surface-sunken transition-colors">
+                                        <span class="font-mono text-2xs tabular text-primary shrink-0 pt-0.5">
+                                            {{ preg_replace('/\s.*$/u', '', $line) }}
+                                        </span>
+                                        <span class="min-w-0">{{ $m[4] }}</span>
+                                    </button>
+                                @else
+                                    <p class="px-2 text-muted" x-show="q === '' || @js($line).includes(q)">{{ $line }}</p>
+                                @endif
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            </x-ui.card>
+        </div>
+    @endif
+
     @if($lesson->content)
         <x-ui.card :title="$lesson->title">
             <div class="leading-relaxed whitespace-pre-line text-muted">{{ $lesson->content }}</div>
@@ -346,6 +441,23 @@
 @once
     @push('scripts')
     <script>
+        /* القفز إلى فصلٍ أو سطرٍ موقّت.
+           والتفويض على المستند: الألسنة تُبنى وتُخفى، ومستمعٌ لكل
+           زرٍّ عند التحميل يفوته ما ظهر بعده. */
+        document.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-seek]');
+
+            if (!button) return;
+
+            const video = document.querySelector('video');
+
+            if (!video) return;
+
+            video.currentTime = Number(button.dataset.seek) || 0;
+            video.play().catch(() => {});
+            video.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+
         /* الوسم يتنقّل بين تسع مواضع كل عشرين ثانية.
            الثابت في زاوية يُقصّ، والمتنقّل يأكل قصُّه الصورة. */
         document.querySelectorAll('[data-watermark]').forEach((mark) => {

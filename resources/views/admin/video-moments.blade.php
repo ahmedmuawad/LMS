@@ -3,7 +3,14 @@
 
     <x-ui.page-header :title="__('نقاط التفاعل: :lesson', ['lesson' => $lesson->title])"
                       :subtitle="__('سؤالٌ في منتصف الفيديو يكشف الفهم في ثانيته، لا في امتحان آخر الوحدة.')"
-                      :back="url('/admin/lessons/'.$lesson->getKey().'/edit')" />
+                      :back="url('/admin/lessons/'.$lesson->getKey().'/edit')">
+        <x-slot:actions>
+            <x-ui.button size="sm" variant="ghost"
+                         :href="url('/admin/lessons/'.$lesson->getKey().'/chapters')">
+                {{ __('الفصول والنصّ') }}
+            </x-ui.button>
+        </x-slot:actions>
+    </x-ui.page-header>
 
     @if(session('status'))<x-ui.alert tone="success" class="mb-5">{{ session('status') }}</x-ui.alert>@endif
     @error('question_id')<x-ui.alert tone="danger" class="mb-5">{{ $message }}</x-ui.alert>@enderror

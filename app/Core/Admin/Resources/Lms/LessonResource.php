@@ -74,7 +74,7 @@ final class LessonResource extends Resource
             ? [
                 'url' => url('/admin/lessons/'.$record->getKey().'/moments'),
                 'label' => __('نقاط التفاعل'),
-                'hint' => __('ضع سؤالاً عند الدقيقة التي تشرح فيها أصعب فكرة — هناك يظهر من فهم.'),
+                'hint' => __('ضع سؤالاً عند الدقيقة التي تشرح فيها أصعب فكرة — هناك يظهر من فهم. ومن الشاشة نفسها تصل إلى فصول الفيديو ونصّه.'),
             ]
             : [
                 'url' => url('/admin/lessons/'.$record->getKey().'/attachments'),

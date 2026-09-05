@@ -53,6 +53,7 @@ use App\Http\Controllers\Lms\AssignmentController;
 use App\Http\Controllers\Lms\AttachmentController;
 use App\Http\Controllers\Lms\CatalogController;
 use App\Http\Controllers\Lms\CertificateController;
+use App\Http\Controllers\Lms\ChapterController;
 use App\Http\Controllers\Lms\CurriculumController;
 use App\Http\Controllers\Lms\GradebookController;
 use App\Http\Controllers\Lms\GradingController;
@@ -747,6 +748,22 @@ $tenantRoutes = function (): void {
                     Route::get('/', [LearningRuleController::class, 'index'])->name('index');
                     Route::post('/', [LearningRuleController::class, 'store'])->name('store');
                     Route::delete('/{id}', [LearningRuleController::class, 'destroy'])->whereNumber('id')->name('destroy');
+                });
+
+            /*
+             | فصول الفيديو ونصّه المكتوب.
+             |
+             | مع نقاط التفاعل في الميزة نفسها: كلاهما يخدم من يبحث
+             | عن موضعٍ بعينه في محاضرةٍ طويلة.
+             */
+            Route::prefix('admin/lessons/{lesson}')->whereNumber('lesson')
+                ->middleware('feature:interactive_video')
+                ->name('admin.lessons.chapters.')->group(function (): void {
+                    Route::get('/chapters', [ChapterController::class, 'index'])->name('index');
+                    Route::post('/chapters', [ChapterController::class, 'store'])->name('store');
+                    Route::delete('/chapters/{id}', [ChapterController::class, 'destroy'])
+                        ->whereNumber('id')->name('destroy');
+                    Route::put('/transcript', [ChapterController::class, 'transcript'])->name('transcript');
                 });
 
             Route::prefix('admin/lessons/{lesson}/moments')->whereNumber('lesson')
