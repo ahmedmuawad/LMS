@@ -1,6 +1,24 @@
 @php
     use App\Modules\Center\Models\Attendance;
     $tones = ['present' => 'success', 'absent' => 'danger', 'late' => 'warning', 'excused' => 'info', 'online' => 'primary'];
+
+    /*
+     | أصناف الحالة المحدَّدة مكتوبةً بحروفها كاملة.
+     |
+     | كانت تُركَّب: `'peer-checked:bg-'.$tone.'-subtle'`. وTailwind
+     | لا يولّد إلا ما يجده نصّاً حرفياً في الملفات، فلم تُولَّد أيٌّ
+     | منها — والراديو `sr-only` مخفيّ. فكان المدرّس ينقر «غائب»
+     | فلا يتغيّر شيء أمامه، ويظنّ الشاشة معطّلة وهي تسجّل اختياره.
+     |
+     | ولذلك تُكتب هنا صريحةً، ولا تُركَّب من متغيّر أبداً.
+     */
+    $checkedClasses = [
+        'present' => 'peer-checked:bg-success-subtle peer-checked:text-success peer-checked:border-success',
+        'absent' => 'peer-checked:bg-danger-subtle peer-checked:text-danger peer-checked:border-danger',
+        'late' => 'peer-checked:bg-warning-subtle peer-checked:text-warning peer-checked:border-warning',
+        'excused' => 'peer-checked:bg-info-subtle peer-checked:text-info peer-checked:border-info',
+        'online' => 'peer-checked:bg-primary-subtle peer-checked:text-primary peer-checked:border-primary',
+    ];
 @endphp
 
 <x-layouts.admin :title="__('حضور :group', ['group' => $session->group?->name])" current="attendance">
@@ -38,7 +56,24 @@
                     </x-ui.empty>
                 </div>
             @else
-                <ul class="divide-y divide-[var(--color-line)]">
+                @php $open = App\Modules\Center\Actions\TakeAttendance::isOpenFor($session); @endphp
+
+                {{--
+                    الكشف مقفول قبل موعده.
+                    عرضُ أزرارٍ تُرفض عند الحفظ يجعل المدرّس يعلّم كشفاً
+                    كاملاً ثم يخسره — والمنع يُقال قبل العمل لا بعده.
+                --}}
+                @unless($open)
+                    <div class="p-4">
+                        <x-ui.alert tone="info" :title="__('لم تبدأ هذه الحصة بعد')">
+                            {{ __('يُفتح كشف الحضور قبل الموعد بنصف ساعة. موعدها: :when.', [
+                                'when' => $session->date?->copy()->setTimeFromTimeString((string) $session->starts_at)?->translatedFormat('l j F · g:i a'),
+                            ]) }}
+                        </x-ui.alert>
+                    </div>
+                @endunless
+
+                <ul @class(['divide-y divide-[var(--color-line)]', 'opacity-50 pointer-events-none' => ! $open])>
                     @foreach($students as $student)
                         @php $current = $existing[$student->id] ?? 'present'; @endphp
                         <li class="p-3 sm:p-4 flex flex-wrap items-center gap-3"
@@ -57,13 +92,10 @@
                                     <label class="cursor-pointer">
                                         <input type="radio" name="status[{{ $student->id }}]" value="{{ $value }}"
                                                @checked($current === $value) class="peer sr-only">
-                                        <span @class([
-                                            'block px-3 py-2 rounded-md text-xs font-semibold border transition-colors select-none',
-                                            'border-line-strong text-muted hover:bg-surface-sunken',
-                                            'peer-checked:bg-'.$tones[$value].'-subtle',
-                                            'peer-checked:text-'.$tones[$value],
-                                            'peer-checked:border-'.$tones[$value],
-                                        ])>{{ __($label) }}</span>
+                                        <span class="block min-h-11 px-3 py-2 rounded-md text-xs font-semibold
+                                                     border border-line-strong text-muted select-none
+                                                     transition-colors hover:bg-surface-sunken
+                                                     grid place-items-center {{ $checkedClasses[$value] }}">{{ __($label) }}</span>
                                     </label>
                                 @endforeach
                             </div>
@@ -75,7 +107,7 @@
 
         <div class="sticky bottom-0 -mx-4 sm:-mx-6 mt-4 px-4 sm:px-6 py-3 bg-surface/95 backdrop-blur border-t border-line
                     flex flex-wrap items-center gap-3">
-            <x-ui.button type="submit" size="lg">{{ __('حفظ الكشف') }}</x-ui.button>
+            <x-ui.button type="submit" size="lg" :disabled="! $open">{{ __('حفظ الكشف') }}</x-ui.button>
             <p class="text-2xs text-subtle">
                 {{ __('سيُخطَر أولياء أمور الغائبين إن كان الإشعار مفعّلاً.') }}
             </p>

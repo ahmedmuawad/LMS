@@ -199,6 +199,21 @@ final class GroupResource extends Resource
                 SelectField::make('price_type')->label(__('نوع التسعير'))->half()
                     ->options(array_map(fn (string $l): string => __($l), Group::PRICE_TYPES))
                     ->default('monthly'),
+
+                /*
+                 | توقيت التحصيل يقرّر متى يُقيَّد الدَّين على الطالب.
+                 |
+                 | المقدَّم يُقيَّد لحظة تسجيله فيعرف كم عليه من أول
+                 | يوم؛ والمؤخَّر يُقيَّد آخر الشهر. وبلا هذا الحقل كان
+                 | التسجيل لا يُنشئ شيئاً، فيقرأ المدرّس «المستحق عليه
+                 | ٠٫٠٠» لطالبٍ مدين.
+                 */
+                SelectField::make('billing_timing')->label(__('توقيت التحصيل'))->half()
+                    ->options([
+                        'prepaid' => __('مقدَّم — يُقيَّد القسط فور التسجيل'),
+                        'postpaid' => __('مؤخَّر — يُقيَّد آخر الشهر'),
+                    ])->default('prepaid')
+                    ->hint(__('المقدَّم يجعل الطالب يعرف ما عليه من أول يوم.')),
             ]),
 
             Section::make(__('المدة والحالة'))->fields([

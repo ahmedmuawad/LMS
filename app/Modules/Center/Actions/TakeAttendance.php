@@ -26,8 +26,18 @@ final class TakeAttendance
      * @param  array<int, string>  $statuses  معرّف الطالب ← الحالة
      * @return array{present:int, absent:int, late:int, excused:int, online:int}
      */
+    /**
+     * كم دقيقة قبل الموعد يُفتح الكشف.
+     *
+     * المدرّس يُعلّم على الباب قبل أن يبدأ، فالمنع حتى الدقيقة صفر
+     * يجعله يسجّل من ذاكرته بعد الحصة — وهذا أسوأ من الفتح المبكر.
+     */
+    private const OPENS_BEFORE = 30;
+
     public function handle(Session $session, array $statuses, ?User $recorder = null, string $method = 'manual'): array
     {
+        $this->assertStarted($session);
+
         $students = CenterEnrollment::where('group_id', $session->group_id)
             ->active()
             ->pluck('student_id');
@@ -180,5 +190,41 @@ final class TakeAttendance
         }
 
         return round($counted->filter(fn (Attendance $a): bool => $a->countsAsPresent())->count() / $counted->count() * 100, 1);
+    }
+
+    /**
+     * لا يُسجَّل حضور حصةٍ لم تبدأ.
+     *
+     * الحصص تُولَّد للترم كلّه دفعةً واحدة، فتظهر أمام المدرّس حصص
+     * الشهر القادم بأزرارها كاملة. وقد سجّل مشتركٌ حضور حصّتين في
+     * ١٢ و١٩ سبتمبر ولم تُعقد أيّهما، ثم قرأ في ملفّ طالبه «حضر ٢»
+     * فظنّ النظام يعدّ مرّتين — والعدّ صحيح، والخطأ أنّه سُمح له
+     * أصلاً بتسجيل ما لم يقع.
+     *
+     * والغياب أخطر من الحضور هنا: كشفٌ مبكّر يُعلّم الجميع حاضرين
+     * ثم لا يُراجَع، فيضيع الغياب الحقيقي ويضيع معه إخطار وليّ الأمر.
+     *
+     * @throws RuntimeException
+     */
+    private function assertStarted(Session $session): void
+    {
+        $start = $session->date?->copy()->setTimeFromTimeString((string) $session->starts_at);
+
+        if ($start === null || $start->copy()->subMinutes(self::OPENS_BEFORE)->isPast()) {
+            return;
+        }
+
+        throw new RuntimeException(__('لم تبدأ هذه الحصة بعد. يُفتح كشف الحضور قبل موعدها بـ :minutes دقيقة — موعدها :when.', [
+            'minutes' => self::OPENS_BEFORE,
+            'when' => $start->translatedFormat('l j F · g:i a'),
+        ]));
+    }
+
+    /** هل يُفتح كشف هذه الحصة الآن؟ — للواجهة، فلا تعرض زرّاً يُرفض */
+    public static function isOpenFor(Session $session): bool
+    {
+        $start = $session->date?->copy()->setTimeFromTimeString((string) $session->starts_at);
+
+        return $start === null || $start->copy()->subMinutes(self::OPENS_BEFORE)->isPast();
     }
 }

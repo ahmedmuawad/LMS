@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Center\Actions;
 
+use App\Modules\Center\Models\CenterEnrollment;
 use App\Modules\Center\Models\FeePlan;
 use App\Modules\Center\Models\Group;
 use App\Modules\Center\Models\Invoice;
@@ -18,6 +19,57 @@ use Illuminate\Support\Facades\DB;
  */
 final class IssueInvoices
 {
+    /**
+     * فاتورة تسجيلٍ واحد — تُستدعى لحظة التسجيل لا في دورةٍ شهرية.
+     *
+     * تُعيد الفاتورة القائمة إن وُجدت لهذه الفترة: تسجيلٌ يُعاد
+     * تفعيله بعد انقطاع لا يُنشئ قسطاً ثانياً لنفس الشهر.
+     */
+    public function forEnrolment(CenterEnrollment $enrolment, ?string $period = null): ?Invoice
+    {
+        $period ??= now()->format('Y-m');
+
+        $existing = Invoice::where('enrollment_id', $enrolment->getKey())
+            ->where('period', $period)
+            ->first();
+
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        $net = $enrolment->netPrice();
+
+        if ($net->isZero()) {
+            return null;
+        }
+
+        $plan = FeePlan::where('group_id', $enrolment->group_id)->where('is_active', true)->first();
+        $dueDay = (int) ($plan?->due_day ?? 1);
+
+        /*
+         | المقدَّم يُستحقّ اليوم لا أول الشهر.
+         |
+         | من سجّل في العشرين لا يُقال له إن قسطه كان مستحقّاً في
+         | الأول فصار متأخّراً قبل أن يبدأ.
+         */
+        $dueOn = Carbon::parse($period.'-01')->day(min($dueDay, 28));
+        $dueOn = $dueOn->isPast() ? now() : $dueOn;
+
+        return Invoice::create([
+            'number' => InvoiceNumber::next(),
+            'student_id' => $enrolment->student_id,
+            'group_id' => $enrolment->group_id,
+            'enrollment_id' => $enrolment->getKey(),
+            'period' => $period,
+            'currency' => $net->currency,
+            'amount_minor' => (int) $enrolment->price_minor,
+            'discount_minor' => (int) $enrolment->discount_minor,
+            'total_minor' => $net->minor,
+            'due_on' => $dueOn->toDateString(),
+            'status' => 'unpaid',
+        ]);
+    }
+
     /** @return array{issued:int, skipped:int} */
     public function handle(Group $group, ?string $period = null): array
     {

@@ -63,6 +63,21 @@ final class EnrolStudent
                 'enrolled_count' => CenterEnrollment::where('group_id', $fresh->getKey())->active()->count(),
             ])->save();
 
+            /*
+             | المقدَّم يُقيَّد الآن، والمؤخَّر تُصدره الدورة آخر الشهر.
+             |
+             | كان الطالب يُسجَّل فلا يُقيَّد عليه شيء، ويفتح المدرّس
+             | ملفّه فيجد «المستحق عليه ٠٫٠٠» وهو مدينٌ بقسط الشهر —
+             | لأن إصدار الفواتير أمرٌ منفصل على المجموعة كلّها، وقلّ
+             | من يعرفه. والتسجيل هو لحظة نشوء الدَّين، فهو موضعه.
+             |
+             | ولا يُصدَر شيء لمجموعة مجانية: فاتورةٌ بصفر ضجيجٌ في
+             | كشف حساب الطالب.
+             */
+            if ($fresh->billing_timing !== 'postpaid' && ! $enrollment->netPrice()->isZero()) {
+                app(IssueInvoices::class)->forEnrolment($enrollment->fresh());
+            }
+
             return $enrollment;
         });
     }

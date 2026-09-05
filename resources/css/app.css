@@ -16,6 +16,12 @@
 @source inline("text-{progress,completed,locked,live,attended,absent,late,excused,paid,due,overdue}");
 @source inline("border-{primary,accent,success,warning,danger,info}");
 
+/* حالات الاختيار: الراديو مخفيّ والصنف هو ما يُظهر الاختيار.
+   بلا هذه الأسطر يبدو كشف الحضور معطّلاً — تُنقر الحالة ولا يتغيّر شيء. */
+@source inline("peer-checked:bg-{primary,accent,success,warning,danger,info}-subtle");
+@source inline("peer-checked:text-{primary,accent,success,warning,danger,info}");
+@source inline("peer-checked:border-{primary,accent,success,warning,danger,info}");
+
 /* =========================================================
    ربط الطبقة الدلالية بأدوات Tailwind
    `inline` تجعل الأدوات تشير للمتغيّر نفسه لا لقيمته،

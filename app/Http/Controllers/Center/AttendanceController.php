@@ -66,11 +66,15 @@ final class AttendanceController
             'status.*' => ['string', 'in:'.implode(',', array_keys(Attendance::STATUSES))],
         ]);
 
-        $summary = $this->attendance->handle(
-            $session,
-            $input['status'] ?? [],
-            $request->user(),
-        );
+        try {
+            $summary = $this->attendance->handle(
+                $session,
+                $input['status'] ?? [],
+                $request->user(),
+            );
+        } catch (RuntimeException $e) {
+            return back()->withErrors(['session' => $e->getMessage()]);
+        }
 
         return redirect(url('/admin/attendance?date='.$session->date->toDateString()))
             ->with('status', __('سُجّل الحضور: :present حاضر · :absent غائب.', [
