@@ -31,7 +31,8 @@ beforeEach(function (): void {
         'group_id' => $this->group->id,
         'student_id' => $this->student->id,
         'status' => 'active',
-        'started_at' => now()->toDateString(),
+        'currency' => (string) (tenant('currency') ?? 'EGP'),
+        'starts_at' => now()->toDateString(),
     ]);
 });
 

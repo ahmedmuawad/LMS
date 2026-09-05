@@ -251,11 +251,16 @@ final class SeedDemoTenant extends Command
             app(IssueInvoices::class)->handle($group, now()->format('Y-m'));
         }
 
-        // حضور الحصص الماضية
-        foreach (CenterSession::whereDate('date', '<', now())->get() as $session) {
+        /*
+         | حضور الحصص الماضية — والمجموعة تُحمَّل مع الحصص.
+         |
+         | `$session->group` داخل الحلقة تحميلٌ كسول، ومنعُه يُسقط
+         | البذرة في آخرها فيُنشأ المشترك التجريبي ناقصاً.
+         */
+        foreach (CenterSession::with('group')->whereDate('date', '<', now())->get() as $session) {
             $statuses = [];
 
-            foreach ($session->group->enrollments()->active()->pluck('student_id') as $studentId) {
+            foreach ($session->group?->enrollments()->active()->pluck('student_id') ?? [] as $studentId) {
                 $statuses[$studentId] = random_int(1, 10) > 8 ? 'absent' : 'present';
             }
 
@@ -263,7 +268,7 @@ final class SeedDemoTenant extends Command
         }
 
         // بعض التحصيل حتى تظهر الخزنة والمتأخرات معاً
-        foreach (CenterInvoice::limit(4)->get() as $invoice) {
+        foreach (CenterInvoice::with('student')->limit(4)->get() as $invoice) {
             app(CollectPayment::class)->handle(
                 $invoice->student,
                 $invoice->total(),
