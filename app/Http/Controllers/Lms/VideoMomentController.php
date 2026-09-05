@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Lms;
 
 use App\Core\Access\Ability;
+use App\Modules\Lms\Models\Enrollment;
 use App\Modules\Lms\Models\Lesson;
 use App\Modules\Lms\Models\Question;
 use App\Modules\Lms\Models\VideoMoment;
@@ -98,6 +99,15 @@ final class VideoMomentController
     {
         $moment = VideoMoment::with('question')->findOrFail($momentId);
 
+        /*
+         | التسجيل شرطٌ قبل أن نردّ بشيء.
+         |
+         | الردّ يحمل الإجابة الصحيحة، فبلا هذا الفحص يستطيع أي
+         | مستخدمٍ أن يمرّ على المعرّفات واحداً واحداً فيستخرج إجابات
+         | كل الكورسات — بما فيها ما لم يشترِه.
+         */
+        $this->assertEnrolled($request, $moment);
+
         $input = $request->validate(['answer' => ['required', 'string', 'max:2000']]);
 
         $correct = $moment->question?->correct;
@@ -113,6 +123,33 @@ final class VideoMomentController
             'expected' => $isCorrect === false ? $correct : null,
             'explanation' => $moment->question?->explanation,
         ]);
+    }
+
+    /**
+     * هل هذا المستخدم مسجَّل في كورسٍ يضمّ درس هذه النقطة؟
+     *
+     * ومن يملك إدارة الدروس يمرّ: من يضع السؤال يجرّبه.
+     */
+    private function assertEnrolled(Request $request, VideoMoment $moment): void
+    {
+        $user = $request->user();
+
+        abort_if($user === null, 403);
+
+        if ($user->allows(Ability::LESSONS_MANAGE)) {
+            return;
+        }
+
+        $courseIds = $moment->lesson?->items()->pluck('course_id')->filter()->unique() ?? collect();
+
+        abort_if($courseIds->isEmpty(), 403);
+
+        $enrolled = Enrollment::where('user_id', $user->getKey())
+            ->whereIn('course_id', $courseIds)
+            ->get()
+            ->contains(fn (Enrollment $e): bool => $e->hasAccess());
+
+        abort_unless($enrolled, 403, __('سجّل في الكورس أولاً.'));
     }
 
     private function matches(string $given, mixed $correct): bool

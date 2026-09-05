@@ -45,7 +45,50 @@ final class BrandCss
             $declarations[] = '--radius-lg: '.($radius === 'full' ? '999px' : $value);
         }
 
-        return $declarations === [] ? '' : ':root{'.implode(';', $declarations).'}';
+        $root = $declarations === [] ? '' : ':root{'.implode(';', $declarations).'}';
+
+        return $root.$this->customCss();
+    }
+
+    /**
+     * CSS المشترك — كان يُحفَظ في الإعدادات ولا يُعرض إطلاقاً.
+     *
+     * ميزةٌ مُعلَنة في الباقات ومكتوبةٌ في شاشة المظهر، ولا سطر
+     * منها يصل الصفحة: يكتب المشترك تخصيصه ويحفظه ولا يتغيّر شيء،
+     * فيظنّ الحقل معطّلاً.
+     *
+     * ## والتعقيم ليس اختيارياً
+     *
+     * الكتلة تُطبَع داخل `<style>`، فنصٌّ فيه `</style><script>`
+     * يخرج من الوسم ويصير جافاسكربت يعمل عند كل زائر. وهذا خطرٌ
+     * حقيقي: موظّفٌ بصلاحية المظهر يستطيع أن يسرق جلسات طلبة
+     * صاحب المنصة.
+     *
+     * فيُمنع كل ما يفتح وسماً أو يستدعي شبكة: `<`, `</style`,
+     * `javascript:`, `expression(`, `@import`, `url(` — وآخرها
+     * يمنع تسريب زيارات الطلبة إلى خادمٍ خارجي بصورة خلفية.
+     */
+    private function customCss(): string
+    {
+        if (! (tenant()?->allows('custom_css') ?? false)) {
+            return '';
+        }
+
+        $css = trim((string) setting('appearance.custom_css'));
+
+        if ($css === '') {
+            return '';
+        }
+
+        $forbidden = ['<', '>', 'javascript:', 'expression(', '@import', 'url(', 'behavior:'];
+
+        foreach ($forbidden as $needle) {
+            if (mb_stripos($css, $needle) !== false) {
+                return '';
+            }
+        }
+
+        return mb_substr($css, 0, 20_000);
     }
 
     /** الوضع الافتراضي الذي يُطبَّق قبل أي اختيار من الزائر. */

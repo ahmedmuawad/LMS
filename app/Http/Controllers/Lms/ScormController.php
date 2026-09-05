@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Lms;
 
 use App\Core\Access\Ability;
+use App\Modules\Lms\Models\Enrollment;
 use App\Modules\Lms\Models\Lesson;
 use App\Modules\Lms\Models\ScormPackage;
 use App\Modules\Lms\Scorm\ScormPackager;
@@ -87,14 +88,29 @@ final class ScormController
     /**
      * حفظ حالة الطالب — يُنادى من جسر SCORM.
      *
-     * لا يُتحقّق من التسجيل هنا: الوصول إلى الدرس نفسه محروس، ومن
-     * وصل إلى الحزمة مرّ بذلك الحارس. والتحقّق مرتين يُبطئ نداءً
-     * يتكرّر كل دقيقة.
+     * والتسجيل يُفحص هنا وإن كان الدرس محروساً: النقطة تُنادى
+     * مباشرةً بمعرّفٍ في المسار، ومن مرّ عليها بلا تسجيل يكتب
+     * درجاتٍ في حزمةٍ لا يملكها — فيظهر في تقرير مدرّسٍ لا يعرفه.
      */
     public function state(Request $request, int $packageId): JsonResponse
     {
-        $package = ScormPackage::findOrFail($packageId);
-        $state = $package->stateFor($request->user());
+        $package = ScormPackage::with('lesson')->findOrFail($packageId);
+        $user = $request->user();
+
+        abort_if($user === null, 403);
+
+        if (! $user->allows(Ability::LESSONS_MANAGE)) {
+            $courseIds = $package->lesson?->items()->pluck('course_id')->filter()->unique() ?? collect();
+
+            $enrolled = $courseIds->isNotEmpty() && Enrollment::where('user_id', $user->getKey())
+                ->whereIn('course_id', $courseIds)
+                ->get()
+                ->contains(fn (Enrollment $e): bool => $e->hasAccess());
+
+            abort_unless($enrolled, 403);
+        }
+
+        $state = $package->stateFor($user);
 
         $input = $request->validate([
             'cmi' => ['nullable', 'array'],

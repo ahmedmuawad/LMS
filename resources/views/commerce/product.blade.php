@@ -27,11 +27,13 @@
             @endif
 
             @if($product->description)
-                <div class="grid gap-4 [&_p]:text-sm [&_p]:leading-loose [&_p]:text-muted
-                            [&_h2]:text-base [&_h2]:font-bold [&_h3]:text-sm [&_h3]:font-semibold
-                            [&_ul]:grid [&_ul]:gap-2 [&_ul]:ps-5 [&_ul]:list-disc [&_li]:text-sm [&_li]:text-muted">
-                    {!! $product->description !!}
-                </div>
+                {{--
+                    الوصف يُهرَب كبقيّة المشروع.
+                    طباعتُه خاماً تجعل موظّفاً بصلاحية المنتجات يزرع
+                    جافاسكربت يعمل عند كل زائر — وصفحة الكورس تُهرّبه
+                    منذ البداية، فلا معنى لأن يفترق المتجر عنها.
+                --}}
+                <div class="text-sm leading-loose text-muted whitespace-pre-line">{{ $product->description }}</div>
             @endif
         </div>
 
