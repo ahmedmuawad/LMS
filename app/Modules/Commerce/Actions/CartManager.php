@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Modules\Commerce\Actions;
 
+use App\Core\Commerce\TaxRates;
 use App\Core\Support\Money;
 use App\Modules\Commerce\Models\Cart;
 use App\Modules\Commerce\Models\CartItem;
 use App\Modules\Commerce\Models\Product;
 use App\Modules\Commerce\Models\ProductVariant;
+use App\Modules\Commerce\Models\ShippingZone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -109,7 +111,7 @@ final class CartManager
         $net = $subtotal->minus($discount);
 
         $shipping = $this->shippingFor($cart, $net);
-        $tax = $this->taxOn($net->plus($shipping));
+        $tax = $this->taxOn($net->plus($shipping), $this->countryFor($cart));
 
         return [
             'subtotal' => $subtotal,
@@ -126,6 +128,19 @@ final class CartManager
             return Money::zero($cart->currency);
         }
 
+        /*
+         | منطقةُ المشتري تسبق السعر الثابت.
+         |
+         | سعرٌ واحد للعالم يجعل الشحنة إلى الرياض بثمن الشحنة إلى
+         | المعادي: يخسر المشترك في البعيدة أو يُغالي في القريبة.
+         | ومن لم يُنشئ مناطق يبقى على سعره الثابت كما كان.
+         */
+        $zone = ShippingZone::forCountry($this->countryFor($cart));
+
+        if ($zone !== null) {
+            return $zone->costFor($net);
+        }
+
         $freeOver = (int) setting('commerce.free_shipping_over', 0);
 
         if ($freeOver > 0 && $net->minor >= $freeOver * 100) {
@@ -136,10 +151,21 @@ final class CartManager
     }
 
     /**
+     * بلد المشتري — وبلد المشترك احتياطاً.
+     *
+     * لا يُعرف حتى يُسأل عنه عند الدفع؛ وقبل ذلك يُفترَض بلد المنصّة،
+     * وهو صحيحٌ لأكثر المشترين. ويُعاد الحساب حين يختار بلده.
+     */
+    private function countryFor(Cart $cart): ?string
+    {
+        return $cart->country ?: (string) tenant('country');
+    }
+
+    /**
      * الضريبة تُحسب على الصافي بعد الخصم.
      * والسعر «الشامل» لا تُضاف إليه ضريبة فوقه — وإلا حُسبت مرتين.
      */
-    private function taxOn(Money $amount): Money
+    private function taxOn(Money $amount, ?string $country): Money
     {
         if (! setting('currency.tax_enabled', false)) {
             return Money::zero($amount->currency);
@@ -149,7 +175,15 @@ final class CartManager
             return Money::zero($amount->currency);
         }
 
-        return $amount->percentage((float) setting('currency.default_rate', 0));
+        /*
+         | النسبة من دولة المشتري لا من رقمٍ واحد.
+         |
+         | `countries` فيه `tax_rate` لكل دولة منذ البداية، وشاشةُ
+         | الإعدادات تَعِد به صراحةً — وكانت السلّة تقرأ الافتراضي
+         | وحده. فيُحسَب للسعودي ١٤٪ وضريبتُه ١٥٪، وللإماراتي ١٤٪
+         | وضريبتُه ٥٪ — مالٌ يُحصَّل باسم الضريبة ولا يُورَّد.
+         */
+        return $amount->percentage(app(TaxRates::class)->rateFor($country));
     }
 
     public function clear(Cart $cart): void

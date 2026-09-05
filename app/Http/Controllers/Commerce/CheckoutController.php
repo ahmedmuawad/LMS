@@ -12,6 +12,7 @@ use App\Modules\Commerce\Models\Order;
 use App\Modules\Commerce\Models\WalletTransaction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use RuntimeException;
 use Throwable;
@@ -33,14 +34,51 @@ final class CheckoutController
 
         $totals = $this->carts->totals($cart);
 
+        $country = $cart->country ?: (string) tenant('country');
+
         return view('commerce.checkout', [
             'cart' => $cart,
             'totals' => $totals,
-            'gateways' => $this->gateways->available($totals['total'], (string) tenant('country')),
+            'country' => $country,
+
+            /*
+             | قائمة الدول للاختيار.
+             |
+             | الضريبة والشحن كلاهما يتبع بلد المشتري؛ وبلا سؤالٍ عنه
+             | كان يُفترَض بلدُ المنصّة دائماً — فيُحسَب للسعودي ١٤٪
+             | المصرية بدل ١٥٪.
+             */
+            'countries' => $this->countries(),
+
+            'gateways' => $this->gateways->available($totals['total'], $country),
             'balance' => $request->user() === null
                 ? null
                 : WalletTransaction::balanceFor((int) $request->user()->getKey(), $cart->currency),
         ]);
+    }
+
+    /**
+     * الدول المتاحة — مرجعٌ مركزي لا جدولٌ لكل مشترك.
+     *
+     * @return array<string, string>
+     */
+    private function countries(): array
+    {
+        try {
+            return DB::connection(config('tenancy.database.central_connection', 'sqlite'))
+                ->table('countries')->orderBy('code')->get()
+                ->mapWithKeys(function (object $row): array {
+                    $name = json_decode((string) $row->name, true);
+                    $label = is_array($name)
+                        ? ($name[app()->getLocale()] ?? $name['ar'] ?? $row->code)
+                        : $row->name;
+
+                    return [$row->code => (string) $label];
+                })->all();
+        } catch (Throwable) {
+            // بلا جدول دول تبقى الشاشة تعمل ببلد المنصّة وحده
+            return [];
+        }
     }
 
     public function place(Request $request, PlaceOrder $placeOrder): RedirectResponse
@@ -59,6 +97,7 @@ final class CheckoutController
             'name' => ['nullable', 'string', 'max:120'],
             'phone' => ['nullable', 'string', 'max:32'],
             'notes' => ['nullable', 'string', 'max:1000'],
+            'country' => ['nullable', 'string', 'size:2'],
         ]);
 
         if ($request->user() === null && ! $guestAllowed) {
@@ -67,6 +106,19 @@ final class CheckoutController
 
         if (! $this->gateways->has($input['gateway'])) {
             return back()->withErrors(['gateway' => __('وسيلة دفع غير معروفة.')]);
+        }
+
+        /*
+         | بلد المشتري يُثبَّت على السلّة قبل حساب الإجمالي.
+         |
+         | و`PlaceOrder` يُعيد الحساب من السلّة، فلو كُتب في الطلب
+         | وحده لحُسبت الضريبة بالبلد القديم ثم كُتب البلد الجديد —
+         | فتظهر فاتورةٌ بنسبةٍ لا تطابق بلدها.
+         */
+        $country = $input['country'] ?? ($cart->country ?: (string) tenant('country'));
+
+        if ($cart->country !== $country) {
+            $cart->forceFill(['country' => $country])->save();
         }
 
         $gateway = $this->gateways->resolve($input['gateway']);
@@ -82,7 +134,7 @@ final class CheckoutController
                     'name' => $input['name'] ?? $request->user()?->name,
                     'email' => $input['email'] ?? $request->user()?->email,
                     'phone' => $input['phone'] ?? null,
-                    'country' => tenant('country'),
+                    'country' => $country,
                 ]),
                 'notes' => $input['notes'] ?? null,
                 'ip' => $request->ip(),

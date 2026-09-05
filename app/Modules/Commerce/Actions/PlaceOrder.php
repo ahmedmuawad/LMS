@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Commerce\Actions;
 
+use App\Core\Commerce\TaxRates;
 use App\Models\User;
 use App\Modules\Commerce\Models\Cart;
 use App\Modules\Commerce\Models\CartItem;
@@ -55,7 +56,10 @@ final class PlaceOrder
                 'tax_minor' => $totals['tax']->minor,
                 'shipping_minor' => $totals['shipping']->minor,
                 'total_minor' => $totals['total']->minor,
-                'tax_rate' => (float) setting('currency.default_rate', 0),
+                // النسبة الفعلية المطبَّقة، من دولة المشتري — تُحفظ كما حُسبت
+                'tax_rate' => app(TaxRates::class)->rateFor(
+                    $cart->country ?: (string) tenant('country'),
+                ),
                 'coupon_id' => $cart->coupon_id,
                 'coupon_code' => $cart->coupon?->code,
                 'billing' => $details['billing'] ?? null,

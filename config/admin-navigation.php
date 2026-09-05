@@ -109,6 +109,8 @@ return [
                 ['key' => 'services', 'label' => 'الخدمات', 'icon' => '◇', 'module' => 'services', 'feature' => 'services_module'],
                 ['key' => 'bookings', 'label' => 'الحجوزات', 'icon' => '◷', 'module' => 'bookings', 'feature' => 'services_module'],
                 ['key' => 'coupons', 'label' => 'الكوبونات', 'icon' => '％', 'module' => 'coupons'],
+                // تظهر مع الشحن: من لا يبيع ملموساً لا يراها
+                ['key' => 'shipping-zones', 'label' => 'مناطق الشحن', 'icon' => '⇥', 'module' => 'commerce'],
                 ['key' => 'recharge-codes', 'label' => 'أكواد الشحن', 'icon' => '⌗', 'module' => 'commerce', 'feature' => 'recharge_codes'],
                 ['key' => 'refunds', 'label' => 'طلبات الاسترداد', 'icon' => '↩', 'module' => 'commerce'],
                 ['key' => 'payouts', 'label' => 'تحويلات المدرّسين', 'icon' => '⇄', 'module' => 'payouts'],
@@ -157,6 +159,8 @@ return [
                 ['key' => 'api', 'label' => 'الواجهة البرمجية', 'icon' => '⚯', 'route' => 'admin.api', 'feature' => 'api_access', 'ability' => Ability::SETTINGS_MANAGE],
                 // الـWebhooks تتبع الواجهة البرمجية: من لا باقةَ له فيها لا يربط نظاماً خارجياً أصلاً
                 ['key' => 'webhooks', 'label' => 'الـ Webhooks', 'icon' => '⇲', 'route' => 'admin.webhooks', 'feature' => 'api_access', 'ability' => Ability::SETTINGS_MANAGE],
+                // نصوص الواجهة: ترجمتها، وإعادة صياغتها بكلمات المشترك
+                ['key' => 'translations', 'label' => 'نصوص الواجهة', 'icon' => '⌘', 'route' => 'admin.translations', 'ability' => Ability::SETTINGS_MANAGE],
                 ['key' => 'notifications', 'label' => 'الإشعارات', 'icon' => '◔', 'route' => 'admin.notifications.matrix'],
                 ['key' => 'whatsapp', 'label' => 'ربط واتساب', 'icon' => '✆', 'route' => 'admin.whatsapp', 'ability' => Ability::SETTINGS_MANAGE],
                 ['key' => 'platform-mode', 'label' => 'نمط المنصة', 'icon' => '◎', 'route' => 'admin.platform-mode', 'ability' => Ability::SETTINGS_MANAGE],

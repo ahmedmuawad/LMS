@@ -36,6 +36,29 @@
                     <x-ui.field :label="__('الهاتف')" for="phone" :error="$errors->first('phone')">
                         <x-ui.input name="phone" id="phone" type="tel" value="{{ old('phone') }}" />
                     </x-ui.field>
+
+                    {{--
+                        الدولة تُسأل لأن الضريبة والشحن يتبعانها.
+
+                        وكانت تُفترَض بلد المنصّة دائماً، فيُحسَب
+                        للمشتري السعودي ١٤٪ المصرية بدل ١٥٪ — مالٌ
+                        يُحصَّل باسم الضريبة ولا يُورَّد.
+
+                        وتختفي إن لم يكن هناك جدول دول: بلدُ المنصّة
+                        يبقى صحيحاً لأكثر المشترين.
+                    --}}
+                    @if($countries !== [])
+                        <x-ui.field :label="__('الدولة')" for="country" :error="$errors->first('country')"
+                                    :hint="__('تُحدَّد بها الضريبة وسعر الشحن.')">
+                            <x-ui.select name="country" id="country">
+                                @foreach($countries as $code => $label)
+                                    <option value="{{ $code }}" @selected(old('country', $country) === $code)>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
+                            </x-ui.select>
+                        </x-ui.field>
+                    @endif
                 </x-ui.card>
             @endguest
 

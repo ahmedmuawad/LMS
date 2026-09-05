@@ -19,6 +19,7 @@ use App\Core\Admin\Resources\Commerce\PayoutResource;
 use App\Core\Admin\Resources\Commerce\ProductResource;
 use App\Core\Admin\Resources\Commerce\RechargeCodeResource;
 use App\Core\Admin\Resources\Commerce\RefundResource;
+use App\Core\Admin\Resources\Commerce\ShippingZoneResource;
 use App\Core\Admin\Resources\Community\BadgeResource;
 use App\Core\Admin\Resources\Community\ChallengeResource;
 use App\Core\Admin\Resources\Content\CommentResource;
@@ -70,6 +71,8 @@ return [
         'orders' => OrderResource::class,
         'products' => ProductResource::class,
         'coupons' => CouponResource::class,
+        // مناطق الشحن: سعرٌ لكل مجموعة دول، بدل رقمٍ واحد للعالم
+        'shipping-zones' => ShippingZoneResource::class,
         'recharge-codes' => RechargeCodeResource::class,
         'refunds' => RefundResource::class,
         'payouts' => PayoutResource::class,

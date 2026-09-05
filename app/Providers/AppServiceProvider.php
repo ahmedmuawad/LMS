@@ -7,6 +7,7 @@ use App\Core\Access\Roles;
 use App\Core\Access\Scope;
 use App\Core\Admin\Navigation;
 use App\Core\Entitlements\Quota;
+use App\Core\Localization\DatabaseTranslationLoader;
 use App\Core\Modules\ModuleState;
 use App\Core\Settings\SettingsRepository;
 use App\Core\Theming\ThemeManager;
@@ -28,6 +29,21 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        /*
+         | محمّل الترجمات يُغلَّف ليقرأ من قاعدة المشترك بعد الملفّات.
+         |
+         | و`__()` تُنادى في آلاف المواضع وفي حزم لارافيل نفسها؛
+         | فاستبدالها يعني موضعاً يُنسى تخرج منه رسالةٌ بلغةٍ أخرى.
+         | والمحمّل نقطةٌ واحدة يمرّ بها كلُّ نصّ.
+         |
+         | ويُسجَّل في `register` لا في `boot`: مُحمِّلٌ يُبدَّل بعد
+         | بناء المترجِم لا يراه أحد.
+         */
+        $this->app->singleton('translation.loader', fn ($app) => new DatabaseTranslationLoader(
+            $app['files'],
+            $app['path.lang'],
+        ));
+
         // مفردة إلزاماً: تحتفظ بمسارات العرض الأصلية،
         // ونسخة جديدة لكل طلب تلتقط مسارات ملوّثة كأنها الأصل.
         $this->app->singleton(ThemeManager::class);

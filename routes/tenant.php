@@ -96,6 +96,7 @@ use App\Http\Controllers\Tenant\OnboardingController;
 use App\Http\Controllers\Tenant\PlatformModeController;
 use App\Http\Controllers\Tenant\SettingsController;
 use App\Http\Controllers\Tenant\UsageController;
+use App\Http\Controllers\Tenant\TranslationController;
 use App\Http\Controllers\Tenant\WebhookEndpointController;
 use App\Http\Controllers\Tenant\WebhookSubscriptionController;
 use App\Http\Middleware\ApplyTenantTheme;
@@ -806,6 +807,18 @@ $tenantRoutes = function (): void {
              | أوّل سؤالٍ في كل تكاملٍ لا يعمل: «هل أرسلتم؟» — وشاشةٌ
              | بلا سجلّ تترك السؤال بلا جواب فتصير تذكرةً عندنا.
              */
+            /*
+             | محرّر نصوص الواجهة.
+             |
+             | المنصّة تُوجّه `/en/` وتكتب `lang="en"` ولا ملفَّ ترجمةٍ
+             | واحد فيها — فمن اختار الإنجليزية يرى صفحةً إنجليزية
+             | الاتجاه عربية النصّ. وهذه الشاشة هي ما يملؤها.
+             */
+            Route::get('/admin/translations', [TranslationController::class, 'index'])->name('admin.translations');
+            Route::post('/admin/translations', [TranslationController::class, 'store'])->name('admin.translations.store');
+            Route::post('/admin/translations/rescan', [TranslationController::class, 'rescan'])
+                ->name('admin.translations.rescan');
+
             Route::get('/admin/webhooks', [WebhookEndpointController::class, 'index'])->name('admin.webhooks');
             Route::post('/admin/webhooks', [WebhookEndpointController::class, 'store'])->name('admin.webhooks.store');
             Route::post('/admin/webhooks/{id}/test', [WebhookEndpointController::class, 'test'])
