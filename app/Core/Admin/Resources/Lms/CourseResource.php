@@ -50,6 +50,21 @@ final class CourseResource extends Resource
         return 'courses';
     }
 
+    /**
+     * المنهج والمسار التكيّفي: خطوتان بعد إنشاء الكورس.
+     *
+     * الكورس بلا منهج لا يُدرَّس، والنموذج لا يسع ترتيب عناصره —
+     * فتُبنى له شاشة، ثم يُترك المستخدم في النموذج بلا دليلٍ إليها.
+     */
+    public function nextStep(Model $record, string $key): ?array
+    {
+        return [
+            'url' => url('/admin/courses/'.$record->getKey().'/curriculum'),
+            'label' => __('منهج الكورس'),
+            'hint' => __('رتّب دروسه واختباراته — والكورس بلا منهج لا يُدرَّس.'),
+        ];
+    }
+
     public function model(): string
     {
         return Course::class;

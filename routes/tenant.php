@@ -46,6 +46,7 @@ use App\Http\Controllers\Lms\CurriculumController;
 use App\Http\Controllers\Lms\GradingController;
 use App\Http\Controllers\Lms\LearnController;
 use App\Http\Controllers\Lms\LessonAttachmentController;
+use App\Http\Controllers\Lms\LearningRuleController;
 use App\Http\Controllers\Lms\MyCoursesController;
 use App\Http\Controllers\Lms\QuizController;
 use App\Http\Controllers\Lms\VideoMomentController;
@@ -430,6 +431,16 @@ $tenantRoutes = function (): void {
              | الطالب يشاهد عشرين دقيقة ثم ينتقل، ولا يعرف المدرّس
              | أفَهِم أم مرّت الصورة أمامه.
              */
+            /*
+             | المسار التكيّفي: قواعد تفريع المنهج بالنتيجة.
+             */
+            Route::prefix('admin/courses/{course}/rules')->whereNumber('course')
+                ->name('admin.courses.rules.')->group(function (): void {
+                    Route::get('/', [LearningRuleController::class, 'index'])->name('index');
+                    Route::post('/', [LearningRuleController::class, 'store'])->name('store');
+                    Route::delete('/{id}', [LearningRuleController::class, 'destroy'])->whereNumber('id')->name('destroy');
+                });
+
             Route::prefix('admin/lessons/{lesson}/moments')->whereNumber('lesson')
                 ->name('admin.lessons.moments.')->group(function (): void {
                     Route::get('/', [VideoMomentController::class, 'index'])->name('index');

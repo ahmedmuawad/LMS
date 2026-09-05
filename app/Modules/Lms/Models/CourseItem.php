@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * عنصر في المنهج: درس أو اختبار أو واجب في ترتيب واحد.
@@ -82,5 +83,37 @@ final class CourseItem extends Model
         $days = (int) $this->available_after_days;
 
         return $days > 0 && $enrolledAt !== null ? $enrolledAt->copy()->addDays($days) : null;
+    }
+
+    /**
+     * هل هذا العنصر هدفُ قاعدةِ تفريع؟
+     *
+     * أهدافُ القواعد مخفيّةٌ عن المنهج حتى تُستحقّ: عرضُ «مراجعة
+     * للراسبين» لمن نجح إهانةٌ صغيرة تتكرّر، وعرضُ «تحدٍّ متقدّم»
+     * لمن رسب إحباطٌ لا يحتاجه.
+     */
+    public function isAdaptiveTarget(): bool
+    {
+        return LearningRule::where('target_item_id', $this->getKey())->exists();
+    }
+
+    /** هل فُتح لهذا التسجيل؟ */
+    public function isUnlockedFor(int|string $enrollmentId): bool
+    {
+        return DB::table('unlocked_items')
+            ->where('enrollment_id', $enrollmentId)
+            ->where('item_id', $this->getKey())
+            ->exists();
+    }
+
+    /**
+     * هل يُعرض هذا العنصر لهذا التسجيل؟
+     *
+     * ما ليس هدفَ قاعدةٍ يُعرض دائماً — فالمنهج العادي لا يتغيّر
+     * بوجود التفريع، ومن لم يضع قاعدةً واحدة لا يتغيّر عنده شيء.
+     */
+    public function isVisibleFor(int|string $enrollmentId): bool
+    {
+        return ! $this->isAdaptiveTarget() || $this->isUnlockedFor($enrollmentId);
     }
 }

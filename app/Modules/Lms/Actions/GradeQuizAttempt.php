@@ -127,6 +127,17 @@ final class GradeQuizAttempt
 
         $this->markItemComplete($attempt->refresh());
 
+        /*
+         | المسار يتفرّع بالنتيجة — بعد التصحيح لا قبله.
+         |
+         | والتفريع بعد اكتمال التصحيح فقط: ورقةٌ نصفها بانتظار
+         | مصحّح لا تُعرف نتيجتها بعد، وفتحُ علاجٍ بناءً على نصف
+         | درجة يفتحه لمن لا يحتاجه.
+         */
+        if (! $stillPending) {
+            app(ApplyLearningRules::class)->handle($attempt);
+        }
+
         // لا نُخبر الطالب ونصف السؤال بلا تصحيح: الدرجة الناقصة تُقلق
         if (! $stillPending && $attempt->enrollment?->user !== null) {
             notify('lms.quiz_graded', $attempt->enrollment->user, [
