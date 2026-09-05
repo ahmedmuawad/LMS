@@ -54,18 +54,34 @@ final class RecordPayment
         return $payment;
     }
 
+    /**
+     * السداد ينقل المشترك إلى الخدمة الكاملة فوراً.
+     *
+     * وهذا يشمل من دفع وهو في تجربته: كان يبقى «تجريبياً» بلافتة
+     * «بقي كذا يوماً» رغم أنه سدّد فاتورته كاملة، حتى تمرّ الدورة
+     * الليلية — فيرى المشترك أن دفعه لم يُغيّر شيئاً، وهو أسوأ ما
+     * يراه بعد الدفع مباشرة. التجربة تنتهي بالدفع لا بالتاريخ.
+     */
     private function reinstate(Invoice $invoice): void
     {
         $subscription = $invoice->subscription;
 
-        if ($subscription !== null && in_array($subscription->status, ['past_due', 'paused'], true)) {
-            $subscription->forceFill(['status' => 'active', 'failed_charges' => 0])->save();
+        if ($subscription !== null && in_array($subscription->status, ['trialing', 'past_due', 'paused'], true)) {
+            $subscription->forceFill([
+                'status' => 'active',
+                'failed_charges' => 0,
+                'trial_ends_at' => $subscription->status === 'trialing' ? now() : $subscription->trial_ends_at,
+            ])->save();
         }
 
         $tenant = Tenant::find($invoice->tenant_id);
 
-        if ($tenant !== null && in_array($tenant->status, ['past_due', 'suspended'], true)) {
-            $tenant->forceFill(['status' => 'active', 'suspended_at' => null])->save();
+        if ($tenant !== null && in_array($tenant->status, ['trialing', 'past_due', 'suspended'], true)) {
+            $tenant->forceFill([
+                'status' => 'active',
+                'suspended_at' => null,
+                'trial_ends_at' => $tenant->status === 'trialing' ? null : $tenant->trial_ends_at,
+            ])->save();
         }
     }
 }
