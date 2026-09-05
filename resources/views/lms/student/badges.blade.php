@@ -36,7 +36,7 @@
 
                     @if($earned)
                         <p class="text-2xs text-success font-mono tabular">
-                            {{ \Illuminate\Support\Carbon::parse($entry['awarded_at'])->translatedFormat('j M Y') }}
+                            {{ display_date(\Illuminate\Support\Carbon::parse($entry['awarded_at']), 'j M Y') }}
                         </p>
                     @elseif($badge->points)
                         <p class="text-2xs text-subtle font-mono tabular">{{ __(':points نقطة', ['points' => $badge->points]) }}</p>

@@ -6,6 +6,7 @@ namespace App\Core\Settings\Groups;
 
 use App\Core\Admin\Fields\MultiSelectField;
 use App\Core\Admin\Fields\NumberField;
+use App\Core\Admin\Fields\PasswordField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
 use App\Core\Admin\Fields\SwitchField;
@@ -95,6 +96,41 @@ final class CurrencySettings extends SettingsGroup
                     TextField::make('tax_number')->label(__('الرقم الضريبي'))->half(),
                     TranslatableField::make('company_name')->label(__('اسم الشركة على الفاتورة')),
                     TranslatableField::make('company_address')->label(__('عنوان الشركة على الفاتورة'))->long(),
+                ]),
+
+            /*
+             | الفوترة الإلكترونية — سوقان بمتطلّبين مختلفين.
+             |
+             | السعودية «المرحلة الأولى» رمزٌ يُحسَب عندنا ويُطبع، بلا
+             | ربطٍ ولا مفاتيح — فهو يعمل بمجرّد تفعيله.
+             |
+             | ومصر تشترط توقيعاً بشهادةٍ على توكن USB باسم المموّل
+             | نفسه؛ نبني المستند وندخل ونرسل، ويبقى التوقيع عنده.
+             | وقولُ ذلك هنا أصدق من تركه يكتشفه عند أوّل فاتورة.
+             */
+            Section::make(__('الفوترة الإلكترونية'))
+                ->description(__('السعودية تعمل فوراً. مصر تحتاج توقيعك بشهادتك على التوكن.'))
+                ->fields([
+                    SwitchField::make('zatca_qr')->label(__('رمز الهيئة على الفواتير (السعودية)'))->default(false)
+                        ->hint(__('«المرحلة الأولى» — يُحسَب عندنا ويُطبع على الفاتورة، ويقرؤه المفتّش بتطبيقه. يحتاج رقمك الضريبي أعلاه فقط.')),
+
+                    SwitchField::make('eta_enabled')->label(__('الربط بمصلحة الضرائب المصرية'))->default(false)
+                        ->hint(__('نبني المستند وندخل ونرسل. ويبقى التوقيع بشهادتك على التوكن — لا يستطيعه خادمنا ولا أيّ منصّة.')),
+
+                    SelectField::make('eta_environment')->label(__('بيئة المصلحة'))->half()
+                        ->options(['preprod' => __('تجريبية'), 'production' => __('حقيقية')])
+                        ->default('preprod')
+                        ->hint(__('لا تُحوّل إلى الحقيقية قبل نجاح فاتورةٍ تجريبية: ما يُرسَل إليها لا يُحذف.')),
+
+                    TextField::make('eta_client_id')->label(__('ETA — Client ID'))->half(),
+                    PasswordField::make('eta_client_secret')->label(__('ETA — Client Secret'))->half(),
+
+                    TextField::make('eta_activity_code')->label(__('كود النشاط'))->half()->default('8542')
+                        ->hint(__('من ملفّك في بوّابة المصلحة — ٨٥٤٢ للتعليم.')),
+                    TextField::make('eta_branch')->label(__('رقم الفرع'))->half()->default('0'),
+                    TextField::make('eta_governate')->label(__('المحافظة'))->half(),
+                    TextField::make('eta_city')->label(__('المدينة'))->half(),
+                    TextField::make('eta_building')->label(__('رقم المبنى'))->half(),
                 ]),
         ];
     }

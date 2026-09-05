@@ -6,6 +6,8 @@ import { initProctor } from './proctor';
 import { initVideoMoments } from './video-moments';
 import { initScorm } from './scorm-api';
 import { startH5pPlayers } from './h5p-player';
+import { initNumerals } from './numerals';
+import { loginWithPasskey, registerPasskey, passkeysSupported } from './passkeys';
 
 import './math.js';
 import mathEditor from './math-editor.js';
@@ -293,3 +295,18 @@ document.querySelectorAll('[data-scorm-root]').forEach(initScorm);
 
 // المحتوى التفاعلي — المشغّل يُحمَّل عند وجوده لا في كل صفحة
 startH5pPlayers();
+
+/* الأرقام الهندية — بعد `Alpine.start()` كي تُحوَّل أوّل رسمةٍ أيضاً */
+initNumerals();
+
+/*
+   مفاتيح المرور تُعرَّض على `window`.
+
+   شاشة الدخول وشاشة الحساب تناديانها من سكربتٍ مباشر لا من وحدة،
+   ودالّةٌ داخل حزمةٍ مغلقة لا تصلها. وهذا أوضح من تكرار المنطق
+   في القالبين. */
+window.usosPasskeysApi = {
+    supported: passkeysSupported,
+    login: loginWithPasskey,
+    register: registerPasskey,
+};

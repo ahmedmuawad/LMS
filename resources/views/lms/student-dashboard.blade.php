@@ -108,7 +108,7 @@
                             <div class="surface-card p-3 flex items-center gap-3">
                                 <div class="min-w-0 flex-1">
                                     <p class="text-sm font-semibold truncate">{{ $booking->service?->title ?? __('حجز') }}</p>
-                                    <p class="text-xs text-muted font-mono tabular mt-0.5">{{ $booking->startsAtCarbon()?->translatedFormat('l j F · g:i a') ?? '—' }}</p>
+                                    <p class="text-xs text-muted font-mono tabular mt-0.5">{{ display_date($booking->startsAtCarbon(), 'l j F · g:i a') ?? '—' }}</p>
                                 </div>
                                 <x-ui.badge :tone="$booking->status === 'confirmed' ? 'success' : 'warning'">
                                     {{ $booking->status === 'confirmed' ? __('مؤكّد') : __('بانتظار التأكيد') }}

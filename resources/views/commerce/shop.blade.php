@@ -50,8 +50,8 @@
 
                     <div class="aspect-[4/3] bg-surface-sunken grid place-items-center overflow-hidden">
                         @if($product->cover_path)
-                            <img src="{{ $product->cover_path }}" alt=""
-                                 class="w-full h-full object-cover" loading="lazy">
+                            <x-ui.image :src="$product->cover_path" class="w-full h-full object-cover"
+                                        sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw" />
                         @else
                             <span class="text-3xl text-subtle" aria-hidden="true">◪</span>
                         @endif

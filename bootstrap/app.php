@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CachePage;
 use App\Http\Middleware\EnsureFeature;
 use App\Http\Middleware\LogNotFound;
 use App\Http\Middleware\MaintenanceMode;
@@ -39,6 +40,15 @@ return Application::configure(basePath: dirname(__DIR__))
              | كذلك، لا الاستثناء وحده.
              */
             LogNotFound::class,
+
+            /*
+             | كاش الصفحة — آخر ما يُضاف كي يمرّ أولاً عند الخروج.
+             |
+             | وبعد المصادقة كي يعرف من الزائر ومن المسجَّل: صفحةٌ
+             | فيها «أهلاً يا أحمد» تُخزَّن فيراها كلُّ زائرٍ بعده
+             | باسم أحمد — وهذا تسريبُ هويّة لا بطءُ صفحة.
+             */
+            CachePage::class,
         ]);
 
         /*

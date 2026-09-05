@@ -14,7 +14,7 @@
         <x-ui.stat :label="__('التقدّم')" :value="((int) $enrollment->progress_percent).'%'" />
         <x-ui.stat :label="__('الدرجة')" :value="$enrollment->grade === null ? '—' : number_format((float) $enrollment->grade, 1)" />
         <x-ui.stat :label="__('الحالة')" :value="__(App\Modules\Lms\Models\Enrollment::STATUSES[$enrollment->status] ?? $enrollment->status)"
-                   :delta="$enrollment->completed_at?->translatedFormat('j M Y')" />
+                   :delta="display_date($enrollment->completed_at, 'j M Y')" />
     </div>
 
     <div class="grid gap-4">

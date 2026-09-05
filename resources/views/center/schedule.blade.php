@@ -8,7 +8,7 @@
 <div class="max-w-[1400px]">
 
     <x-ui.page-header :title="__('جدول الأسبوع')"
-                      :subtitle="$from->translatedFormat('j F').' – '.$to->translatedFormat('j F Y')">
+                      :subtitle="display_date($from, 'j F').' – '.display_date($to, 'j F Y')">
         <x-slot:actions>
             <x-ui.button size="sm" variant="secondary" :href="url('/admin/schedule?from='.$from->copy()->subWeek()->toDateString())">
                 <span class="flip-rtl" aria-hidden="true">←</span> {{ __('السابق') }}
@@ -52,7 +52,7 @@
             <x-ui.card :padding="false" class="min-w-0">
                 <div class="px-3 py-2.5 border-b border-line
                             {{ $day->isToday() ? 'bg-primary-subtle' : 'bg-surface-sunken' }}">
-                    <p class="text-xs font-bold {{ $day->isToday() ? 'text-primary' : '' }}">{{ $day->translatedFormat('l') }}</p>
+                    <p class="text-xs font-bold {{ $day->isToday() ? 'text-primary' : '' }}">{{ display_date($day, 'l') }}</p>
                     <p class="text-2xs text-subtle font-mono">{{ $day->format('m-d') }}</p>
                 </div>
 
@@ -86,7 +86,8 @@
                                         أحدهما بلا اطّراد، فيفتح المدرّس كشف
                                         الحضور وهو يريد الحصة.
                                     --}}
-                                    <a href="{{ $room->url }}" target="_blank" rel="noopener"
+                                    <a href="{{ route('live.join', ['seed' => 'session-'.$session->id]) }}"
+                                       target="_blank" rel="noopener"
                                        @class([
                                            'mt-1 flex items-center justify-center gap-1.5 min-h-9 rounded-md text-2xs font-semibold transition-colors',
                                            'bg-primary text-primary-on hover:bg-primary-hover' => $room->isOpen(),

@@ -30,11 +30,11 @@
                                 --}}
                                 <p class="text-2xs text-subtle font-mono tabular mt-1">
                                     @if($membership->status === 'cancelled' && $membership->isLive())
-                                        {{ __('سارية حتى :date — لن تُجدَّد', ['date' => $membership->endsOn()?->translatedFormat('j F Y')]) }}
+                                        {{ __('سارية حتى :date — لن تُجدَّد', ['date' => display_date($membership->endsOn(), 'j F Y')]) }}
                                     @elseif($membership->isLive() && $membership->renews_at)
-                                        {{ __('تُجدَّد في :date', ['date' => $membership->renews_at->translatedFormat('j F Y')]) }}
+                                        {{ __('تُجدَّد في :date', ['date' => display_date($membership->renews_at, 'j F Y')]) }}
                                     @elseif($membership->endsOn())
-                                        {{ __('انتهت في :date', ['date' => $membership->endsOn()->translatedFormat('j F Y')]) }}
+                                        {{ __('انتهت في :date', ['date' => display_date($membership->endsOn(), 'j F Y')]) }}
                                     @endif
                                 </p>
                             </div>

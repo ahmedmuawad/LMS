@@ -26,7 +26,7 @@
                             {{-- التاريخ مربّعاً: العين تمسح التواريخ قبل العناوين --}}
                             <div class="shrink-0 text-center rounded-md bg-surface-sunken px-3 py-2 min-w-[64px]">
                                 <div class="text-xl font-bold leading-none">{{ $event->starts_at?->format('j') }}</div>
-                                <div class="text-2xs text-subtle mt-1">{{ $event->starts_at?->translatedFormat('M') }}</div>
+                                <div class="text-2xs text-subtle mt-1">{{ display_date($event->starts_at, 'M') }}</div>
                             </div>
 
                             <div class="min-w-0 flex-1">
@@ -67,7 +67,7 @@
                            class="flex flex-wrap items-center gap-3 py-2.5 px-3 rounded-md
                                   hover:bg-surface-sunken transition-colors tap-link opacity-75">
                             <span class="text-2xs text-subtle font-mono tabular shrink-0">
-                                {{ $event->starts_at?->translatedFormat('j M') }}
+                                {{ display_date($event->starts_at, 'j M') }}
                             </span>
                             <span class="min-w-0 flex-1 text-sm truncate">{{ $event->title }}</span>
                             <span class="text-2xs text-subtle shrink-0">{{ $event->kindLabel() }}</span>

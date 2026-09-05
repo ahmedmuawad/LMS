@@ -155,6 +155,8 @@ return [
                 ['key' => 'billing', 'label' => 'الاشتراك والفواتير', 'icon' => '◨', 'route' => 'admin.billing'],
                 ['key' => 'usage', 'label' => 'استهلاك باقتك', 'icon' => '◑', 'route' => 'admin.usage', 'ability' => Ability::BILLING_MANAGE],
                 ['key' => 'api', 'label' => 'الواجهة البرمجية', 'icon' => '⚯', 'route' => 'admin.api', 'feature' => 'api_access', 'ability' => Ability::SETTINGS_MANAGE],
+                // الـWebhooks تتبع الواجهة البرمجية: من لا باقةَ له فيها لا يربط نظاماً خارجياً أصلاً
+                ['key' => 'webhooks', 'label' => 'الـ Webhooks', 'icon' => '⇲', 'route' => 'admin.webhooks', 'feature' => 'api_access', 'ability' => Ability::SETTINGS_MANAGE],
                 ['key' => 'notifications', 'label' => 'الإشعارات', 'icon' => '◔', 'route' => 'admin.notifications.matrix'],
                 ['key' => 'whatsapp', 'label' => 'ربط واتساب', 'icon' => '✆', 'route' => 'admin.whatsapp', 'ability' => Ability::SETTINGS_MANAGE],
                 ['key' => 'platform-mode', 'label' => 'نمط المنصة', 'icon' => '◎', 'route' => 'admin.platform-mode', 'ability' => Ability::SETTINGS_MANAGE],

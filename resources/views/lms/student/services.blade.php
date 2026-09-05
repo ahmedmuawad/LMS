@@ -34,7 +34,7 @@
                             <p class="text-xs text-muted font-mono tabular mt-0.5">
                                 {{ $booking->reference }}
                                 @if($booking->date)
-                                    · {{ $booking->startsAtCarbon()?->translatedFormat('j F Y · g:i a') }}
+                                    · {{ display_date($booking->startsAtCarbon(), 'j F Y · g:i a') }}
                                 @endif
                             </p>
                             @if($booking->provider)

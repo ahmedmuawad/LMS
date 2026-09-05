@@ -38,7 +38,7 @@
                             @endif
                         </p>
                         <p class="text-2xs text-subtle font-mono tabular mt-1">
-                            {{ $order->placed_at?->translatedFormat('j F Y · g:i a') ?? '—' }}
+                            {{ display_date($order->placed_at, 'j F Y · g:i a') ?? '—' }}
                         </p>
                     </div>
 

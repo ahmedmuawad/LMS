@@ -2,7 +2,9 @@
 <article class="surface-card overflow-hidden flex flex-col transition-[border-color] hover:border-line-strong">
     <a href="{{ url('/courses/'.$course->slug) }}" class="block aspect-video bg-surface-sunken relative overflow-hidden">
         @if($course->cover_path)
-            <img src="{{ $course->cover_path }}" alt="" class="size-full object-cover" loading="lazy">
+            {{-- بطاقة الكورس تُعرض في شبكةٍ من ثلاثة أعمدة: `sizes` تقول ذلك للمتصفّح --}}
+            <x-ui.image :src="$course->cover_path" class="size-full object-cover"
+                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" />
         @else
             <span class="absolute inset-0 grid place-items-center text-3xl text-subtle" aria-hidden="true">▤</span>
         @endif

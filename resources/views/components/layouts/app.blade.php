@@ -16,11 +16,20 @@
      */
     $guardBlur = tenant() !== null && (bool) setting('security.block_screenshot', false);
     $guardCopy = tenant() !== null && (bool) setting('security.block_copy', false);
+
+    /*
+     | نظام الأرقام يُقرأ في الجذر مرّة.
+     |
+     | والتحويل في المتصفّح لا في الخادم: نصفُ الأرقام يرسمها Alpine
+     | بعد التحميل — سلّةٌ تتغيّر ومؤقّتٌ ينزل — ولا يمرّ عليها Blade.
+     */
+    $numerals = tenant() !== null && setting('locale.numerals', 'western') === 'eastern' ? 'eastern' : null;
 @endphp
 <!DOCTYPE html>
 <html lang="{{ $locale }}" dir="{{ $dir }}"
       @if($guardBlur) data-guard-blur="1" data-guard-print="{{ __('هذه الصفحة محميّة ولا تُطبع.') }}" @endif
       @if($guardCopy) data-guard-copy="1" @endif
+      @if($numerals) data-numerals="{{ $numerals }}" @endif
       @if($guardBlur) data-guard-message="{{ __('المحتوى مخفيّ — عُد إلى النافذة لمتابعته.') }}" @endif>
 <head>
     <meta charset="utf-8">
@@ -59,6 +68,33 @@
     @php $brand = app(App\Core\Theming\BrandCss::class)->render(); @endphp
     @if($brand)<style>{!! $brand !!}</style>@endif
     @if(tenant())<x-analytics.head />@endif
+    {{--
+        Preconnect وPreload من إعدادات المشترك.
+
+        حقلان في شاشة الأداء منذ البداية ولا سطرَ يقرؤهما: يكتب
+        المشترك نطاق مزوّد فيديوه فيهما ولا يحدث شيء. والوصلُ المبكر
+        يوفّر رحلةً كاملة (DNS وTLS) لأوّل طلبٍ إلى نطاقٍ خارجي.
+
+        وتُقرأ سطراً سطراً: من يكتب نطاقاً في سطرٍ لا يتذكّر أيّ
+        فاصلٍ طُلب منه.
+    --}}
+    @foreach(preg_split('/[\s,;]+/', (string) (setting('performance.preconnect') ?? '')) ?: [] as $origin)
+        @continue(trim($origin) === '')
+        <link rel="preconnect" href="{{ trim($origin) }}" crossorigin>
+    @endforeach
+
+    @foreach(preg_split('/[\s,;]+/', (string) (setting('performance.preload') ?? '')) ?: [] as $asset)
+        @continue(trim($asset) === '')
+        {{-- النوع يُشتقّ من الامتداد: من يكتب مساراً لا يعرف قيم `as` --}}
+        <link rel="preload" href="{{ trim($asset) }}" as="{{ match (pathinfo(trim($asset), PATHINFO_EXTENSION)) {
+            'woff2', 'woff' => 'font',
+            'css' => 'style',
+            'js' => 'script',
+            'jpg', 'jpeg', 'png', 'webp', 'avif', 'svg' => 'image',
+            default => 'fetch',
+        } }}" @if(in_array(pathinfo(trim($asset), PATHINFO_EXTENSION), ['woff2', 'woff'], true)) type="font/woff2" crossorigin @endif>
+    @endforeach
+
     @stack('head')
 </head>
 <body class="min-h-screen bg-bg text-content antialiased">

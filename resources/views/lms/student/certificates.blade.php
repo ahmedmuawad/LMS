@@ -23,7 +23,7 @@
                         <div class="min-w-0 flex-1">
                             <p class="font-semibold text-sm">{{ $certificate->course?->title ?? __('شهادة') }}</p>
                             <p class="text-xs text-muted font-mono tabular mt-0.5">
-                                {{ $certificate->issued_at?->translatedFormat('j F Y') ?? '—' }}
+                                {{ display_date($certificate->issued_at, 'j F Y') ?? '—' }}
                             </p>
                         </div>
 

@@ -32,7 +32,7 @@
 
             <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-2xs text-subtle">
                 @if($post->author)<span>{{ $post->author->name }}</span>@endif
-                <span>{{ $post->published_at?->translatedFormat('j F Y') }}</span>
+                <span>{{ display_date($post->published_at, 'j F Y') }}</span>
                 @if(setting('content.reading_time', true) && $post->reading_minutes > 0)
                     <span class="font-mono">{{ trans_choice('{1} دقيقة قراءة|{2} دقيقتان|[3,10] :count دقائق قراءة|[11,*] :count دقيقة قراءة', $post->reading_minutes, ['count' => $post->reading_minutes]) }}</span>
                 @endif
@@ -146,7 +146,7 @@
                 @foreach($related as $other)
                     <li class="surface-card p-3">
                         <a href="{{ url('/blog/'.$other->slug) }}" class="tap-link font-semibold text-sm leading-snug hover:text-primary transition-colors">{{ $other->title }}</a>
-                        <p class="text-2xs text-subtle mt-1">{{ $other->published_at?->translatedFormat('j F Y') }}</p>
+                        <p class="text-2xs text-subtle mt-1">{{ display_date($other->published_at, 'j F Y') }}</p>
                     </li>
                 @endforeach
             </ul>

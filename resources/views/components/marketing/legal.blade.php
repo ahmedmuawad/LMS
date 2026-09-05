@@ -17,7 +17,7 @@
         @endif
 
         <p class="text-2xs text-subtle font-mono mb-8 pb-6 border-b border-line">
-            {{ __('سارية من :date', ['date' => $effective->translatedFormat('j F Y')]) }}
+            {{ __('سارية من :date', ['date' => display_date($effective, 'j F Y')]) }}
             @if(config('legal.entity.name'))
                 · {{ config('legal.entity.name') }}
             @endif

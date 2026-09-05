@@ -29,12 +29,23 @@
      })">
 
     <x-ui.page-header :title="$session->group?->name"
-                      :subtitle="$session->date?->translatedFormat('l j F').' · '.$session->timeLabel().' · '.($session->room?->name ?? '—')"
+                      :subtitle="display_date($session->date, 'l j F').' · '.$session->timeLabel().' · '.($session->room?->name ?? '—')"
                       :back="url('/admin/attendance?date='.$session->date?->toDateString())">
         <x-slot:actions>
             @if($session->attendanceTaken())
                 <x-ui.badge tone="success">{{ __('سُجّل') }}</x-ui.badge>
             @endif
+
+            {{--
+                شاشة الكود تُفتح في نافذةٍ أخرى — على تلفاز القاعة.
+
+                والمدرّس يبقى في الكشف يرى الأسماء تُعلَّم وحدها،
+                فيعلّم من لم يُسجّل نفسه ولا يعيد الكشف كلّه.
+            --}}
+            <x-ui.button as="a" size="sm" variant="secondary" target="_blank" rel="noopener"
+                         :href="route('admin.center.attendance.display', $session->id)">
+                {{ __('اعرض كود الحضور') }}
+            </x-ui.button>
         </x-slot:actions>
     </x-ui.page-header>
 
@@ -67,7 +78,7 @@
                     <div class="p-4">
                         <x-ui.alert tone="info" :title="__('لم تبدأ هذه الحصة بعد')">
                             {{ __('يُفتح كشف الحضور قبل الموعد بنصف ساعة. موعدها: :when.', [
-                                'when' => $session->date?->copy()->setTimeFromTimeString((string) $session->starts_at)?->translatedFormat('l j F · g:i a'),
+                                'when' => display_date($session->date?->copy()->setTimeFromTimeString((string) $session->starts_at), 'l j F · g:i a'),
                             ]) }}
                         </x-ui.alert>
                     </div>

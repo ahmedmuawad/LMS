@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
+use App\Core\Auth\Passkeys;
 use App\Core\Auth\PasswordPolicy;
 use App\Core\Auth\TwoFactor;
 use App\Modules\Content\Actions\StoreMedia;
+use App\Modules\Lms\Models\Passkey;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -36,6 +38,11 @@ final class ProfileController
             'twoFactorEnabled' => $this->twoFactor->isEnabled($request->user()),
             'locales' => config('locales.supported', []),
             'mayDelete' => (bool) setting('users.self_delete', true) && ! $request->user()->isOwner(),
+
+            // مفاتيح المرور — تُعرض حيث تُدار كلمة المرور، فهي بديلٌ عنها
+            'passkeysEnabled' => app(Passkeys::class)->enabled(),
+            'passkeys' => Passkey::where('user_id', $request->user()->getKey())
+                ->orderByDesc('last_used_at')->get(),
         ]);
     }
 

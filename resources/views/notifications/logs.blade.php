@@ -76,7 +76,7 @@
                             @endif
                         </td>
                         <td class="px-4 py-3 text-2xs text-subtle whitespace-nowrap">
-                            {{ ($log->sent_at ?? $log->created_at)?->translatedFormat('j M · H:i') }}
+                            {{ display_date(($log->sent_at ?? $log->created_at), 'j M · H:i') }}
                         </td>
                     </tr>
                 @endforeach

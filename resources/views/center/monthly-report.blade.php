@@ -11,7 +11,7 @@
         <h1 class="text-2xl font-bold">{{ __('التقرير الشهري') }}</h1>
         <p class="text-sm text-muted mt-1">
             {{ $student->name() }} · {{ $student->grade?->name }} ·
-            {{ \Illuminate\Support\Carbon::parse($report['period'].'-01')->translatedFormat('F Y') }}
+            {{ display_date(\Illuminate\Support\Carbon::parse($report['period'].'-01'), 'F Y') }}
         </p>
     </header>
 
@@ -88,7 +88,7 @@
     @endif
 
     <p class="text-2xs text-subtle text-center mt-8">
-        {{ __('صدر في :date', ['date' => now()->translatedFormat('j F Y')]) }}
+        {{ __('صدر في :date', ['date' => display_date(now(), 'j F Y')]) }}
     </p>
 </main>
 </x-layouts.app>

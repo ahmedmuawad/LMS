@@ -34,7 +34,7 @@
                         <p class="font-semibold truncate">{{ $booking->service?->title ?? __('خدمة محذوفة') }}</p>
                         <p class="text-2xs text-subtle font-mono mt-0.5">
                             {{ $booking->reference }}
-                            @if($start) · {{ $start->translatedFormat('j F Y — H:i') }} @endif
+                            @if($start) · {{ display_date($start, 'j F Y — H:i') }} @endif
                         </p>
                     </div>
 

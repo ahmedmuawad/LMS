@@ -46,8 +46,10 @@ final class IntegrationSettings extends SettingsGroup
             Section::make(__('واجهة البرمجة'))->fields([
                 SwitchField::make('api_enabled')->label(__('تفعيل REST API'))->default(false),
                 NumberField::make('api_rate_limit')->label(__('حد الطلبات في الدقيقة'))->range(10, 10000)->half()->default(60),
-                SwitchField::make('webhooks_enabled')->label(__('تفعيل الـ Webhooks'))->default(false),
-                NumberField::make('webhook_retries')->label(__('محاولات إعادة الإرسال'))->range(0, 10)->half()->default(3),
+                SwitchField::make('webhooks_enabled')->label(__('تفعيل الـ Webhooks'))->default(false)
+                    ->hint(__('الوجهات وسجلّ تسليمها في شاشة «الـ Webhooks».')),
+                NumberField::make('webhook_retries')->label(__('محاولات إعادة الإرسال'))->range(0, 10)->half()->default(3)
+                    ->hint(__('تتباعد: دقيقة، ثم خمس، ثم نصف ساعة — كي لا نضرب خادماً متعثّراً بينما ينهض.')),
             ]),
 
             Section::make(__('الفيديو'))->fields([

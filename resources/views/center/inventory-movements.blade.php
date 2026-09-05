@@ -114,7 +114,7 @@
                         @endif
 
                         <span class="text-2xs text-subtle font-mono tabular shrink-0">
-                            {{ $movement->created_at?->translatedFormat('j M · H:i') }}
+                            {{ display_date($movement->created_at, 'j M · H:i') }}
                         </span>
                     </div>
                 @endforeach

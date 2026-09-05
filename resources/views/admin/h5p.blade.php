@@ -75,7 +75,7 @@
                             @endif
 
                             <span class="font-mono text-2xs text-subtle tabular">
-                                {{ $row->stored_at?->translatedFormat('j M · H:i') }}
+                                {{ display_date($row->stored_at, 'j M · H:i') }}
                             </span>
                         </div>
                     @endforeach

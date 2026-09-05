@@ -2,8 +2,8 @@
 
 <x-ui.page-header :title="__('التقارير')"
                   :subtitle="__('من :from إلى :to', [
-                      'from' => $from->translatedFormat('j M Y'),
-                      'to' => $to->translatedFormat('j M Y'),
+                      'from' => display_date($from, 'j M Y'),
+                      'to' => display_date($to, 'j M Y'),
                   ])">
     <x-slot:actions>
         <x-ui.button as="a" variant="secondary"

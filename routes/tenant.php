@@ -9,10 +9,12 @@ use App\Http\Controllers\Api\ApiController;
 use App\Http\Controllers\Api\XapiController;
 use App\Http\Controllers\Auth\DeviceController;
 use App\Http\Controllers\Auth\EmailVerificationController;
+use App\Http\Controllers\Auth\PasskeyController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\Auth\PrivacyController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\PrivacyController;
+use App\Http\Controllers\Auth\SocialLoginController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Center\AttendanceController;
 use App\Http\Controllers\Center\DeviceController as AttendanceDeviceController;
@@ -22,6 +24,7 @@ use App\Http\Controllers\Center\GuardianPortalController;
 use App\Http\Controllers\Center\InventoryController;
 use App\Http\Controllers\Center\MyClassesController;
 use App\Http\Controllers\Center\ScheduleController;
+use App\Http\Controllers\Center\SelfCheckInController;
 use App\Http\Controllers\Center\StudentFileController;
 use App\Http\Controllers\Commerce\AdminOrderController;
 use App\Http\Controllers\Commerce\CartController;
@@ -35,6 +38,7 @@ use App\Http\Controllers\Community\ProgressController;
 use App\Http\Controllers\Community\ReviewController;
 use App\Http\Controllers\Content\ContentController;
 use App\Http\Controllers\Content\EventController;
+use App\Http\Controllers\Content\ImageVariantController;
 use App\Http\Controllers\Content\MediaController;
 use App\Http\Controllers\Content\NotFoundController;
 use App\Http\Controllers\Content\PageBuilderController;
@@ -92,6 +96,8 @@ use App\Http\Controllers\Tenant\OnboardingController;
 use App\Http\Controllers\Tenant\PlatformModeController;
 use App\Http\Controllers\Tenant\SettingsController;
 use App\Http\Controllers\Tenant\UsageController;
+use App\Http\Controllers\Tenant\WebhookEndpointController;
+use App\Http\Controllers\Tenant\WebhookSubscriptionController;
 use App\Http\Middleware\ApplyTenantTheme;
 use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\EnsureAbility;
@@ -142,6 +148,16 @@ $tenantRoutes = function (): void {
      | خارج مِدلوير الويب: الجهاز لا يحمل كوكيّات ولا CSRF، ومفتاحه
      | في ترويسة `Authorization` — وهذا ما تستطيعه أبسط الأجهزة.
      */
+    /*
+     | نسخُ الصور — عامّةٌ بلا مصادقة.
+     |
+     | الصورة تُطلب من وسم `<img>` لا من جافاسكربت، ولا يحمل الوسم
+     | ترويسةً ولا رمزاً. وحمايتُها في إغلاق المقاسات والصيغ: أسوأ
+     | ما يستطيعه زائرٌ ستُّ نسخٍ لكل صورةٍ منشورة أصلاً.
+     */
+    Route::get('/img/{width}/{format}/{path}', ImageVariantController::class)
+        ->whereNumber('width')->where('path', '.*')->name('media.variant');
+
     Route::post('api/v1/punch', [AttendanceDeviceController::class, 'punch'])->name('api.punch');
 
     Route::prefix('api/v1')->name('api.')->group(function (): void {
@@ -176,6 +192,23 @@ $tenantRoutes = function (): void {
          | ونطاقها `enrollments:write`: العبارة تكتب تقدّم طالب،
          | وهي كتابةٌ في سجلّه لا قراءة منه.
          */
+        /*
+         | اشتراك Zapier — يسجّل رابطه ويحذفه بنفسه.
+         |
+         | Zapier لا يعطي رابطاً ثابتاً: يولّده عند تشغيل «الزاب»
+         | ويلغيه عند إيقافه. فبلا هذه المسارات يبقى المشترك ينسخ
+         | روابط ويلصقها كلّما عدّل زاباً.
+         */
+        Route::get('/webhooks/events', [WebhookSubscriptionController::class, 'events'])
+            ->middleware(AuthenticateApiToken::class.':webhooks:manage')->name('webhooks.events');
+
+        Route::post('/webhooks', [WebhookSubscriptionController::class, 'store'])
+            ->middleware(AuthenticateApiToken::class.':webhooks:manage')->name('webhooks.subscribe');
+
+        Route::delete('/webhooks/{id}', [WebhookSubscriptionController::class, 'destroy'])
+            ->whereNumber('id')
+            ->middleware(AuthenticateApiToken::class.':webhooks:manage')->name('webhooks.unsubscribe');
+
         Route::post('/statements', [XapiController::class, 'store'])
             ->middleware([AuthenticateApiToken::class.':enrollments:write', 'feature:xapi'])
             ->name('xapi.store');
@@ -266,6 +299,9 @@ $tenantRoutes = function (): void {
 
         // حصص الطالب ومجموعاته ورابط دخولها — كان الرابط يُحفظ ولا يصل صاحبه
         Route::get('/my-classes', MyClassesController::class)->name('my-classes');
+
+        // يفتحها الطالب بعد مسح كود القاعة — تُسجّل حضوره وتُخبره بالنتيجة
+        Route::get('/checkin/{token}', [SelfCheckInController::class, 'scan'])->name('center.checkin.scan');
 
         // إجابة نقطة تفاعل — تُقيَّم فوراً، فالفائدة في أن يعرف الآن
         Route::post('/moments/{moment}/respond', [VideoMomentController::class, 'respond'])
@@ -365,6 +401,13 @@ $tenantRoutes = function (): void {
         Route::get('/account/data/export', [PrivacyController::class, 'export'])->name('account.data.export');
         Route::delete('/account/data', [PrivacyController::class, 'destroy'])->name('account.data.destroy');
 
+        // تسجيل مفاتيح المرور وحذفها — من حساب صاحبها
+        Route::get('/account/passkeys/options', [PasskeyController::class, 'registerOptions'])
+            ->name('account.passkeys.options');
+        Route::post('/account/passkeys', [PasskeyController::class, 'register'])->name('account.passkeys.store');
+        Route::delete('/account/passkeys/{id}', [PasskeyController::class, 'destroy'])
+            ->whereNumber('id')->name('account.passkeys.destroy');
+
         // درجاتي — صورة الطالب في كورساته، لا محاولةً واحدة
         Route::get('/my-grades', MyGradesController::class)->name('my-grades');
 
@@ -442,6 +485,26 @@ $tenantRoutes = function (): void {
         Route::post('/login/release-device', [AuthController::class, 'releaseDevice'])
             ->name('login.release-device');
 
+        /*
+         | الدخول بمفتاح مرور — بلا كلمة مرور أصلاً.
+         |
+         | المفتاح لا يخرج من الجهاز: يُوقَّع فيه ويُرسَل التوقيع
+         | وحده، ولا يعمل إلا على نطاقنا — فالتصيّد لا ينفع معه.
+         */
+        Route::get('/passkey/options', [PasskeyController::class, 'loginOptions'])->name('passkey.options');
+        Route::post('/passkey/login', [PasskeyController::class, 'login'])->name('passkey.login');
+
+        /*
+         | الدخول بحسابٍ اجتماعي.
+         |
+         | و`state` تُحفظ في الجلسة وتُقارَن عند العودة: بلاها يستطيع
+         | مهاجمٌ أن يجعل الضحيّة تدخل بحسابه هو.
+         */
+        Route::get('/auth/{provider}', [SocialLoginController::class, 'redirect'])
+            ->where('provider', '[a-z]+')->name('social.redirect');
+        Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'callback'])
+            ->where('provider', '[a-z]+')->name('social.callback');
+
         Route::get('/register', [RegisterController::class, 'show'])->name('register');
         Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
 
@@ -508,6 +571,17 @@ $tenantRoutes = function (): void {
             Route::get('/attendance/{session}', [AttendanceController::class, 'show'])->name('attendance.show');
             Route::post('/attendance/{session}', [AttendanceController::class, 'store'])->name('attendance.store');
             Route::post('/attendance/{session}/mark', [AttendanceController::class, 'mark'])->name('attendance.mark');
+
+            /*
+             | شاشة الكود المتغيّر — تُفتح على تلفاز القاعة ولا تُلمس.
+             |
+             | وكودُها يتبدّل كل عشرين ثانية: كودٌ ثابت يصوّره أوّل
+             | داخلٍ ويرسله لمن في البيت، فيُسجَّل الغائب حاضراً.
+             */
+            Route::get('/attendance/{session}/display', [SelfCheckInController::class, 'show'])
+                ->name('attendance.display');
+            Route::get('/attendance/{session}/token', [SelfCheckInController::class, 'token'])
+                ->name('attendance.token');
 
             Route::get('/schedule', [ScheduleController::class, 'week'])->name('schedule');
 
@@ -725,6 +799,21 @@ $tenantRoutes = function (): void {
             Route::post('/admin/api', [ApiTokenController::class, 'store'])->name('admin.api.store');
             Route::delete('/admin/api/{id}', [ApiTokenController::class, 'destroy'])
                 ->whereNumber('id')->name('admin.api.destroy');
+
+            /*
+             | وجهات الـWebhooks — مع سجلّ تسليمها في الشاشة نفسها.
+             |
+             | أوّل سؤالٍ في كل تكاملٍ لا يعمل: «هل أرسلتم؟» — وشاشةٌ
+             | بلا سجلّ تترك السؤال بلا جواب فتصير تذكرةً عندنا.
+             */
+            Route::get('/admin/webhooks', [WebhookEndpointController::class, 'index'])->name('admin.webhooks');
+            Route::post('/admin/webhooks', [WebhookEndpointController::class, 'store'])->name('admin.webhooks.store');
+            Route::post('/admin/webhooks/{id}/test', [WebhookEndpointController::class, 'test'])
+                ->whereNumber('id')->name('admin.webhooks.test');
+            Route::post('/admin/webhooks/{id}/resume', [WebhookEndpointController::class, 'resume'])
+                ->whereNumber('id')->name('admin.webhooks.resume');
+            Route::delete('/admin/webhooks/{id}', [WebhookEndpointController::class, 'destroy'])
+                ->whereNumber('id')->name('admin.webhooks.destroy');
 
             /*
              | مرفقات الدرس شاشةٌ مستقلّة لا حقلٌ في نموذجه.

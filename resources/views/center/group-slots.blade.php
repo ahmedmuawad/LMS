@@ -104,8 +104,8 @@
                                 <p class="text-2xs text-subtle mt-0.5">
                                     {{ $slot->room?->name ?? __('بلا قاعة') }}
                                     @if($slot->effective_from || $slot->effective_to)
-                                        · {{ $slot->effective_from?->translatedFormat('j M Y') ?? __('من البداية') }}
-                                        → {{ $slot->effective_to?->translatedFormat('j M Y') ?? __('بلا نهاية') }}
+                                        · {{ display_date($slot->effective_from, 'j M Y') ?? __('من البداية') }}
+                                        → {{ display_date($slot->effective_to, 'j M Y') ?? __('بلا نهاية') }}
                                     @endif
                                 </p>
                             </div>

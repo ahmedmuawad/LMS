@@ -13,8 +13,9 @@
         <div class="min-w-0">
             <div class="rounded-lg overflow-hidden border border-line bg-surface-sunken aspect-[4/3] grid place-items-center mb-5">
                 @if($product->cover_path)
-                    <img src="{{ $product->cover_path }}" alt="{{ $product->title }}"
-                         class="w-full h-full object-cover">
+                    <x-ui.image :src="$product->cover_path" :alt="$product->title"
+                                class="w-full h-full object-cover"
+                                eager sizes="(min-width: 1024px) 50vw, 100vw" />
                 @else
                     <span class="text-5xl text-subtle" aria-hidden="true">◪</span>
                 @endif

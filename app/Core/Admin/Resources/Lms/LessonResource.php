@@ -9,6 +9,7 @@ use App\Core\Access\Scope;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\TextColumn;
 use App\Core\Admin\Fields\DateField;
+use App\Core\Admin\Fields\ImageField;
 use App\Core\Admin\Fields\NumberField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
@@ -169,6 +170,20 @@ final class LessonResource extends Resource
                     ]),
                 TextField::make('video_id')->label(__('معرّف الفيديو'))->half()
                     ->hint(__('لـ«ملف مرفوع»: مسار الملفّ في مكتبة الوسائط — عندها يُبثّ من خادمك برابطٍ موقَّع ينتهي، ويُفحص تسجيل الطالب عند كل مشاهدة. ولو وضعتَ عنواناً كاملاً (http) فهو على خادمٍ آخر ولا نملك حمايته.')),
+                /*
+                 | صورة ما قبل التشغيل.
+                 |
+                 | بلاها يبقى المستطيل أسود حتى يصل أوّل إطار — وعلى
+                 | شبكةٍ بطيئة يظنّ الطالب أن الدرس معطوب فيعيد
+                 | التحميل، فيُحمَّل الفيديو مرّتين.
+                 |
+                 | وتُختار لا تُستخرج: أوّلُ إطارٍ في الفيديو غالباً
+                 | وجهٌ مقطوع أو شاشةٌ فارغة. وإن تُركت فارغةً استُعمل
+                 | غلافُ الكورس.
+                 */
+                ImageField::make('poster')->label(__('صورة ما قبل التشغيل'))->ratio('16/9')
+                    ->hint(__('تُعرض قبل الضغط على التشغيل. اتركها فارغةً ليُستعمل غلاف الكورس.')),
+
                 SwitchField::make('is_downloadable')->label(__('يسمح بالتنزيل'))
                     ->hint(__('التنزيل يعني خروج الملف من حمايتك.')),
                 ...(tenant()?->allows('offline_download') ?? false ? [

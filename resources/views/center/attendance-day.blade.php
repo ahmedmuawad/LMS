@@ -2,7 +2,7 @@
 <div class="max-w-[1100px]">
 
     <x-ui.page-header :title="__('حصص اليوم')"
-                      :subtitle="\Illuminate\Support\Carbon::parse($date)->translatedFormat('l j F Y')">
+                      :subtitle="display_date(\Illuminate\Support\Carbon::parse($date), 'l j F Y')">
         <x-slot:actions>
             <form method="GET" class="flex items-end gap-2">
                 <x-ui.field :label="__('اليوم')" for="date" class="mb-0">

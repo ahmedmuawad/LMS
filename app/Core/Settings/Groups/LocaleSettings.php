@@ -63,10 +63,28 @@ final class LocaleSettings extends SettingsGroup
                         ->hint(__('تُقترح ولا تُنشر حتى يعتمدها إنسان.')),
                 ]),
 
+            /*
+             | التقويم: السوق السعودي يعمل بالهجري.
+             |
+             | الإجازات والفصول ومواعيد الاختبارات تُعلَن هجرياً،
+             | ومنصّةٌ تعرض «١٥ مارس» لمن يفكّر بـ«٢٥ رمضان» تُجبره
+             | على الحساب في رأسه عند كل موعد.
+             */
+            Section::make(__('التقويم'))->fields([
+                SelectField::make('calendar')->label(__('التقويم المعروض'))->half()
+                    ->options([
+                        'gregorian' => __('ميلادي'),
+                        'hijri' => __('هجري'),
+                        'both' => __('الاثنان معاً'),
+                    ])->default('gregorian')
+                    ->hint(__('«الاثنان معاً» يعرض: ٢٥ رمضان ١٤٤٧ (١٥ مارس) — وكثيرٌ يقرأ الهجري ويكتب الميلادي.')),
+            ]),
+
             Section::make(__('الأرقام والخطوط'))->fields([
                 SelectField::make('numerals')->label(__('نظام الأرقام'))->half()
                     ->options(['western' => __('عربية (123)'), 'eastern' => __('هندية (١٢٣)')])
-                    ->default('western'),
+                    ->default('western')
+                    ->hint(__('عرضٌ لا تخزين: الأرقام تبقى في القاعدة كما هي فيصحّ الفرز والحساب. والرموز والمعرّفات لا تُحوَّل.')),
                 SelectField::make('font_ar')->label(__('خط العربية'))->half()
                     ->options(['ibm-plex-sans-arabic' => 'IBM Plex Sans Arabic', 'cairo' => 'Cairo', 'tajawal' => 'Tajawal', 'noto-kufi' => 'Noto Kufi Arabic'])
                     ->default('ibm-plex-sans-arabic'),

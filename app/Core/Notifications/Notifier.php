@@ -9,6 +9,7 @@ use App\Core\Notifications\Models\NotificationLog;
 use App\Core\Notifications\Models\NotificationPreference;
 use App\Core\Notifications\Models\NotificationTemplate;
 use App\Models\User;
+use App\Modules\Webhooks\Webhooks;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -42,13 +43,34 @@ final class Notifier
         }
 
         $queued = [];
+        $recipients = collect($this->recipients($to));
 
-        foreach ($this->recipients($to) as $user) {
+        foreach ($recipients as $user) {
             foreach ($this->channelsFor($event, $user) as $channel) {
                 $this->queue($event, $user, $channel, $data);
                 $queued[] = $channel;
             }
         }
+
+        /*
+         | والـWebhooks تُطلق من هنا لا من مواضع النداء.
+         |
+         | كل ما يحدث في المنصّة يمرّ بهذه الدالّة: تسجيلٌ ودفعٌ
+         | وشهادةٌ وغياب. فنقطةُ إطلاقٍ واحدة تغطّي الثمانية
+         | والأربعين حدثاً كلَّها — وزرعُ نداءٍ في ثلاثين موضعاً
+         | يُنسى منه عشرة.
+         |
+         | وتُطلق ولو لم تُرسَل قناة: مشتركٌ أطفأ البريد لا يعني
+         | أن الحدث لم يقع، ونظامُه الخارجي ينتظره.
+         */
+        app(Webhooks::class)->fire($event->key, $data + [
+            'recipients' => $recipients
+                ->map(fn (User $user): array => [
+                    'id' => $user->getKey(),
+                    'name' => $user->name,
+                    'email' => $user->email,
+                ])->values()->all(),
+        ]);
 
         return array_values(array_unique($queued));
     }

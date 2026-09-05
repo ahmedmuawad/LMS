@@ -57,7 +57,7 @@
                                 </p>
 
                                 <p class="text-xs text-muted font-mono tabular mt-1">
-                                    {{ $session->date?->translatedFormat('l j F') }} ·
+                                    {{ display_date($session->date, 'l j F') }} ·
                                     {{ $session->timeLabel() }}
                                 </p>
 
@@ -76,7 +76,15 @@
 
                             <div class="shrink-0 w-full sm:w-auto">
                                 @if($room && $room->isOpen())
-                                    <x-ui.button as="a" :href="$room->url" target="_blank" rel="noopener"
+                                    {{--
+                                        الدخول يمرّ بنا لا برابط الغرفة مباشرة.
+
+                                        فيُسجَّل الحضور، ويُفحص التسجيل والموعد
+                                        مرّةً أخرى في الخادم — ورابطٌ يُنسَخ في
+                                        مجموعة واتساب لا ينفع من ليس مسجّلاً.
+                                    --}}
+                                    <x-ui.button as="a" :href="route('live.join', ['seed' => 'session-'.$session->id])"
+                                                 target="_blank" rel="noopener"
                                                  class="w-full sm:w-auto">{{ __('ادخل الحصة') }}</x-ui.button>
                                 @elseif($room)
                                     {{-- الوقت لا الرابط هو ما ينقص: قل متى بدل أن تُخفي --}}
@@ -145,7 +153,7 @@
                                         {{ $record->session?->group?->subject?->name ?? __('حصة') }}
                                     </p>
                                     <p class="text-2xs text-subtle font-mono tabular mt-0.5">
-                                        {{ $record->session?->date?->translatedFormat('j F Y') ?? '—' }}
+                                        {{ display_date($record->session?->date, 'j F Y') ?? '—' }}
                                     </p>
                                 </div>
                                 <x-ui.badge :tone="$statusTones[$record->status] ?? 'neutral'">

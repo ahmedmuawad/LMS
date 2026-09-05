@@ -87,7 +87,7 @@
                             <span class="text-2xs font-mono text-subtle">{{ number_format($minor / 100, 0) }}</span>
                             <span class="w-full rounded-t bg-primary" style="height: {{ max(4, (int) round($minor / $peak * 90)) }}px"
                                   aria-hidden="true"></span>
-                            <span class="text-2xs text-subtle truncate w-full text-center">{{ \Illuminate\Support\Carbon::parse($month.'-01')->translatedFormat('M') }}</span>
+                            <span class="text-2xs text-subtle truncate w-full text-center">{{ display_date(\Illuminate\Support\Carbon::parse($month.'-01'), 'M') }}</span>
                         </li>
                     @endforeach
                 </ul>
@@ -106,7 +106,7 @@
                     <li class="flex items-center justify-between gap-3 px-4 py-3">
                         <div class="min-w-0">
                             <p class="text-sm font-medium">{{ $conversion->amount()->format() }}</p>
-                            <p class="text-2xs text-subtle mt-0.5">{{ $conversion->created_at?->translatedFormat('j M Y') }}</p>
+                            <p class="text-2xs text-subtle mt-0.5">{{ display_date($conversion->created_at, 'j M Y') }}</p>
                         </div>
                         <div class="text-end shrink-0">
                             <p class="font-mono font-bold tabular text-success">{{ $conversion->commission()->format() }}</p>

@@ -49,7 +49,7 @@
                         @endif
 
                         <div class="flex items-center justify-between gap-2 text-2xs text-subtle mt-auto pt-2">
-                            <span>{{ $post->published_at?->translatedFormat('j F Y') }}</span>
+                            <span>{{ display_date($post->published_at, 'j F Y') }}</span>
                             @if(setting('content.reading_time', true) && $post->reading_minutes > 0)
                                 <span class="font-mono">{{ trans_choice('{1} دقيقة قراءة|{2} دقيقتان|[3,10] :count دقائق قراءة|[11,*] :count دقيقة قراءة', $post->reading_minutes, ['count' => $post->reading_minutes]) }}</span>
                             @endif

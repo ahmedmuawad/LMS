@@ -13,7 +13,7 @@
     /** التقويم يصل مصفوفة تواريخ؛ Alpine يحتاجه شكلاً واحداً مسطّحاً */
     $days = collect($calendar)->map(fn (array $slots, string $date): array => [
         'date' => $date,
-        'label' => \Illuminate\Support\Carbon::parse($date)->translatedFormat('l j F'),
+        'label' => display_date(\Illuminate\Support\Carbon::parse($date), 'l j F'),
         'slots' => array_values($slots),
     ])->values()->all();
 @endphp

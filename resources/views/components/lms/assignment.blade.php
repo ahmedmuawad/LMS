@@ -20,7 +20,7 @@
         <x-ui.description-list :items="array_filter([
             __('الدرجة العظمى') => rtrim(rtrim(number_format((float) $assignment->max_marks, 2), '0'), '.'),
             __('درجة النجاح') => rtrim(rtrim(number_format((float) $assignment->passing_marks, 2), '0'), '.'),
-            __('موعد التسليم') => $due?->translatedFormat('j F Y'),
+            __('موعد التسليم') => display_date($due, 'j F Y'),
             __('التسليم المتأخر') => $assignment->allow_late
                 ? ((int) $assignment->late_penalty_percent > 0
                     ? __('مقبول بخصم :p%', ['p' => $assignment->late_penalty_percent])

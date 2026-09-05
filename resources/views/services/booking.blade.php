@@ -25,7 +25,7 @@
             $rows = [__('الخدمة') => $booking->service?->title ?? '—'];
 
             if ($start !== null) {
-                $rows[__('الموعد')] = $start->translatedFormat('l j F Y — H:i');
+                $rows[__('الموعد')] = display_date($start, 'l j F Y — H:i');
                 $rows[__('المنطقة الزمنية')] = $booking->timezone ?? '—';
             }
 
@@ -35,7 +35,7 @@
 
             $rows[__('باسم')] = $booking->customerName();
             $rows[__('المبلغ')] = $booking->price_minor > 0 ? $booking->price()->format() : __('يُحدَّد بعرض سعر');
-            $rows[__('طُلب في')] = $booking->created_at?->translatedFormat('j F Y — H:i') ?? '—';
+            $rows[__('طُلب في')] = display_date($booking->created_at, 'j F Y — H:i') ?? '—';
         @endphp
 
         <x-ui.description-list :items="$rows" />

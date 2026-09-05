@@ -106,8 +106,8 @@
                                             {{ __(App\Modules\Commerce\Models\InstructorEarning::STATUSES[$row->status] ?? $row->status) }}
                                         </x-ui.badge>
                                     </td>
-                                    <td class="px-4 py-3 border-b border-line text-xs text-subtle whitespace-nowrap">{{ $row->available_at?->translatedFormat('j M Y') ?? '—' }}</td>
-                                    <td class="px-4 py-3 border-b border-line text-xs text-subtle whitespace-nowrap">{{ $row->created_at?->translatedFormat('j M Y') }}</td>
+                                    <td class="px-4 py-3 border-b border-line text-xs text-subtle whitespace-nowrap">{{ display_date($row->available_at, 'j M Y') ?? '—' }}</td>
+                                    <td class="px-4 py-3 border-b border-line text-xs text-subtle whitespace-nowrap">{{ display_date($row->created_at, 'j M Y') }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

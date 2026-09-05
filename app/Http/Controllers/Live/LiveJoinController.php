@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Live;
 
 use App\Core\Access\Ability;
 use App\Models\User;
+use App\Modules\Center\Actions\RecordMeetingAttendance;
 use App\Modules\Center\Models\CenterEnrollment;
 use App\Modules\Center\Models\Group;
 use App\Modules\Center\Models\Session;
@@ -17,7 +18,7 @@ use Illuminate\Http\Request;
 use RuntimeException;
 
 /**
- * دخول غرفة BigBlueButton.
+ * دخول الحصة المباشرة — لكل المزوّدين.
  *
  * ## لماذا نقطةٌ عندنا لا رابطٌ مباشر
  *
@@ -27,9 +28,20 @@ use RuntimeException;
  * وبناؤه هنا يحرس ما لا يحرسه رابطٌ منسوخ: التسجيل في المجموعة،
  * ونافذة الموعد. فرابطٌ يُنسَخ في مجموعةِ واتساب لا ينفع من ليس
  * مسجّلاً، ولا ينفع قبل موعده.
+ *
+ * ## والمرور من هنا يُسجّل الحضور
+ *
+ * Jitsi — وهو افتراضينا — لا واجهةَ له تُسأل عمّن في الغرفة. لكنّ
+ * من دخل من عندنا نعرفه يقيناً؛ فيُكتب ذلك، ويبقى للمدرّس تعديله.
+ * وكان البديل أن يُعلّم خمسةً وعشرين اسماً من ذاكرته بعد الحصة.
+ *
+ * ولهذا يمرّ كلُّ مزوّدٍ من هنا لا BBB وحده: رابطٌ مباشر في
+ * الشاشة يعني حصّةً أونلاين بلا كشف حضور.
  */
 final class LiveJoinController
 {
+    public function __construct(private readonly RecordMeetingAttendance $attendance) {}
+
     public function __invoke(Request $request, string $seed, LiveRooms $rooms, BigBlueButtonProvider $bbb): RedirectResponse
     {
         $user = $request->user();
@@ -49,7 +61,7 @@ final class LiveJoinController
 
         $meeting = $session !== null ? $rooms->forSession($session) : $rooms->forGroup($group);
 
-        abort_if($meeting === null || $meeting->provider !== 'bbb', 404);
+        abort_if($meeting === null, 404);
 
         /*
          | النافذة تُفحص هنا كذلك.
@@ -59,6 +71,25 @@ final class LiveJoinController
          | ليجهّز.
          */
         abort_unless($moderator || $meeting->isOpen(), 403, __('لم يُفتح باب الحصة بعد.'));
+
+        /*
+         | والحضور يُسجَّل عند الدخول لا بعد الحصة.
+         |
+         | كان المدرّس يُنهي حصّةً أونلاين ثم يفتح الكشف ويعلّم
+         | خمسة وعشرين اسماً من ذاكرته — فيُعلَّم الكلّ حاضرين.
+         | ونحن نعرف من دخل من عندنا يقيناً؛ فيُكتب ما نعرفه،
+         | ويبقى للمدرّس تعديلُه.
+         |
+         | ويُسجَّل قبل التحويل لا بعده: بعد `redirect` لا يعود
+         | المتصفّح إلينا أبداً.
+         */
+        if ($session !== null && ! $moderator) {
+            $this->attendance->handle($session, $user);
+        }
+
+        if ($meeting->provider !== 'bbb') {
+            return redirect()->away($meeting->url);
+        }
 
         $room = $meeting->room ?? $seed;
 

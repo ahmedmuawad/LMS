@@ -38,7 +38,7 @@
     @error('gateway')<x-ui.alert tone="danger" class="mb-4">{{ $message }}</x-ui.alert>@enderror
 
     <x-ui.page-header :title="__('طلب :n', ['n' => $order->number])"
-                      :subtitle="$order->placed_at?->translatedFormat('j F Y · h:i A')">
+                      :subtitle="display_date($order->placed_at, 'j F Y · h:i A')">
         <x-slot:actions>
             <x-ui.badge :tone="$tones[$order->status] ?? 'neutral'">
                 {{ __(Order::STATUSES[$order->status] ?? $order->status) }}
@@ -82,6 +82,26 @@
                 $order->outstanding()->isZero() ? null : __('المتبقّي') => $order->outstanding()->isZero() ? null : $order->outstanding()->format(),
                 $order->refunded()->isZero() ? null : __('المستردّ') => $order->refunded()->isZero() ? null : $order->refunded()->format(),
             ])" />
+
+            {{--
+                رمز هيئة الزكاة والضريبة — للسوق السعودي.
+
+                «المرحلة الأولى» تشترط رمزاً على كل فاتورةٍ مبسّطة
+                يحمل اسم البائع ورقمه الضريبي والوقت والإجمالي
+                والضريبة. يُحسَب عندنا بلا ربطٍ ولا مفاتيح، ويقرؤه
+                المفتّش بتطبيق الهيئة.
+            --}}
+            @php $zatca = app(App\Core\Invoicing\ZatcaQr::class); @endphp
+            @if($zatca->enabled())
+                <div class="mt-5 pt-5 border-t border-line flex items-center gap-4">
+                    <div class="w-[120px] h-[120px] shrink-0 bg-white rounded-md p-1.5 [&>svg]:w-full [&>svg]:h-full">
+                        {!! $zatca->svg($order->total(), $order->tax(), $order->placed_at) !!}
+                    </div>
+                    <p class="text-2xs text-muted leading-relaxed">
+                        {{ __('فاتورة ضريبية مبسّطة — يُقرأ هذا الرمز بتطبيق هيئة الزكاة والضريبة والجمارك.') }}
+                    </p>
+                </div>
+            @endif
         </x-slot:footer>
     </x-ui.card>
 

@@ -154,6 +154,106 @@
         </x-ui.button>
     </section>
 
+    {{--
+        مفاتيح المرور — حيث تُدار كلمة المرور، فهي بديلٌ عنها.
+
+        والمفتاح لا يخرج من الجهاز: يُوقَّع فيه ويُرسَل التوقيع وحده،
+        ولا يعمل إلا على نطاق هذه المنصّة — فالتصيّد لا ينفع معه.
+    --}}
+    @if($passkeysEnabled)
+        <section class="surface-card p-5 mb-5" x-data="passkeyManager()" x-init="check()">
+            <div class="flex flex-wrap items-start gap-4 mb-4">
+                <div class="flex-1 min-w-0">
+                    <h2 class="font-bold">{{ __('مفاتيح المرور') }}</h2>
+                    <p class="text-sm text-muted mt-1 leading-relaxed">
+                        {{ __('ادخل ببصمتك أو وجهك بلا كلمة مرور. المفتاح لا يغادر جهازك، ولا يعمل إلا على هذا الموقع.') }}
+                    </p>
+                </div>
+
+                <x-ui.button type="button" x-show="supported" x-cloak x-on:click="add()"
+                             x-bind:disabled="busy" class="w-full sm:w-auto sm:shrink-0">
+                    <span x-text="busy ? '{{ __('جارٍ…') }}' : '{{ __('أضف مفتاحاً') }}'"></span>
+                </x-ui.button>
+            </div>
+
+            {{--
+                ومن لا يدعمه متصفّحه يُقال له، لا يُترك أمام زرٍّ صامت.
+            --}}
+            <p class="text-2xs text-muted" x-show="! supported" x-cloak>
+                {{ __('متصفّحك لا يدعم مفاتيح المرور — جرّب من هاتفك أو من متصفّحٍ أحدث.') }}
+            </p>
+
+            <p class="text-2xs text-danger mb-3" x-show="error" x-text="error" x-cloak></p>
+
+            @if($passkeys->isEmpty())
+                <p class="text-2xs text-subtle">{{ __('لا مفاتيح بعد.') }}</p>
+            @else
+                <div class="grid gap-2">
+                    @foreach($passkeys as $passkey)
+                        <div class="flex flex-wrap items-center gap-3 px-3 py-2.5 rounded-lg border border-line">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm font-semibold truncate">{{ $passkey->label }}</p>
+                                <p class="text-2xs text-subtle mt-0.5">
+                                    {{ $passkey->last_used_at
+                                        ? __('آخر استعمال :when', ['when' => $passkey->last_used_at->diffForHumans()])
+                                        : __('لم يُستعمل بعد') }}
+                                </p>
+                            </div>
+
+                            <form method="POST" action="{{ route('account.passkeys.destroy', $passkey->id) }}"
+                                  onsubmit="return confirm('{{ __('حذف هذا المفتاح؟ لن تستطيع الدخول به بعدها.') }}')">
+                                @csrf @method('DELETE')
+                                <x-ui.button type="submit" size="sm" variant="danger">{{ __('حذف') }}</x-ui.button>
+                            </form>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </section>
+
+        @push('scripts')
+        <script>
+            window.usosPasskeys = {
+                optionsUrl: @js(route('account.passkeys.options')),
+                registerUrl: @js(route('account.passkeys.store')),
+            };
+
+            function passkeyManager() {
+                return {
+                    supported: false, busy: false, error: '',
+
+                    check() {
+                        this.supported = window.usosPasskeysApi?.supported() ?? false;
+                    },
+
+                    async add() {
+                        /*
+                         | الاسم يُسأل عنه قبل التسجيل.
+                         |
+                         | من عنده ثلاثة مفاتيح لا يعرف أيّها يحذف لو
+                         | كانت كلّها اسمها «مفتاح».
+                         */
+                        const label = prompt(@js(__('سمِّ هذا الجهاز — «آيفوني» مثلاً:')), '');
+
+                        if (label === null) return;
+
+                        this.busy = true;
+                        this.error = '';
+
+                        try {
+                            await window.usosPasskeysApi.register(label);
+                            window.location.reload();
+                        } catch (e) {
+                            this.error = e.message;
+                            this.busy = false;
+                        }
+                    },
+                };
+            }
+        </script>
+        @endpush
+    @endif
+
     <section class="surface-card p-5 mb-5 flex flex-wrap items-center gap-4">
         <div class="flex-1 min-w-0">
             <h2 class="font-bold">{{ __('الإشعارات') }}</h2>

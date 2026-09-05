@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\Core\Settings\SettingsRepository;
+use App\Core\Support\Dates;
+use Illuminate\Support\Carbon;
 
 if (! function_exists('setting')) {
     /**
@@ -39,5 +41,33 @@ if (! function_exists('site_description')) {
     function site_description(): string
     {
         return (string) (setting()->translated('general.tagline') ?: '');
+    }
+}
+
+if (! function_exists('display_date')) {
+    /**
+     * تاريخٌ بتقويم المشترك وأرقامه — بديل `translatedFormat`.
+     *
+     * ## لماذا دالّةٌ عامّة لا مكوّن
+     *
+     * التواريخ في المنصّة تُكتب في اثنين وأربعين موضعاً، ونصفُها
+     * داخل سمةٍ أو داخل `__(':date')` — ولا يُوضع مكوّنٌ في سمة.
+     * فدالّةٌ واحدة تُبدَّل بها كلّها ويتغيّر التقويم من الإعدادات
+     * في كل شاشة معاً.
+     *
+     * ويقبل نمط PHP لا ICU: هو المكتوب في المواضع كلّها، وترجمتُه
+     * أرخص من إعادة كتابتها.
+     */
+    function display_date(mixed $date, string $pattern = 'j F Y'): ?string
+    {
+        if ($date === null || $date === '') {
+            return null;
+        }
+
+        $carbon = $date instanceof Carbon
+            ? $date
+            : Carbon::parse((string) $date);
+
+        return app(Dates::class)->fromPhpPattern($carbon, $pattern);
     }
 }

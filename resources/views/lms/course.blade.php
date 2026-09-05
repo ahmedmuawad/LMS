@@ -216,7 +216,9 @@
             <x-ui.card :padding="false">
                 <div class="aspect-video bg-surface-sunken relative">
                     @if($course->cover_path)
-                        <img src="{{ $course->cover_path }}" alt="" class="size-full object-cover">
+                        {{-- غلافُ صفحة الكورس هو أهمّ ما فيها: يُطلب فوراً لا كسولاً --}}
+                        <x-ui.image :src="$course->cover_path" class="size-full object-cover"
+                                    eager sizes="(min-width: 1024px) 380px, 100vw" />
                     @else
                         <span class="absolute inset-0 grid place-items-center text-4xl text-subtle" aria-hidden="true">▤</span>
                     @endif

@@ -88,7 +88,7 @@
                                 ? __('آخر استعمال :when', ['when' => $token->last_used_at->diffForHumans()])
                                 : __('لم يُستعمل بعد') }}
                             @if($token->expires_at)
-                                · {{ __('ينتهي :date', ['date' => $token->expires_at->translatedFormat('j M Y')]) }}
+                                · {{ __('ينتهي :date', ['date' => display_date($token->expires_at, 'j M Y')]) }}
                             @endif
                         </p>
                     </div>

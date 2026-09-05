@@ -106,7 +106,16 @@
                         المصمِّم: الحماية الحقيقية في الرابط الموقَّع
                         والعلامة المائية.
                     --}}
+                    {{--
+                        `poster` قبل التشغيل، وغلافُ الكورس بديلُه.
+
+                        بلاه يبقى المستطيل أسود حتى يصل أوّل إطار — وعلى
+                        شبكةٍ بطيئة يظنّ الطالب أن الدرس معطوب فيعيد
+                        التحميل، فيحمّل الفيديو مرّتين.
+                    --}}
+                    @php $poster = $lesson->poster ?: ($course?->cover_path ?? null); @endphp
                     <video x-ref="video" class="absolute inset-0 size-full" controls preload="metadata"
+                           @if($poster) poster="{{ $poster }}" @endif
                            disablepictureinpicture
                            controlsList="{{ $lesson->is_downloadable ? '' : 'nodownload noplaybackrate noremoteplayback' }}"
                            @loadedmetadata="restore()" @timeupdate.throttle.10s="report()" @pause="report()"
