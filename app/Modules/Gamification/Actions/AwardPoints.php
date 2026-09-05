@@ -42,8 +42,8 @@ final class AwardPoints
             return null;
         }
 
-        return DB::transaction(function () use ($user, $rule, $points, $source, $note): PointEntry {
-            $entry = PointEntry::create([
+        $entry = DB::transaction(function () use ($user, $rule, $points, $source, $note): PointEntry {
+            $created = PointEntry::create([
                 'user_id' => $user->getKey(),
                 'rule' => $rule,
                 'points' => $points,
@@ -54,8 +54,24 @@ final class AwardPoints
 
             $this->recalculate($user);
 
-            return $entry;
+            return $created;
         });
+
+        /*
+         | وتُفحص التحدّيات بعد كل نقطة.
+         |
+         | التحدي يقيس فعلاً وقع، وكل فعلٍ يُسجَّل نقطةً — فهذا موضع
+         | الفحص. وفحصٌ ليليٌّ بجدول يجعل الطالب يُتمّ التحدي فلا يرى
+         | شيئاً حتى الغد، وقد نسي.
+         |
+         | وخارج المعاملة: منحُ الجائزة يكتب نقطةً أخرى، ومعاملةٌ
+         | داخل معاملة تُعقّد ما لا يحتاج تعقيداً.
+         */
+        if ($rule !== 'challenge.completed') {
+            app(CheckChallenges::class)->forUser($user, $rule);
+        }
+
+        return $entry;
     }
 
     /**

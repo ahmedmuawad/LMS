@@ -17,6 +17,7 @@ use App\Http\Controllers\Center\DeviceController as AttendanceDeviceController;
 use App\Http\Controllers\Center\FinanceController;
 use App\Http\Controllers\Center\GroupEnrolmentController;
 use App\Http\Controllers\Center\GuardianPortalController;
+use App\Http\Controllers\Center\InventoryController;
 use App\Http\Controllers\Center\MyClassesController;
 use App\Http\Controllers\Center\ScheduleController;
 use App\Http\Controllers\Center\StudentFileController;
@@ -26,6 +27,7 @@ use App\Http\Controllers\Commerce\CheckoutController;
 use App\Http\Controllers\Commerce\ShopController;
 use App\Http\Controllers\Commerce\WalletController;
 use App\Http\Controllers\Commerce\WebhookController;
+use App\Http\Controllers\Community\ChallengeController;
 use App\Http\Controllers\Community\DiscussionController;
 use App\Http\Controllers\Community\ProgressController;
 use App\Http\Controllers\Community\ReviewController;
@@ -315,6 +317,10 @@ $tenantRoutes = function (): void {
          | سؤالٌ في الصفحة لا قائمة: القائمة تُقرأ كامتحان فتُؤجَّل،
          | والسؤال الواحد بجوابٍ فوري يُقرأ كتدريب فيُكمَل.
          */
+        // التحدّيات وعجلة اليوم
+        Route::get('/challenges', [ChallengeController::class, 'index'])->name('challenges');
+        Route::post('/challenges/spin', [ChallengeController::class, 'spin'])->name('challenges.spin');
+
         // درجاتي — صورة الطالب في كورساته، لا محاولةً واحدة
         Route::get('/my-grades', MyGradesController::class)->name('my-grades');
 
@@ -589,6 +595,22 @@ $tenantRoutes = function (): void {
                 ->name('admin.questions.import.template');
             Route::post('/admin/questions/import', [QuestionImportController::class, 'store'])
                 ->name('admin.questions.import.store');
+
+            /*
+             | المخزون — قبل مسار الموارد العام.
+             |
+             | `/admin/inventory/{id}/movements` يجب أن يُقرأ قبل
+             | `/admin/{resource}/{id}`، وإلا فُهم «movements» فعلاً
+             | على المورد.
+             */
+            Route::get('/admin/inventory-custody', [InventoryController::class, 'custody'])
+                ->name('admin.center.inventory.custody');
+            Route::get('/admin/inventory/{item}/movements', [InventoryController::class, 'movements'])
+                ->whereNumber('item')->name('admin.center.inventory.movements');
+            Route::post('/admin/inventory/{item}/movements', [InventoryController::class, 'store'])
+                ->whereNumber('item')->name('admin.center.inventory.movements.store');
+            Route::post('/admin/inventory/movements/{movement}/return', [InventoryController::class, 'returnCustody'])
+                ->whereNumber('movement')->name('admin.center.inventory.return');
 
             // رموز المذكرات المطبوعة
             Route::get('/admin/print-codes', [PrintCodeController::class, 'index'])->name('admin.print-codes');

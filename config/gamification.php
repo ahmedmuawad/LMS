@@ -28,6 +28,15 @@ return [
         'streak.day' => ['points' => 5, 'label' => 'يوم متتابع', 'once' => false, 'daily' => 1],
         'streak.week' => ['points' => 40, 'label' => 'أسبوع كامل بلا انقطاع', 'once' => false, 'daily' => 1],
         'profile.completed' => ['points' => 15, 'label' => 'إكمال الملف الشخصي', 'once' => true, 'daily' => 0],
+
+        /*
+         | جوائز التحدّيات والعجلة تُسجَّل بقاعدتين خاصّتين.
+         |
+         | ولو سُجّلت جائزة التحدي بقاعدته لعدّت نفسها في تقدّمه —
+         | فيُتمّ التحدي بجائزته لا بعمله.
+         */
+        'challenge.completed' => ['points' => 0, 'label' => 'إتمام تحدٍّ', 'once' => false, 'daily' => 0],
+        'wheel.spin' => ['points' => 0, 'label' => 'عجلة الحظ', 'once' => false, 'daily' => 1],
     ],
 
     /*

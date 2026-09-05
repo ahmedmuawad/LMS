@@ -90,6 +90,8 @@ return [
                 ['key' => 'fees', 'label' => 'الأقساط والمتأخرات', 'icon' => '⛁', 'module' => 'center-finance', 'route' => 'admin.center.arrears'],
                 ['key' => 'center-invoices', 'label' => 'فواتير الطلاب', 'icon' => '◨', 'module' => 'center-finance'],
                 ['key' => 'cashboxes', 'label' => 'الخزنة', 'icon' => '⛃', 'module' => 'center-premises', 'route' => 'admin.center.cashboxes'],
+                ['key' => 'inventory', 'label' => 'المخزون', 'icon' => '▧', 'module' => 'center', 'feature' => 'inventory'],
+                ['key' => 'inventory-custody', 'label' => 'العُهد والنواقص', 'icon' => '⇄', 'module' => 'center', 'feature' => 'inventory', 'route' => 'admin.center.inventory.custody', 'ability' => Ability::CENTER_MANAGE],
                 ['key' => 'rooms-occupancy', 'label' => 'إشغال القاعات', 'icon' => '◫', 'module' => 'center-premises', 'route' => 'admin.center.rooms'],
                 ['key' => 'center-teachers', 'label' => 'مدرّسو السنتر', 'icon' => '☰', 'module' => 'center-staff', 'route' => 'admin.center.teachers'],
                 ['key' => 'branches', 'label' => 'الفروع', 'icon' => '⌂', 'module' => 'center-premises'],
@@ -139,6 +141,7 @@ return [
                 ['key' => 'affiliates', 'label' => 'التسويق بالعمولة', 'icon' => '⇢', 'module' => 'affiliates', 'feature' => 'affiliates', 'route' => 'admin.affiliates.index'],
                 ['key' => 'reviews', 'label' => 'التقييمات', 'icon' => '★', 'module' => 'reviews', 'route' => 'admin.reviews.queue'],
                 ['key' => 'badges', 'label' => 'الشارات', 'icon' => '◆', 'module' => 'gamification', 'feature' => 'gamification'],
+                ['key' => 'challenges', 'label' => 'التحدّيات', 'icon' => '◎', 'module' => 'gamification', 'feature' => 'gamification'],
             ],
         ],
 

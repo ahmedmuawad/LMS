@@ -6,6 +6,7 @@ use App\Core\Admin\Resources\Center\CenterInvoiceResource;
 use App\Core\Admin\Resources\Center\CenterStudentResource;
 use App\Core\Admin\Resources\Center\GradeResource;
 use App\Core\Admin\Resources\Center\GroupResource;
+use App\Core\Admin\Resources\Center\InventoryItemResource;
 use App\Core\Admin\Resources\Center\RoomResource;
 use App\Core\Admin\Resources\Center\StageResource;
 use App\Core\Admin\Resources\Center\SubjectResource;
@@ -19,6 +20,7 @@ use App\Core\Admin\Resources\Commerce\ProductResource;
 use App\Core\Admin\Resources\Commerce\RechargeCodeResource;
 use App\Core\Admin\Resources\Commerce\RefundResource;
 use App\Core\Admin\Resources\Community\BadgeResource;
+use App\Core\Admin\Resources\Community\ChallengeResource;
 use App\Core\Admin\Resources\Content\CommentResource;
 use App\Core\Admin\Resources\Content\FormResource;
 use App\Core\Admin\Resources\Content\PageResource;
@@ -80,6 +82,7 @@ return [
 
         // المجتمع والتحفيز
         'badges' => BadgeResource::class,
+        'challenges' => ChallengeResource::class,
 
         // السنتر
         'groups' => GroupResource::class,
@@ -90,6 +93,7 @@ return [
         'branches' => BranchResource::class,
         'rooms' => RoomResource::class,
         'center-invoices' => CenterInvoiceResource::class,
+        'inventory' => InventoryItemResource::class,
     ],
 
     // اللوحة العليا — القاعدة المركزية

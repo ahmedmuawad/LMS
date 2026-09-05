@@ -33,6 +33,7 @@ return [
                 ['key' => 'review', 'label' => 'مراجعتي', 'icon' => '↻', 'url' => '/my-review', 'module' => 'lms', 'setting' => 'lms.review_enabled', 'setting_default' => true],
                 ['key' => 'certificates', 'label' => 'شهاداتي', 'icon' => '◈', 'url' => '/my-certificates', 'module' => 'certificates'],
                 ['key' => 'badges', 'label' => 'شاراتي', 'icon' => '★', 'url' => '/my-badges', 'module' => 'gamification', 'feature' => 'gamification'],
+                ['key' => 'challenges', 'label' => 'التحدّيات', 'icon' => '◎', 'url' => '/challenges', 'module' => 'gamification', 'feature' => 'gamification'],
             ],
         ],
 

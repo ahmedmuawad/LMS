@@ -59,6 +59,31 @@ final class AwardBadges
         return $awarded;
     }
 
+    /**
+     * يمنح شارةً بعينها — لجائزة تحدٍّ أو منحةٍ يدوية من المدرّس.
+     *
+     * وشرطُ الشارة لا يُفحص هنا: هذه شارةٌ تُعطى لا تُستحقّ بعدّاد،
+     * وفحصُ شرطٍ لم يوضَع لها يمنعها عمّن استحقّها بطريقٍ آخر.
+     */
+    public function give(User $user, int $badgeId): bool
+    {
+        $badge = Badge::where('is_active', true)->find($badgeId);
+
+        if ($badge === null || $user->badges()->where('badges.id', $badgeId)->exists()) {
+            return false;
+        }
+
+        $user->badges()->attach($badge->getKey(), ['awarded_at' => now()]);
+
+        notify('gamification.badge_earned', $user, [
+            'badge_name' => (string) $badge->name,
+            'badge_description' => (string) $badge->description,
+            'url' => url('/my-progress'),
+        ]);
+
+        return true;
+    }
+
     /** يُنشئ الشارات الافتراضية للمشترك — تُحرَّر بعدها كما يشاء. */
     public function install(): int
     {

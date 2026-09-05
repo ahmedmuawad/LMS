@@ -65,6 +65,10 @@ final class GamificationSettings extends SettingsGroup
                 SwitchField::make('badges')->label(__('تفعيل الشارات'))->default(true),
                 SwitchField::make('show_in_profile')->label(__('إظهار النقاط في ملف الطالب'))->default(true),
                 SwitchField::make('streaks')->label(__('تتبّع الأيام المتتابعة'))->default(true),
+                SwitchField::make('challenges')->label(__('تفعيل التحدّيات'))->default(true)
+                    ->hint(__('النقاط والشارات تقيس ما وقع، والتحدّي يصنع ما يقع: هدفٌ محدّد بمهلة.')),
+                SwitchField::make('wheel')->label(__('عجلة الحظ اليومية'))->default(true)
+                    ->hint(__('دورةٌ واحدة كل يوم بجائزة نقاط. لا يدفع الطالب شيئاً ولا يخسر شيئاً — وفائدتها أنها تُعيده كل يوم.')),
             ]),
 
             Section::make(__('لوحة الصدارة'))
