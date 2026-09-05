@@ -99,10 +99,11 @@
         <div class="absolute inset-0 opacity-55 pointer-events-none" aria-hidden="true"
              style="background-image:linear-gradient(var(--color-spot-line) 1px,transparent 1px),linear-gradient(90deg,var(--color-spot-line) 1px,transparent 1px);background-size:44px 44px"></div>
 
-        <div class="relative max-w-[1180px] mx-auto px-4 sm:px-6 py-14 sm:py-20
-                    grid gap-10 lg:gap-12 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)] lg:items-center">
+        {{-- بلا صورة لا يوجد عمودان: العمود الفارغ يترك نصف الواجهة بياضاً --}}
+        <div class="relative max-w-[1180px] mx-auto px-4 sm:px-6 py-14 sm:py-20 grid gap-10 lg:gap-12 lg:items-center
+                    {{ $heroImage ? 'lg:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)]' : '' }}">
 
-            <div class="min-w-0">
+            <div class="min-w-0 {{ $heroImage ? '' : 'lg:max-w-[46rem]' }}">
                 @if($statGroups > 0)
                     <p class="inline-flex items-center gap-2 px-3.5 py-1.5 mb-6 rounded-full bg-spot-raised text-on-spot-accent text-xs font-semibold">
                         <span class="size-1.5 rounded-full bg-live motion-safe:animate-pulse" aria-hidden="true"></span>
@@ -192,7 +193,8 @@
 
     @if($stats !== [])
         <section class="bg-surface border-b border-line">
-            <div class="max-w-[1180px] mx-auto px-4 sm:px-6 grid grid-cols-2 lg:grid-cols-4">
+            {{-- auto-fit لا عدد ثابت: رقمان في شبكة أربعة يتركان نصف الشريط فارغاً --}}
+            <div class="max-w-[1180px] mx-auto px-4 sm:px-6 grid grid-cols-[repeat(auto-fit,minmax(min(180px,100%),1fr))]">
                 @foreach($stats as $stat)
                     <div class="py-8 px-3 border-s border-line">
                         <p class="text-3xl sm:text-4xl font-bold text-primary leading-tight font-mono tabular">{{ $stat['value'] }}</p>
@@ -213,7 +215,7 @@
                 <a href="{{ url('/courses') }}" class="tap-link font-semibold text-primary hover:underline">{{ __('كل الكورسات') }} ←</a>
             </div>
 
-            <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="grid gap-6 grid-cols-[repeat(auto-fill,minmax(min(280px,100%),1fr))]">
                 @foreach($courses as $course)
                     <article class="surface-card overflow-hidden flex flex-col shadow-sm lift">
                         <a href="{{ url('/courses/'.$course->slug) }}" class="block relative aspect-[16/10] bg-surface-sunken">
@@ -278,7 +280,7 @@
                     {{ __('تختار المكان المناسب لك. الحضور يُسجَّل، والأقساط والتقرير الشهري يصلان وليّ الأمر.') }}
                 </p>
 
-                <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="grid gap-6 grid-cols-[repeat(auto-fit,minmax(min(320px,100%),1fr))]">
                     @foreach($groups as $group)
                         @php $left = $group->seatsLeft(); @endphp
                         <div class="border border-line rounded-lg overflow-hidden bg-bg">
@@ -396,11 +398,14 @@
     @endif
 
     @if($about)
-        <section id="about" class="max-w-[1180px] mx-auto px-4 sm:px-6 py-16 sm:py-20
-                                   grid gap-10 lg:gap-12 lg:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)] lg:items-center">
-            @if(setting('homepage.about_image') ?: $heroImage)
+        @php $aboutImage = setting('homepage.about_image') ?: $heroImage; @endphp
+
+        {{-- بلا صورة يضيق العمود إلى عرض القراءة بدل أن يمتدّ سطراً بعرض ١١٨٠ --}}
+        <section id="about" class="mx-auto px-4 sm:px-6 py-16 sm:py-20 grid gap-10 lg:gap-12 lg:items-center
+                                   {{ $aboutImage ? 'max-w-[1180px] lg:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)]' : 'max-w-[72ch]' }}">
+            @if($aboutImage)
                 <div class="rounded-xl overflow-hidden border border-line shadow-md aspect-square max-w-sm lg:max-w-none mx-auto w-full">
-                    <img src="{{ setting('homepage.about_image') ?: $heroImage }}" alt="" class="size-full object-cover" loading="lazy">
+                    <img src="{{ $aboutImage }}" alt="" class="size-full object-cover" loading="lazy">
                 </div>
             @endif
 
@@ -437,7 +442,7 @@
             <div class="max-w-[1180px] mx-auto px-4 sm:px-6 py-16 sm:py-20">
                 <h2 class="text-2xl sm:text-3xl font-bold mb-9">{{ __('الطلبة يقولون') }}</h2>
 
-                <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="grid gap-6 grid-cols-[repeat(auto-fit,minmax(min(280px,100%),1fr))]">
                     @foreach($quotes as $quote)
                         <figure class="m-0 p-6 border border-line rounded-lg bg-bg flex flex-col gap-4">
                             <p class="text-accent tracking-[3px]" aria-label="{{ __(':n من ٥', ['n' => $quote->rating]) }}">

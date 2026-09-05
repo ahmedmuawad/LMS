@@ -196,7 +196,13 @@ final readonly class Money implements JsonSerializable, Stringable
         return $currency;
     }
 
-    private static function decimalsFor(string $currency): int
+    /**
+     * خانات العملة العشرية.
+     *
+     * عامّةٌ لأن التحويل بين العملات يحتاجها من خارج الصنف: KWD
+     * ثلاث خانات وJPY صفر، ومن يحسب بخانتين دائماً يُخطئ فيهما.
+     */
+    public static function decimalsFor(string $currency): int
     {
         return config("money.decimals.{$currency}", config('money.default_decimals', 2));
     }

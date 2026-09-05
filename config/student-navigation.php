@@ -56,6 +56,7 @@ return [
                 ['key' => 'discussions', 'label' => 'النقاشات', 'icon' => '❝', 'url' => '/discussions', 'module' => 'community'],
                 ['key' => 'affiliate', 'label' => 'التسويق بالعمولة', 'icon' => '⇢', 'url' => '/affiliate', 'module' => 'affiliates', 'setting' => 'growth.affiliates_enabled'],
                 ['key' => 'account', 'label' => 'بياناتي', 'icon' => '☺', 'url' => '/account'],
+                ['key' => 'privacy', 'label' => 'بياناتي', 'icon' => '⛨', 'url' => '/account/data'],
                 ['key' => 'security', 'label' => 'الأمان والدخول', 'icon' => '⛨', 'url' => '/account/two-factor'],
             ],
         ],

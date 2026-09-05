@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\PrivacyController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Center\AttendanceController;
 use App\Http\Controllers\Center\DeviceController as AttendanceDeviceController;
@@ -353,6 +354,16 @@ $tenantRoutes = function (): void {
         // التحدّيات وعجلة اليوم
         Route::get('/challenges', [ChallengeController::class, 'index'])->name('challenges');
         Route::post('/challenges/spin', [ChallengeController::class, 'spin'])->name('challenges.spin');
+
+        /*
+         | بياناتي: تصديرها وحذف الحساب.
+         |
+         | حقٌّ يُلزم به قانون حماية البيانات المصري (١٥١/٢٠٢٠)
+         | وGDPR — لا ميزةٌ تُضاف.
+         */
+        Route::get('/account/data', [PrivacyController::class, 'show'])->name('account.data');
+        Route::get('/account/data/export', [PrivacyController::class, 'export'])->name('account.data.export');
+        Route::delete('/account/data', [PrivacyController::class, 'destroy'])->name('account.data.destroy');
 
         // درجاتي — صورة الطالب في كورساته، لا محاولةً واحدة
         Route::get('/my-grades', MyGradesController::class)->name('my-grades');

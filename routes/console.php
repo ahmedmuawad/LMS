@@ -69,6 +69,17 @@ Schedule::call(fn () => Cache::put('scheduler:last_run', now()->toDateTimeString
  | لم يكن ثمة نسخٌ احتياطي إطلاقاً. ومنصّةٌ تحمل بيانات مدارس
  | وأقساط طلبة بلا نسخة ليست منصّةً بل مقامرة.
  */
+/*
+ | أسعار الصرف — مرّةً في اليوم قبل ساعة الذروة.
+ |
+ | والسعر لا يتغيّر خلال اليوم تغيّراً يُذكر في العملات التي نبيع
+ | بها، وتحديثٌ كل ساعة يستهلك حصّة المزوّد بلا فائدة.
+ */
+Schedule::command('rates:update')
+    ->dailyAt('04:10')
+    ->withoutOverlapping()
+    ->name('exchange-rates');
+
 Schedule::command('backup:run')
     ->dailyAt('02:00')
     ->withoutOverlapping(120)
