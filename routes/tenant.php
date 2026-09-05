@@ -71,6 +71,7 @@ use App\Http\Controllers\Lms\SmartReviewController;
 use App\Http\Controllers\Lms\StudentAreaController;
 use App\Http\Controllers\Lms\StudentDashboardController;
 use App\Http\Controllers\Lms\VideoMomentController;
+use App\Http\Controllers\Lms\VideoStreamController;
 use App\Http\Controllers\Notifications\InboxController;
 use App\Http\Controllers\Notifications\NotificationAdminController;
 use App\Http\Controllers\Pwa\PwaController;
@@ -297,6 +298,15 @@ $tenantRoutes = function (): void {
          */
         Route::get('/lessons/{lesson}/offline', OfflineLessonController::class)
             ->whereNumber('lesson')->name('lessons.offline');
+
+        /*
+         | بثّ فيديو الدرس المرفوع — برابطٍ موقَّع ينتهي.
+         |
+         | و`signed` مع فحص التسجيل داخل المتحكّم: التوقيع يمنع من لم
+         | نُعطِه، والتسجيل يمنع من أعطيناه ثم شارك رابطه قبل انتهائه.
+         */
+        Route::get('/lessons/{lesson}/video', VideoStreamController::class)
+            ->middleware('signed')->whereNumber('lesson')->name('lesson.video');
 
         /*
          | مرفقات الدروس — محروسةً لا بروابط تخزين عامة.

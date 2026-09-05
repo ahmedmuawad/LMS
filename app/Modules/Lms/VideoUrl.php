@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Lms;
 
 use App\Modules\Lms\Models\Lesson;
+use Illuminate\Support\Facades\URL;
 
 /**
  * ADR-008 — رابط المشاهدة يُوقَّع لكل طالب ولدقائق معدودة.
@@ -26,8 +27,33 @@ final class VideoUrl
             'bunny' => $this->bunny($lesson, $userId),
             'youtube' => 'https://www.youtube-nocookie.com/embed/'.$lesson->video_id,
             'vimeo' => 'https://player.vimeo.com/video/'.$lesson->video_id,
-            default => $lesson->video_id,
+            default => $this->hosted($lesson),
         };
+    }
+
+    /**
+     * الملفّ المرفوع على خادمنا — برابطٍ موقَّع ينتهي.
+     *
+     * كان يُعطى الرابط كما هو، فيُنسَخ من «مصدر الصفحة» ويُلصَق
+     * فيفتحه من لم يدفع، ويبقى يعمل إلى الأبد. والتوقيع يجعله
+     * ينتهي، والبثّ يفحص التسجيل عند كل طلب.
+     *
+     * أمّا العنوان الخارجي (رابط على خادمٍ آخر) فيُعاد كما هو: لا
+     * نملك حمايته، ولا نُوهم صاحبه أننا نحميه.
+     */
+    private function hosted(Lesson $lesson): ?string
+    {
+        $value = (string) $lesson->video_id;
+
+        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://')) {
+            return $value;
+        }
+
+        return URL::temporarySignedRoute(
+            'lesson.video',
+            now()->addSeconds($this->ttlSeconds),
+            ['lesson' => $lesson->getKey()],
+        );
     }
 
     /**

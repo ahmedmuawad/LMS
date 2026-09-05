@@ -167,7 +167,8 @@ final class LessonResource extends Resource
                         'bunny' => 'Bunny Stream', 'cloudflare' => 'Cloudflare Stream',
                         'vimeo' => 'Vimeo', 'youtube' => 'YouTube', 'file' => __('ملف مرفوع'),
                     ]),
-                TextField::make('video_id')->label(__('معرّف الفيديو'))->half(),
+                TextField::make('video_id')->label(__('معرّف الفيديو'))->half()
+                    ->hint(__('لـ«ملف مرفوع»: مسار الملفّ في مكتبة الوسائط — عندها يُبثّ من خادمك برابطٍ موقَّع ينتهي، ويُفحص تسجيل الطالب عند كل مشاهدة. ولو وضعتَ عنواناً كاملاً (http) فهو على خادمٍ آخر ولا نملك حمايته.')),
                 SwitchField::make('is_downloadable')->label(__('يسمح بالتنزيل'))
                     ->hint(__('التنزيل يعني خروج الملف من حمايتك.')),
                 ...(tenant()?->allows('offline_download') ?? false ? [
