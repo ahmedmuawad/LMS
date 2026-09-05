@@ -127,6 +127,7 @@ return [
                 ['key' => 'media', 'label' => 'الوسائط', 'icon' => '◲', 'module' => 'media', 'route' => 'admin.media.index'],
                 ['key' => 'forms', 'label' => 'النماذج', 'icon' => '▤', 'module' => 'forms'],
                 ['key' => 'redirects', 'label' => 'تحويلات الروابط', 'icon' => '↪', 'module' => 'content'],
+                ['key' => 'not-found', 'label' => 'الروابط المكسورة', 'icon' => '⚑', 'module' => 'seo', 'route' => 'admin.not-found', 'ability' => Ability::CONTENT_MANAGE],
             ],
         ],
 

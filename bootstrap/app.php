@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Middleware\EnsureFeature;
+use App\Http\Middleware\LogNotFound;
+use App\Http\Middleware\MaintenanceMode;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -17,6 +19,26 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             SetLocale::class,
+
+            /*
+             | وضع الصيانة بعد تهيئة المشترك.
+             |
+             | الإعداد في قاعدته هو، ولا تُقرأ قبل أن يُعرَف من هو.
+             | وهو آخر المصفوفة ليمرّ بعد المصادقة — فيُعرف صاحب
+             | اللوحة ويُستثنى.
+             */
+            MaintenanceMode::class,
+
+            /*
+             | تسجيل الروابط المكسورة.
+             |
+             | في مِدلوير لا في مُعالج الاستثناءات: لارافيل لا تُبلّغ
+             | عن `NotFoundHttpException` أصلاً (هي في قائمة ما لا
+             | يُبلَّغ عنه)، فلا يُنادى مُعالجٌ مسجَّل لها. والمِدلوير
+             | يرى الردّ كما خرج — ويلتقط الـ٤٠٤ المكتوبة يدوياً
+             | كذلك، لا الاستثناء وحده.
+             */
+            LogNotFound::class,
         ]);
 
         /*

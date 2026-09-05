@@ -131,7 +131,15 @@ final class HomeController
             return collect();
         }
 
+        /*
+         | العلاقات تُحمَّل مع الاستعلام لا مع كل بطاقة.
+         |
+         | بطاقة الكورس تعرض مدرّسه وتصنيفه؛ وستّ بطاقاتٍ بلا تحميلٍ
+         | مسبق تعني اثني عشر استعلاماً زائداً في الصفحة الأولى التي
+         | يراها الزائر — وهي أهمّ صفحةٍ في الأداء.
+         */
         return Course::where('status', 'published')->where('visibility', 'public')
+            ->with(['instructor.user', 'category'])
             ->latest('published_at')->limit(6)->get();
     }
 

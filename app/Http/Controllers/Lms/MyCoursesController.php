@@ -15,7 +15,7 @@ final class MyCoursesController
     public function __invoke(Request $request): View
     {
         $enrollments = Enrollment::where('user_id', $request->user()->getKey())
-            ->with(['course.instructor.user'])
+            ->with(['course.instructor.user', 'course.category'])
             ->latest()
             ->get();
 

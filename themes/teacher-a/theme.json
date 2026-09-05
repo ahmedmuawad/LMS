@@ -1,0 +1,9 @@
+{
+    "key": "teacher-a",
+    "name": { "ar": "لوح الشرح — اتجاه أ", "en": "Blackboard — Theme A" },
+    "icon": "📐",
+    "version": "1.0.0",
+    "modes": ["teacher", "solo"],
+    "supports": ["dark", "rtl", "page-builder"],
+    "preview": "preview.png"
+}

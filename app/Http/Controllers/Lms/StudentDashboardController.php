@@ -29,7 +29,7 @@ final class StudentDashboardController
         $id = $user->getKey();
 
         $enrollments = Enrollment::where('user_id', $id)
-            ->with(['course.instructor.user'])
+            ->with(['course.instructor.user', 'course.category'])
             ->latest('updated_at')
             ->get();
 

@@ -13,8 +13,10 @@ use App\Core\Theming\ThemeManager;
 use App\Models\User;
 use App\Modules\Commerce\Observers\CourseObserver;
 use App\Modules\Lms\Models\Course;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use Stancl\Tenancy\Events\TenancyEnded;
 use Stancl\Tenancy\Events\TenancyInitialized;
@@ -80,5 +82,39 @@ class AppServiceProvider extends ServiceProvider
          | يبدو سليماً ولا يصل بيع واحد.
          */
         Course::observe(CourseObserver::class);
+
+        $this->guardLazyLoading();
+    }
+
+    /**
+     * منعُ التحميل الكسول (N+1).
+     *
+     * ## لماذا يُمنع أصلاً
+     *
+     * `$course->instructor->name` داخل حلقةٍ على مئة كورس يُنتج مئةَ
+     * استعلام بلا أن يظهر شيء في الشاشة: تعمل الصفحة وتبطؤ. وهو
+     * أكثر ما يُهدر به الأداء في لارافيل، ولا يُكتشف إلا حين يشكو
+     * العميل.
+     *
+     * ## ويُرمى في التطوير ويُسجَّل في الإنتاج
+     *
+     * الرميُ في وجه المطوّر هو المقصود: يُصلحها قبل أن تخرج.
+     * والرميُ في وجه المشترك عقوبةٌ لا ذنب له فيها — فصفحةٌ بطيئة
+     * أهون من صفحةٍ بيضاء. فتُسجَّل في الإنتاج بمسارها وطلبها،
+     * ونقرؤها في السجلّ.
+     */
+    private function guardLazyLoading(): void
+    {
+        Model::preventLazyLoading();
+
+        if ($this->app->environment('production')) {
+            Model::handleLazyLoadingViolationUsing(
+                function (Model $model, string $relation): void {
+                    Log::warning('تحميل كسول: '.$model::class.'::'.$relation, [
+                        'url' => request()?->fullUrl(),
+                    ]);
+                },
+            );
+        }
     }
 }

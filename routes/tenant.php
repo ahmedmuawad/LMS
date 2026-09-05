@@ -35,6 +35,7 @@ use App\Http\Controllers\Community\ReviewController;
 use App\Http\Controllers\Content\ContentController;
 use App\Http\Controllers\Content\EventController;
 use App\Http\Controllers\Content\MediaController;
+use App\Http\Controllers\Content\NotFoundController;
 use App\Http\Controllers\Content\PageBuilderController;
 use App\Http\Controllers\Content\RedirectController;
 use App\Http\Controllers\Content\SearchController;
@@ -664,6 +665,15 @@ $tenantRoutes = function (): void {
                 ->whereNumber('path')->whereNumber('item')->name('admin.paths.courses.destroy');
             Route::post('/admin/paths/{path}/courses/{item}/move', [LearningPathController::class, 'move'])
                 ->whereNumber('path')->whereNumber('item')->name('admin.paths.courses.move');
+
+            /*
+             | الروابط المكسورة — سجلٌّ يُفرَغ بتحويلة.
+             */
+            Route::get('/admin/not-found', [NotFoundController::class, 'index'])->name('admin.not-found');
+            Route::post('/admin/not-found/{id}/resolve', [NotFoundController::class, 'resolve'])
+                ->whereNumber('id')->name('admin.not-found.resolve');
+            Route::post('/admin/not-found/{id}/dismiss', [NotFoundController::class, 'dismiss'])
+                ->whereNumber('id')->name('admin.not-found.dismiss');
 
             // رموز المذكرات المطبوعة
             Route::get('/admin/print-codes', [PrintCodeController::class, 'index'])->name('admin.print-codes');
