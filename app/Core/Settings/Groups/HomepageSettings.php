@@ -65,7 +65,7 @@ final class HomepageSettings extends SettingsGroup
                     TextField::make('headline')->label(__('العنوان الرئيسي'))
                         ->placeholder(__('مثال: رياضيات الثانوية العامة مع أ. هبة معوض')),
 
-                    TextareaField::make('subheadline')->label(__('الوصف'))->long()
+                    TextareaField::make('subheadline')->label(__('الوصف'))->rows(3)
                         ->placeholder(__('مثال: مجموعات محدودة العدد، متابعة أسبوعية، وحلّ امتحانات سابقة.')),
 
                     ImageField::make('hero_image')->label(__('صورة الواجهة'))
@@ -87,7 +87,7 @@ final class HomepageSettings extends SettingsGroup
                 ]),
 
             Section::make(__('عنك'))->fields([
-                TextareaField::make('about')->label(__('نبذة'))->long()
+                TextareaField::make('about')->label(__('نبذة'))->rows(5)
                     ->hint(__('خبرتك ومنهجك — يقرؤها وليّ الأمر قبل أن يقرّر.')),
                 TextField::make('phone')->label(__('هاتف التواصل'))->half(),
                 TextField::make('whatsapp')->label(__('واتساب'))->half()

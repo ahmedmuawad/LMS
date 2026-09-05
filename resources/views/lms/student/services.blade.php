@@ -38,7 +38,7 @@
                                 @endif
                             </p>
                             @if($booking->provider)
-                                <p class="text-2xs text-subtle mt-1">{{ $booking->provider->name }}</p>
+                                <p class="text-2xs text-subtle mt-1">{{ $booking->provider->name() }}</p>
                             @endif
                         </div>
 
