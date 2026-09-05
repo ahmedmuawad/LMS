@@ -53,6 +53,20 @@ abstract class Resource
      *
      * @return array{url:string, label:string, hint:string}|null
      */
+    /**
+     * يربط علاقات السجلّ بعد حفظه — لمن يحتاجها.
+     *
+     * حقول النموذج تُكتب أعمدةً، والعلاقة متعدّدة-إلى-متعدّدة جدولٌ
+     * ثالث لا عمود. والافتراضي «لا شيء»: أكثر الموارد لا علاقات
+     * لها، ولا تُثقَل بما لا تحتاج.
+     *
+     * @param  array<string, mixed>  $validated
+     */
+    public function syncRelations(Model $record, array $validated): void
+    {
+        //
+    }
+
     public function nextStep(Model $record, string $key): ?array
     {
         return null;
@@ -145,6 +159,11 @@ abstract class Resource
         $data = [];
 
         foreach ($this->fields($context) as $field) {
+            // حقل العلاقة يُربَط في `syncRelations` ولا يُكتب عموداً
+            if ($field->isRelation()) {
+                continue;
+            }
+
             // مفتاح غائب: لا نلمس القيمة القائمة إطلاقاً
             if (! array_key_exists($field->name, $input)) {
                 continue;

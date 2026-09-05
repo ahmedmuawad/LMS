@@ -31,10 +31,12 @@ use App\Core\Admin\Resources\Lms\AssignmentResource;
 use App\Core\Admin\Resources\Lms\CertificateResource;
 use App\Core\Admin\Resources\Lms\CourseResource;
 use App\Core\Admin\Resources\Lms\EnrollmentResource;
+use App\Core\Admin\Resources\Lms\LearningPathResource;
 use App\Core\Admin\Resources\Lms\LessonResource;
 use App\Core\Admin\Resources\Lms\MembershipPlanResource;
 use App\Core\Admin\Resources\Lms\QuestionResource;
 use App\Core\Admin\Resources\Lms\QuizResource;
+use App\Core\Admin\Resources\Lms\SkillResource;
 use App\Core\Admin\Resources\Lms\TaxonomyResource;
 use App\Core\Admin\Resources\Services\BookingResource;
 use App\Core\Admin\Resources\Services\ServiceResource;
@@ -56,6 +58,8 @@ return [
         'lessons' => LessonResource::class,
         'quizzes' => QuizResource::class,
         'questions' => QuestionResource::class,
+        'skills' => SkillResource::class,
+        'paths' => LearningPathResource::class,
         'assignments' => AssignmentResource::class,
         'enrollments' => EnrollmentResource::class,
         'membership-plans' => MembershipPlanResource::class,

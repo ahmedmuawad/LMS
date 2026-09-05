@@ -58,6 +58,7 @@ use App\Http\Controllers\Lms\GradebookController;
 use App\Http\Controllers\Lms\GradingController;
 use App\Http\Controllers\Lms\H5pController;
 use App\Http\Controllers\Lms\LearnController;
+use App\Http\Controllers\Lms\LearningPathController;
 use App\Http\Controllers\Lms\LearningRuleController;
 use App\Http\Controllers\Lms\LessonAttachmentController;
 use App\Http\Controllers\Lms\MyCoursesController;
@@ -217,6 +218,14 @@ $tenantRoutes = function (): void {
      */
     Route::get('/q/{code}', [PrintCodeController::class, 'scan'])
         ->where('code', '[A-Za-z0-9]{4,24}')->name('print-code.scan');
+
+    /*
+     | المسارات — عامّةٌ للزائر، والالتحاق يحتاج حساباً.
+     */
+    Route::get('/paths', [LearningPathController::class, 'index'])->name('paths.index');
+    Route::get('/paths/{slug}', [LearningPathController::class, 'show'])->name('paths.show');
+    Route::post('/paths/{slug}/join', [LearningPathController::class, 'join'])
+        ->middleware('auth')->name('paths.join');
 
     /*
      | التقويم — عامٌّ للزائر، والتسجيل يحتاج حساباً.
@@ -642,6 +651,18 @@ $tenantRoutes = function (): void {
             Route::get('/admin/whatsapp/state', [WhatsAppLinkController::class, 'state'])->name('admin.whatsapp.state');
             Route::post('/admin/whatsapp/disconnect', [WhatsAppLinkController::class, 'disconnect'])->name('admin.whatsapp.disconnect');
             Route::post('/admin/whatsapp/test', [WhatsAppLinkController::class, 'test'])->name('admin.whatsapp.test');
+
+            /*
+             | باني المسار — قبل مسار الموارد العام.
+             */
+            Route::get('/admin/paths/{path}/courses', [LearningPathController::class, 'courses'])
+                ->whereNumber('path')->name('admin.paths.courses');
+            Route::post('/admin/paths/{path}/courses', [LearningPathController::class, 'addCourse'])
+                ->whereNumber('path')->name('admin.paths.courses.store');
+            Route::delete('/admin/paths/{path}/courses/{item}', [LearningPathController::class, 'removeCourse'])
+                ->whereNumber('path')->whereNumber('item')->name('admin.paths.courses.destroy');
+            Route::post('/admin/paths/{path}/courses/{item}/move', [LearningPathController::class, 'move'])
+                ->whereNumber('path')->whereNumber('item')->name('admin.paths.courses.move');
 
             // رموز المذكرات المطبوعة
             Route::get('/admin/print-codes', [PrintCodeController::class, 'index'])->name('admin.print-codes');

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Lms;
 use App\Core\Access\Scope;
 use App\Models\User;
 use App\Modules\Lms\Actions\BuildGradebook;
+use App\Modules\Lms\Actions\MeasureSkills;
 use App\Modules\Lms\Models\Course;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -25,13 +26,21 @@ final class GradebookController
 {
     public function __construct(private readonly Scope $scope) {}
 
-    public function show(Request $request, string $courseId, BuildGradebook $builder): View
+    public function show(Request $request, string $courseId, BuildGradebook $builder, MeasureSkills $skills): View
     {
         $course = $this->courseFor($request, $courseId);
 
         return view('lms.gradebook', [
             'course' => $course,
             ...$builder->handle($course),
+
+            /*
+             | فجوات الصفّ بجوار درجاته.
+             |
+             | الدفتر يقول من تعثّر، وهذه تقول في ماذا — وهو ما
+             | يُعاد شرحه للجميع لا لفرد.
+             */
+            'gaps' => $skills->forCourse($course),
         ]);
     }
 

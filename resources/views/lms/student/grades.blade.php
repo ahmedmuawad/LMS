@@ -3,6 +3,38 @@
     <x-ui.page-header :title="__('درجاتي')"
                       :subtitle="__('درجتك في كل اختبار وواجب، ومجموعك في كل كورس. وأفضل محاولة هي المحسوبة.')" />
 
+    @if($skills->isNotEmpty())
+        {{--
+            المهارات قبل الدرجات: الدرجة تقول «كم»، والمهارة تقول
+            «أين» — و«أين» هي ما يُعمَل به.
+        --}}
+        <x-ui.card :title="__('مهاراتك')" class="mb-6">
+            <p class="text-2xs text-subtle mb-4">
+                {{ __('تُقاس من إجاباتك في الاختبارات. والأضعف أوّلاً — لأن اللوحة تُقرأ لتُعرف الفجوة.') }}
+            </p>
+
+            <div class="grid gap-3">
+                @foreach($skills as $row)
+                    <div>
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                            <span class="text-sm min-w-0 truncate">{{ $row['skill']->name }}</span>
+
+                            <span class="font-mono text-2xs tabular {{ $row['mastered'] ? 'text-success' : 'text-warning' }}">
+                                {{ $row['percent'] }}%
+                                <span class="text-subtle">· {{ $row['right'] }}/{{ $row['asked'] }}</span>
+                            </span>
+                        </div>
+
+                        <div class="h-1.5 rounded-full bg-surface-sunken overflow-hidden">
+                            <div class="h-full rounded-full {{ $row['mastered'] ? 'bg-success' : 'bg-warning' }}"
+                                 style="width: {{ $row['percent'] }}%"></div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </x-ui.card>
+    @endif
+
     @if($courses->isEmpty())
         <x-ui.card>
             <x-ui.empty :title="__('لا درجات بعد')">

@@ -71,6 +71,8 @@ final class ResourceController
 
         $model = $instance->model()::create($instance->fillable($validated, 'create'));
 
+        $instance->syncRelations($model, $validated);
+
         // الخطوة التالية إن كان للسجلّ واحدة: النموذج ليس نهاية الطريق
         $next = $instance->nextStep($model, $resource);
 
@@ -102,6 +104,15 @@ final class ResourceController
         $validated = $request->validate($instance->validationRules('edit', $record));
 
         $record->update($instance->fillable($validated, 'edit'));
+
+        /*
+         | العلاقات تُربَط بعد الحفظ.
+         |
+         | حقول النموذج تُكتب أعمدةً، والعلاقة متعدّدة-إلى-متعدّدة
+         | جدولٌ ثالث لا عمود. وموردٌ يحتاجها يُعلنها في `syncRelations`
+         | بدل أن يُنشئ لها شاشةً ثانية يفتحها المستخدم ولا يعرف لماذا.
+         */
+        $instance->syncRelations($record, $validated);
 
         return redirect(url('/admin/'.$resource.'/'.$record->getKey().'/edit'))
             ->with('status', __('تم حفظ التغييرات.'));

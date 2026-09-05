@@ -46,9 +46,11 @@ return [
                  | أكثر من كورس. التسمية تقول ذلك لا التخمين.
                  */
                 ['key' => 'courses', 'label' => 'الكورسات', 'icon' => '▤', 'module' => 'lms'],
+                ['key' => 'paths', 'label' => 'المسارات', 'icon' => '⇉', 'module' => 'lms', 'ability' => Ability::COURSES_MANAGE],
                 ['key' => 'lessons', 'label' => 'مكتبة الدروس', 'icon' => '▶', 'module' => 'lms'],
                 ['key' => 'quizzes', 'label' => 'الاختبارات', 'icon' => '◫', 'module' => 'quizzes'],
                 ['key' => 'questions', 'label' => 'بنك الأسئلة', 'icon' => '❓', 'module' => 'quizzes'],
+                ['key' => 'skills', 'label' => 'المهارات', 'icon' => '◈', 'module' => 'quizzes', 'ability' => Ability::QUIZZES_MANAGE],
                 ['key' => 'ai-questions', 'label' => 'توليد أسئلة', 'icon' => '✧', 'module' => 'quizzes', 'feature' => 'ai_exam_from_pdf', 'route' => 'admin.ai.questions', 'ability' => Ability::QUIZZES_MANAGE],
                 ['key' => 'questions-import', 'label' => 'استيراد أسئلة', 'icon' => '⇪', 'module' => 'quizzes', 'route' => 'admin.questions.import', 'ability' => Ability::QUIZZES_MANAGE],
                 ['key' => 'print-codes', 'label' => 'رموز المذكرات', 'icon' => '▣', 'module' => 'lms', 'route' => 'admin.print-codes', 'ability' => Ability::LESSONS_MANAGE],

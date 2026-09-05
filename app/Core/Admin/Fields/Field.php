@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 abstract class Field
 {
+    protected bool $isRelation = false;
+
     protected ?string $label = null;
 
     protected ?string $hint = null;
@@ -105,6 +107,24 @@ abstract class Field
     public function acceptsMath(): bool
     {
         return $this->math;
+    }
+
+    /**
+     * حقلُ علاقةٍ لا عمود.
+     *
+     * قيمته تُربَط في `syncRelations` ولا تُكتب على السجلّ — ولولا
+     * الوسم لحاول الحفظ كتابة عمودٍ لا وجود له.
+     */
+    public function relation(bool $relation = true): static
+    {
+        $this->isRelation = $relation;
+
+        return $this;
+    }
+
+    public function isRelation(): bool
+    {
+        return $this->isRelation;
     }
 
     public function half(): static

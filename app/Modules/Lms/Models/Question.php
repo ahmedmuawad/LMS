@@ -8,6 +8,7 @@ use App\Core\Support\Concerns\HasTranslations;
 use App\Core\Support\Concerns\TracksCreator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * @property string $type
@@ -53,6 +54,12 @@ final class Question extends Model
             'marks' => 'float',
             'negative_marks' => 'float',
         ];
+    }
+
+    /** المهارات التي يقيسها هذا السؤال */
+    public function skills(): BelongsToMany
+    {
+        return $this->belongsToMany(Skill::class, 'question_skill');
     }
 
     public function category(): BelongsTo

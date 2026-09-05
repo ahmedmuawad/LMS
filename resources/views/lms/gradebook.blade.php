@@ -14,6 +14,33 @@
         </x-slot:actions>
     </x-ui.page-header>
 
+    @if($gaps->isNotEmpty())
+        <x-ui.card :title="__('فجوات الصفّ')" class="mb-6">
+            <p class="text-2xs text-subtle mb-4">
+                {{ __('نسبةُ الصواب في كل مهارة عبر طلبتك جميعاً — ما تحته الحدّ يُعاد شرحه للصفّ لا لفرد.') }}
+            </p>
+
+            <div class="grid gap-3">
+                @foreach($gaps as $row)
+                    <div>
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                            <span class="text-sm min-w-0 truncate">{{ $row['skill']->name }}</span>
+                            <span class="font-mono text-2xs tabular {{ $row['mastered'] ? 'text-success' : 'text-danger' }}">
+                                {{ $row['percent'] }}%
+                                <span class="text-subtle">· {{ $row['asked'] }} {{ __('إجابة') }}</span>
+                            </span>
+                        </div>
+
+                        <div class="h-1.5 rounded-full bg-surface-sunken overflow-hidden">
+                            <div class="h-full rounded-full {{ $row['mastered'] ? 'bg-success' : 'bg-danger' }}"
+                                 style="width: {{ $row['percent'] }}%"></div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </x-ui.card>
+    @endif
+
     @if($columns->isEmpty())
         <x-ui.card>
             <x-ui.empty :title="__('لا مُقيَّم في هذا الكورس')">

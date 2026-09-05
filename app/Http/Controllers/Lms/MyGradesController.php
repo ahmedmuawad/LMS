@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Lms;
 
 use App\Models\User;
 use App\Modules\Lms\Actions\BuildGradebook;
+use App\Modules\Lms\Actions\MeasureSkills;
 use App\Modules\Lms\Models\Enrollment;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -19,7 +20,7 @@ use Illuminate\View\View;
  */
 final class MyGradesController
 {
-    public function __invoke(Request $request, BuildGradebook $builder): View
+    public function __invoke(Request $request, BuildGradebook $builder, MeasureSkills $skills): View
     {
         $user = $request->user();
 
@@ -38,6 +39,16 @@ final class MyGradesController
             ->filter(fn (array $row): bool => $row['columns']->isNotEmpty())
             ->values();
 
-        return view('lms.student.grades', ['courses' => $courses]);
+        return view('lms.student.grades', [
+            'courses' => $courses,
+
+            /*
+             | المهارات تحت الدرجات لا في شاشةٍ ثالثة.
+             |
+             | الدرجة تقول «كم»، والمهارة تقول «أين» — والسؤالان
+             | يُسألان معاً في اللحظة نفسها.
+             */
+            'skills' => $skills->forStudent($user),
+        ]);
     }
 }

@@ -9,6 +9,7 @@ use App\Core\Access\Scope;
 use App\Core\Admin\Columns\BadgeColumn;
 use App\Core\Admin\Columns\TextColumn;
 use App\Core\Admin\Fields\ChoicesField;
+use App\Core\Admin\Fields\MultiSelectField;
 use App\Core\Admin\Fields\NumberField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
@@ -17,8 +18,10 @@ use App\Core\Admin\Filters\SelectFilter;
 use App\Core\Admin\Resource;
 use App\Models\User;
 use App\Modules\Lms\Models\Question;
+use App\Modules\Lms\Models\Skill;
 use App\Modules\Lms\Models\Taxonomy;
 use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 final class QuestionResource extends Resource
 {
@@ -86,6 +89,16 @@ final class QuestionResource extends Resource
         ];
     }
 
+    /**
+     * @param  array<string, mixed>  $validated
+     */
+    public function syncRelations(Model $record, array $validated): void
+    {
+        if (array_key_exists('skills', $validated)) {
+            $record->skills()->sync((array) ($validated['skills'] ?? []));
+        }
+    }
+
     public function form(): array
     {
         return [
@@ -110,6 +123,21 @@ final class QuestionResource extends Resource
                 ->description(__('لأسئلة الاختيار والصواب والخطأ والقائمة المنسدلة.'))
                 ->fields([
                     ChoicesField::make('options')->label(__('الخيارات'))->dependsOn('type'),
+                ]),
+
+            /*
+             | المهارات: وسمُ السؤال بما يقيسه.
+             |
+             | وبها يصير «٦٠٪» جملةً مفيدة: «الجبر ٩٠٪ والهندسة ٤٠٪».
+             | وسؤالٌ بلا مهارة يُصحَّح ولا يُقاس به شيء.
+             */
+            Section::make(__('المهارات'))
+                ->description(__('ما يقيسه هذا السؤال. يُحسب منه إتقان الطالب لكل مهارة — ويُعرَض له ولك.'))
+                ->fields([
+                    MultiSelectField::make('skills')->label(__('يقيس'))->relation()
+                        ->options(Skill::where('is_active', true)->get()
+                            ->mapWithKeys(fn (Skill $s): array => [$s->getKey() => (string) $s->name])->all())
+                        ->columns(3),
                 ]),
 
             Section::make(__('ما يراه الطالب بعد التصحيح'))

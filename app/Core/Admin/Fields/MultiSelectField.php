@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core\Admin\Fields;
 
+use Illuminate\Database\Eloquent\Model;
+
 /** اختيار متعدّد بمربّعات — أوضح من قائمة متعدّدة الاختيار وأسهل باللمس. */
 final class MultiSelectField extends Field
 {
@@ -25,6 +27,24 @@ final class MultiSelectField extends Field
         $this->columns = $columns;
 
         return $this;
+    }
+
+    /**
+     * حقل العلاقة يُعيد المعرّفات لا النماذج.
+     *
+     * `data_get($record, 'skills')` تُعيد مجموعةَ نماذج، والشاشة
+     * تقارنها نصّاً بمفاتيح الخيارات — فلا يظهر شيءٌ مُعلَّماً وإن
+     * كان مربوطاً.
+     */
+    public function valueFor(?Model $record): mixed
+    {
+        if (! $this->isRelation() || $record === null) {
+            return parent::valueFor($record);
+        }
+
+        $related = $record->{$this->name};
+
+        return $related === null ? [] : $related->pluck('id')->all();
     }
 
     public function component(): string
