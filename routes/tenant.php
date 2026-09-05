@@ -313,6 +313,18 @@ $tenantRoutes = function (): void {
             Route::put('/sessions/{session}/cancel', [ScheduleController::class, 'cancelSession'])->name('session.cancel');
 
             Route::get('/fees', [FinanceController::class, 'arrears'])->name('arrears');
+
+            /*
+             | إصدار الأقساط — كان يُبنى ولا يُوصَل.
+             |
+             | `FinanceController::issue()` موجودة منذ البداية بلا
+             | مسارٍ ولا زر، فصاحب المركز يرى «لا مستحقات» وعليه
+             | طلبةٌ لم تُقيَّد أقساطهم قط. وقدرةٌ لا يصلها المستخدم
+             | ليست قدرة.
+             */
+            Route::post('/fees/issue', [FinanceController::class, 'issueAll'])->name('fees.issue');
+            Route::post('/groups/{group}/invoices', [FinanceController::class, 'issue'])
+                ->whereNumber('group')->name('fees.issue.group');
             Route::post('/fees/collect', [FinanceController::class, 'collect'])->name('fees.collect');
             Route::post('/groups/{group}/invoices', [FinanceController::class, 'issue'])->name('fees.issue');
             Route::get('/cashboxes', [FinanceController::class, 'cashboxes'])->name('cashboxes');

@@ -49,6 +49,43 @@ final class FinanceController
         ]);
     }
 
+    /**
+     * إصدار فواتير الشهر لكل المجموعات — أو لمجموعة بعينها.
+     *
+     * الشاشة كانت تعرض المستحقّات ولا تُنشئها، والإصدار أمرُ طرفيّة
+     * لا يعرفه صاحب المركز: فيرى «لا مستحقات» وعليه طلبةٌ لم
+     * تُقيَّد أقساطهم قط.
+     *
+     * وهو آمنٌ بالتكرار: `IssueInvoices` تتخطّى ما صدر لهذه الفترة،
+     * فضغطُه مرّتين لا يُنشئ قسطين.
+     */
+    public function issueAll(Request $request, IssueInvoices $action): RedirectResponse
+    {
+        $input = $request->validate([
+            'group' => ['nullable', 'integer', 'exists:center_groups,id'],
+            'period' => ['nullable', 'string', 'regex:/^\d{4}-\d{2}$/'],
+        ]);
+
+        $period = $input['period'] ?? now()->format('Y-m');
+
+        $groups = $request->filled('group')
+            ? Group::whereKey($input['group'])->get()
+            : Group::open()->get();
+
+        $issued = 0;
+        $skipped = 0;
+
+        foreach ($groups as $group) {
+            $result = $action->handle($group, $period);
+            $issued += $result['issued'];
+            $skipped += $result['skipped'];
+        }
+
+        return back()->with('status', $issued === 0
+            ? __('لا فواتير جديدة — كل الأقساط صادرة لهذه الفترة (:skipped).', ['skipped' => $skipped])
+            : __('صدرت :issued فاتورة لشهر :period.', ['issued' => $issued, 'period' => $period]));
+    }
+
     public function collect(Request $request, CollectPayment $action): RedirectResponse
     {
         $input = $request->validate([

@@ -2,7 +2,20 @@
 <div class="max-w-[1200px]">
 
     <x-ui.page-header :title="__('الأقساط والمتأخرات')"
-                      :subtitle="__('من عليه فلوس — مرتّباً بالأقدم استحقاقاً.')" />
+                      :subtitle="__('من عليه فلوس — مرتّباً بالأقدم استحقاقاً.')">
+        <x-slot:actions>
+            {{--
+                الإصدار من الشاشة لا من الطرفية.
+                آمنٌ بالتكرار: ما صدر لهذه الفترة يُتخطّى، فالضغط
+                مرّتين لا يُنشئ قسطين.
+            --}}
+            <form method="POST" action="{{ route('admin.center.fees.issue') }}"
+                  onsubmit="return confirm('{{ __('إصدار أقساط هذا الشهر لكل المجموعات المفتوحة؟') }}')">
+                @csrf
+                <x-ui.button type="submit" size="sm">{{ __('إصدار أقساط الشهر') }}</x-ui.button>
+            </form>
+        </x-slot:actions>
+    </x-ui.page-header>
 
     @if(session('status'))<x-ui.alert tone="success" class="mb-4">{{ session('status') }}</x-ui.alert>@endif
     @error('amount')<x-ui.alert tone="danger" class="mb-4">{{ $message }}</x-ui.alert>@enderror
@@ -36,8 +49,13 @@
     <x-ui.card :padding="false">
         @if($invoices->isEmpty())
             <div class="p-5">
+                {{--
+                    «لا مستحقات» قد تعني أن كل شيء محصَّل، وقد تعني أن
+                    شيئاً لم يُقيَّد أصلاً. والفرق بينهما هو الفرق بين
+                    مركزٍ مرتَّب ومركزٍ لا يعرف ما له.
+                --}}
                 <x-ui.empty :title="__('لا مستحقات')" tone="success" icon="✓">
-                    {{ __('كل الأقساط محصّلة — وهذا نادر، فاحتفظ به.') }}
+                    {{ __('لا فواتير غير محصّلة. إن كان عندك طلبة مسجَّلون ولم تُقيَّد أقساطهم بعد، اضغط «إصدار أقساط الشهر» أعلاه.') }}
                 </x-ui.empty>
             </div>
         @else
