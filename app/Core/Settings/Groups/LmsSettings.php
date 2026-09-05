@@ -96,6 +96,21 @@ final class LmsSettings extends SettingsGroup
                 SwitchField::make('auto_submit')->label(__('تسليم تلقائي عند انتهاء الوقت'))->default(true),
             ]),
 
+            /*
+             | المراجعة الذكية: ما أخطأ فيه الطالب يعود إليه.
+             |
+             | تعمل بلا إعداد؛ وهذان الحقلان لمن أراد ضبطها — إطفاؤها
+             | لمن لا يريدها، وعدد الصوابات التي تعني الإتقان.
+             */
+            Section::make(__('المراجعة الذكية'))
+                ->description(__('ما يُخطئ فيه الطالب في الاختبارات يعود إليه في «مراجعتي» حتى يُتقنه. تدريبٌ لا يُحتسب في درجاته.'))
+                ->fields([
+                    SwitchField::make('review_enabled')->label(__('تشغيل المراجعة الذكية'))->default(true),
+                    NumberField::make('review_mastery')->label(__('يُتقَن السؤال بـ'))
+                        ->suffix(__('إجابة صحيحة متتالية'))->range(1, 5)->half()->default(2)
+                        ->hint(__('واحدة قد تكون تخميناً — والاختيار من أربعة يُصيب ربعه بلا معرفة.')),
+                ]),
+
             Section::make(__('الواجبات'))->fields([
                 NumberField::make('assignment_max_mb')->label(__('أقصى حجم ملف'))->suffix('MB')->range(1, 512)->half()->default(25),
                 TextField::make('assignment_extensions')->label(__('الامتدادات المسموحة'))

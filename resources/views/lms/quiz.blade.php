@@ -111,48 +111,11 @@
                             <span class="text-2xs text-subtle font-mono shrink-0">{{ rtrim(rtrim(number_format((float) $q['marks'], 2), '0'), '.') }}</span>
                         </div>
 
-                        @if($q['type'] === 'true_false')
-                            <div class="grid gap-2">
-                                @foreach(['1' => __('صح'), '0' => __('خطأ')] as $key => $label)
-                                    <x-ui.checkbox type="radio" :name="$name" :value="$key" :label="$label"
-                                                   :disabled="! $open"
-                                                   :checked="(string) ($given?->answer['value'] ?? '') === (string) $key" />
-                                @endforeach
-                            </div>
-                        @elseif(in_array($q['type'], ['single_choice', 'dropdown'], true))
-                            <div class="grid gap-2">
-                                @foreach(($q['options'] ?? []) as $key => $label)
-                                    <x-ui.checkbox type="radio" :name="$name" :value="$key"
-                                                   :disabled="! $open"
-                                                   :checked="(string) ($given?->answer['value'] ?? '') === (string) $key">
-                                        <x-ui.math inline>{{ $label }}</x-ui.math>
-                                        @if(in_array((string) $key, $correct[$q['id']] ?? [], true))
-                                            <span class="text-success text-xs font-semibold ms-1">✓ {{ __('الصحيحة') }}</span>
-                                        @endif
-                                    </x-ui.checkbox>
-                                @endforeach
-                            </div>
-                        @elseif($q['type'] === 'multiple_choice')
-                            <div class="grid gap-2">
-                                @foreach(($q['options'] ?? []) as $key => $label)
-                                    <x-ui.checkbox :name="$name.'[]'" :value="$key"
-                                                   :disabled="! $open"
-                                                   :checked="in_array((string) $key, array_map('strval', (array) ($given?->answer['value'] ?? [])), true)">
-                                        <x-ui.math inline>{{ $label }}</x-ui.math>
-                                        @if(in_array((string) $key, $correct[$q['id']] ?? [], true))
-                                            <span class="text-success text-xs font-semibold ms-1">✓ {{ __('الصحيحة') }}</span>
-                                        @endif
-                                    </x-ui.checkbox>
-                                @endforeach
-                            </div>
-                        @elseif($q['type'] === 'essay')
-                            <x-ui.textarea :name="$name" rows="6" :disabled="! $open"
-                                           :placeholder="__('اكتب إجابتك…')">{{ $given?->answer['value'] ?? '' }}</x-ui.textarea>
-                        @else
-                            <x-ui.input :name="$name" :disabled="! $open"
-                                        value="{{ is_array($given?->answer['value'] ?? null) ? '' : ($given?->answer['value'] ?? '') }}"
-                                        :placeholder="__('إجابتك…')" />
-                        @endif
+                        <x-lms.question-input :type="$q['type']" :name="$name"
+                                              :options="$q['options'] ?? []"
+                                              :value="$given?->answer['value'] ?? null"
+                                              :disabled="! $open"
+                                              :correct="$correct[$q['id']] ?? []" />
 
                         @unless($open)
                             <div class="mt-3 pt-3 border-t border-line flex items-center justify-between gap-3">

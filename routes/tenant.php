@@ -50,15 +50,20 @@ use App\Http\Controllers\Lms\AttachmentController;
 use App\Http\Controllers\Lms\CatalogController;
 use App\Http\Controllers\Lms\CertificateController;
 use App\Http\Controllers\Lms\CurriculumController;
+use App\Http\Controllers\Lms\GradebookController;
 use App\Http\Controllers\Lms\GradingController;
 use App\Http\Controllers\Lms\H5pController;
 use App\Http\Controllers\Lms\LearnController;
 use App\Http\Controllers\Lms\LearningRuleController;
 use App\Http\Controllers\Lms\LessonAttachmentController;
 use App\Http\Controllers\Lms\MyCoursesController;
+use App\Http\Controllers\Lms\MyGradesController;
 use App\Http\Controllers\Lms\OfflineLessonController;
+use App\Http\Controllers\Lms\PrintCodeController;
+use App\Http\Controllers\Lms\QuestionImportController;
 use App\Http\Controllers\Lms\QuizController;
 use App\Http\Controllers\Lms\ScormController;
+use App\Http\Controllers\Lms\SmartReviewController;
 use App\Http\Controllers\Lms\StudentAreaController;
 use App\Http\Controllers\Lms\StudentDashboardController;
 use App\Http\Controllers\Lms\VideoMomentController;
@@ -198,6 +203,16 @@ $tenantRoutes = function (): void {
     Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
     Route::get('/services/{slug}', [ServiceController::class, 'show'])->name('services.show');
     Route::post('/services/{slug}/book', [ServiceController::class, 'book'])->name('services.book');
+    /*
+     | مسحُ رمز المذكرة — عامٌّ بلا تسجيل دخول.
+     |
+     | خارج مجموعة `auth` عمداً: الرمز يُحوّل إلى وجهته، والوجهة
+     | تحرس نفسها. ولو حُرس هنا لرأى من يمسحه شاشة دخولٍ بلا أن
+     | يعرف ما وراءها — والصحيح أن يرى صفحة الكورس فيسجّل.
+     */
+    Route::get('/q/{code}', [PrintCodeController::class, 'scan'])
+        ->where('code', '[A-Za-z0-9]{4,24}')->name('print-code.scan');
+
     Route::get('/my-bookings', [ServiceController::class, 'mine'])->middleware('auth')->name('bookings.mine');
     Route::get('/bookings/{token}', [ServiceController::class, 'booking'])->name('bookings.show');
     Route::post('/bookings/{token}/cancel', [ServiceController::class, 'cancel'])->name('bookings.cancel');
@@ -293,6 +308,22 @@ $tenantRoutes = function (): void {
         Route::get('/my-services', [StudentAreaController::class, 'services'])->name('my-services');
 
         Route::get('/my-notes', [StudentAreaController::class, 'notes'])->name('notes');
+
+        /*
+         | المراجعة الذكية — ما أخطأ فيه الطالب يعود إليه.
+         |
+         | سؤالٌ في الصفحة لا قائمة: القائمة تُقرأ كامتحان فتُؤجَّل،
+         | والسؤال الواحد بجوابٍ فوري يُقرأ كتدريب فيُكمَل.
+         */
+        // درجاتي — صورة الطالب في كورساته، لا محاولةً واحدة
+        Route::get('/my-grades', MyGradesController::class)->name('my-grades');
+
+        Route::get('/my-review', [SmartReviewController::class, 'index'])->name('review.index');
+        Route::get('/my-review/next', [SmartReviewController::class, 'next'])->name('review.next');
+        Route::post('/my-review/{id}/answer', [SmartReviewController::class, 'answer'])
+            ->whereNumber('id')->name('review.answer');
+        Route::get('/my-review/{id}/result', [SmartReviewController::class, 'result'])
+            ->whereNumber('id')->name('review.result');
         Route::post('/my-notes', [StudentAreaController::class, 'storeNote'])->name('notes.store');
         Route::put('/my-notes/{id}', [StudentAreaController::class, 'updateNote'])->name('notes.update');
         Route::delete('/my-notes/{id}', [StudentAreaController::class, 'destroyNote'])->name('notes.destroy');
@@ -507,6 +538,16 @@ $tenantRoutes = function (): void {
         ->middleware([EnsurePanelAccess::class, RequireOnboarding::class, EnsureAbility::class.':'.Ability::CURRICULUM_MANAGE])
         ->name('admin.curriculum.')->group(function (): void {
             Route::get('/curriculum', [CurriculumController::class, 'show'])->name('show');
+
+            /*
+             | دفتر الدرجات — تحت الكورس لا تحت التصحيح.
+             |
+             | شاشة التصحيح قائمةُ عملٍ تُفرَغ، والدفتر صورةُ صفٍّ
+             | تُقرأ. وهو يُدخَل من منهج الكورس حيث يفكّر المدرّس في
+             | كورسه كاملاً.
+             */
+            Route::get('/gradebook', [GradebookController::class, 'show'])->name('gradebook');
+            Route::get('/gradebook/export', [GradebookController::class, 'export'])->name('gradebook.export');
             Route::post('/sections', [CurriculumController::class, 'addSection'])->name('sections.store');
             Route::delete('/sections/{section}', [CurriculumController::class, 'removeSection'])->name('sections.destroy');
             Route::post('/items', [CurriculumController::class, 'addItem'])->name('items.store');
@@ -535,6 +576,29 @@ $tenantRoutes = function (): void {
              | مفاتيح الواجهة البرمجية — محروسةٌ بالميزة والصلاحية.
              */
             // أجهزة الحضور — محروسةٌ بالميزة والصلاحية
+            /*
+             | استيراد الأسئلة — قبل مسار الموارد العام.
+             |
+             | `/admin/questions/import` يجب أن يُقرأ قبل
+             | `/admin/{resource}/{id}`، وإلا فُهمت «import» معرّفَ
+             | سؤالٍ فردّت ٤٠٤.
+             */
+            Route::get('/admin/questions/import', [QuestionImportController::class, 'index'])
+                ->name('admin.questions.import');
+            Route::get('/admin/questions/import/template', [QuestionImportController::class, 'template'])
+                ->name('admin.questions.import.template');
+            Route::post('/admin/questions/import', [QuestionImportController::class, 'store'])
+                ->name('admin.questions.import.store');
+
+            // رموز المذكرات المطبوعة
+            Route::get('/admin/print-codes', [PrintCodeController::class, 'index'])->name('admin.print-codes');
+            Route::get('/admin/print-codes/sheet', [PrintCodeController::class, 'sheet'])->name('admin.print-codes.sheet');
+            Route::post('/admin/print-codes', [PrintCodeController::class, 'store'])->name('admin.print-codes.store');
+            Route::put('/admin/print-codes/{id}', [PrintCodeController::class, 'update'])
+                ->whereNumber('id')->name('admin.print-codes.update');
+            Route::delete('/admin/print-codes/{id}', [PrintCodeController::class, 'destroy'])
+                ->whereNumber('id')->name('admin.print-codes.destroy');
+
             // توليد أسئلة من مادة — محروسٌ بالميزة والصلاحية والحدّ
             Route::middleware('feature:ai_exam_from_pdf')->group(function (): void {
                 Route::get('/admin/ai/questions', [AiQuestionController::class, 'index'])->name('admin.ai.questions');

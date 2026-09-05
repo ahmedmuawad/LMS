@@ -50,6 +50,8 @@ return [
                 ['key' => 'quizzes', 'label' => 'الاختبارات', 'icon' => '◫', 'module' => 'quizzes'],
                 ['key' => 'questions', 'label' => 'بنك الأسئلة', 'icon' => '❓', 'module' => 'quizzes'],
                 ['key' => 'ai-questions', 'label' => 'توليد أسئلة', 'icon' => '✧', 'module' => 'quizzes', 'feature' => 'ai_exam_from_pdf', 'route' => 'admin.ai.questions', 'ability' => Ability::QUIZZES_MANAGE],
+                ['key' => 'questions-import', 'label' => 'استيراد أسئلة', 'icon' => '⇪', 'module' => 'quizzes', 'route' => 'admin.questions.import', 'ability' => Ability::QUIZZES_MANAGE],
+                ['key' => 'print-codes', 'label' => 'رموز المذكرات', 'icon' => '▣', 'module' => 'lms', 'route' => 'admin.print-codes', 'ability' => Ability::LESSONS_MANAGE],
                 ['key' => 'assignments', 'label' => 'الواجبات', 'icon' => '✎', 'module' => 'assignments'],
                 ['key' => 'grading', 'label' => 'التصحيح', 'icon' => '✔', 'module' => 'lms', 'route' => 'admin.grading.index'],
                 ['key' => 'certificates', 'label' => 'الشهادات', 'icon' => '◈', 'module' => 'certificates'],

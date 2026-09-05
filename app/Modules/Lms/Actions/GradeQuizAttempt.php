@@ -20,6 +20,7 @@ final class GradeQuizAttempt
     public function __construct(
         private readonly TrackProgress $progress,
         private readonly AwardPoints $points,
+        private readonly CollectForReview $review,
     ) {}
 
     /** @param  array<int|string, mixed>  $answers  إجابات الطالب بمفتاح رقم السؤال */
@@ -75,6 +76,14 @@ final class GradeQuizAttempt
 
         $this->markItemComplete($attempt);
         $this->awardQuizPoints($attempt, $percentage);
+
+        /*
+         | وما أخطأ فيه يدخل مراجعته.
+         |
+         | بعد الحفظ لا أثناءه: القائمة تُقرأ من `quiz_answers` بعد
+         | كتابتها، وقراءتُها قبل ذلك تُنتج مراجعةً فارغة.
+         */
+        $this->review->afterAttempt($attempt);
 
         return $attempt->refresh();
     }

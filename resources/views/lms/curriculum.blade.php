@@ -10,6 +10,9 @@
                       :back="url('/admin/courses')">
         <x-slot:actions>
             <x-ui.button size="sm" variant="ghost" :href="url('/admin/courses/'.$course->id.'/edit')">{{ __('بيانات الكورس') }}</x-ui.button>
+            <x-ui.button size="sm" variant="ghost" :href="url('/admin/courses/'.$course->id.'/gradebook')">
+                {{ __('دفتر الدرجات') }}
+            </x-ui.button>
 
             {{--
                 بناء الهيكل يُدَلّ عليه من هنا: الصفحة البيضاء هي ما

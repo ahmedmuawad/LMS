@@ -74,6 +74,16 @@ final class StudentNavigation
 
         $setting = $item['setting'] ?? null;
 
-        return $setting === null || (bool) setting($setting, false);
+        /*
+         | الافتراضي هنا لا في `setting()`.
+         |
+         | إعدادات المشترك لا تُحفظ حتى يفتح الشاشة ويحفظ، فقيمتها
+         | قبل ذلك `null`. وميزةٌ تعمل افتراضاً — كالمراجعة الذكية —
+         | تختفي من قائمته إلى أن يزور شاشة إعداداتٍ لا سبب لزيارتها.
+         | فيُذكَر الافتراضي مع العنصر: من أطفأها صراحةً تختفي، ومن
+         | لم يمسّها تبقى.
+         */
+        return $setting === null
+            || (bool) setting($setting, $item['setting_default'] ?? false);
     }
 }

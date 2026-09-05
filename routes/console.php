@@ -53,7 +53,6 @@ Schedule::command('center:remind')
     ->withoutOverlapping(10)
     ->runInBackground();
 
-
 /*
  | ختم المجدول — يُكتب في كل دورة.
  |
