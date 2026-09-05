@@ -66,7 +66,7 @@ final class WhatsAppGatewayController extends Controller
             $this->settings->set('whatsapp_global_key', $input['global_key'], encrypted: true);
         }
 
-        Audit::log('platform.whatsapp.updated');
+        Audit::record('platform.whatsapp.updated');
 
         return back()->with('status', __('حُفظت بوّابة واتساب.'));
     }
@@ -87,7 +87,7 @@ final class WhatsAppGatewayController extends Controller
 
         $tenant->forceFill(['wa_instance' => null, 'wa_token' => null, 'wa_number' => null])->save();
 
-        Audit::log('platform.whatsapp.reset', ['tenant' => $tenantId]);
+        Audit::record('platform.whatsapp.reset', $tenantId, $tenant);
 
         return back()->with('status', __('حُذفت نسخة المشترك — يربط رقمه من جديد.'));
     }
