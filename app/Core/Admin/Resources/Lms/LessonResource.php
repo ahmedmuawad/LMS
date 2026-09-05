@@ -82,8 +82,16 @@ final class LessonResource extends Resource
         return [
             Section::make(__('الدرس'))->fields([
                 TranslatableField::make('title')->label(__('العنوان'))->required(),
+                /*
+                 | النوع الافتراضي يتبع نوع تقديم المشترك.
+                 |
+                 | من اختار «حصص مباشرة» في تهيئته كان يجد كل درس جديد
+                 | مضبوطاً على «فيديو» فيصحّحه في كل مرة — والافتراض
+                 | الخاطئ المتكرّر أثقل من غياب الافتراض.
+                 */
                 SelectField::make('type')->label(__('النوع'))->half()
-                    ->options(array_map(fn (string $l): string => __($l), Lesson::TYPES))->default('video'),
+                    ->options(array_map(fn (string $l): string => __($l), Lesson::TYPES))
+                    ->default(tenant()?->delivery_mode === 'live' ? 'live' : 'video'),
                 NumberField::make('duration_seconds')->label(__('المدة'))->suffix(__('ثانية'))
                     ->range(0, 86400)->half()->default(0),
                 TranslatableField::make('content')->label(__('المحتوى النصّي'))->long(),
