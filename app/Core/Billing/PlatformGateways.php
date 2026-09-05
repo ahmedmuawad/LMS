@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core\Billing;
 
+use App\Core\Billing\Gateways\ManualTransferGateway;
 use App\Core\Billing\Gateways\PlatformGateway;
 use Illuminate\Contracts\Container\Container;
 use RuntimeException;
@@ -39,7 +40,13 @@ final class PlatformGateways
         $class = config('platform-billing.gateways.'.$key)
             ?? throw new RuntimeException("بوابة اشتراك غير معروفة: [{$key}]");
 
-        return $this->container->make($class);
+        /*
+         | الطرائق اليدوية صنفٌ واحد بثلاثة وجوه، فيُمرَّر إليه اسمه.
+         | والمفتاح من قائمة مغلقة لا من المستخدم.
+         */
+        return $class === ManualTransferGateway::class
+            ? $this->container->make($class, ['method' => $key])
+            : $this->container->make($class);
     }
 
     public function has(string $key): bool

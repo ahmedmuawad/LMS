@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Admin\ImpersonationController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\PlanController;
+use App\Http\Controllers\Admin\PlatformSettingsController;
 use App\Http\Controllers\Admin\ResourceController;
 use App\Http\Controllers\Admin\SuperAdminController;
 use App\Http\Controllers\Admin\SuperAuthController;
@@ -78,6 +79,10 @@ $central = function (): void {
         Route::get('/usage', [SuperAdminController::class, 'usage'])->name('super.usage');
         Route::get('/health', [SuperAdminController::class, 'health'])->name('super.health');
         Route::get('/audit', [SuperAdminController::class, 'audit'])->name('super.audit');
+
+        // بيانات التحصيل — قبل مسار الموارد العام، وإلا قُرئت مورداً
+        Route::get('/billing-settings', [PlatformSettingsController::class, 'edit'])->name('super.billing-settings');
+        Route::put('/billing-settings', [PlatformSettingsController::class, 'update'])->name('super.billing-settings.update');
 
         // الباقات والمزايا
         Route::get('/plans', [PlanController::class, 'index'])->name('super.plans');

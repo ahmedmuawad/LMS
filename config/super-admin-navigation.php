@@ -23,6 +23,7 @@ return [
                 ['key' => 'plans', 'label' => 'الباقات والمزايا', 'icon' => '◫', 'url' => '/admin/plans'],
                 ['key' => 'subscriptions', 'label' => 'الاشتراكات', 'icon' => '⇄', 'url' => '/admin/subscriptions'],
                 ['key' => 'invoices', 'label' => 'الفواتير', 'icon' => '◨', 'url' => '/admin/invoices'],
+                ['key' => 'billing-settings', 'label' => 'بيانات التحصيل', 'icon' => '⛁', 'url' => '/admin/billing-settings'],
             ],
         ],
         [

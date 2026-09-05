@@ -17,22 +17,18 @@ use App\Core\Billing\Gateways\StripeCheckoutGateway;
 return [
 
     /*
-     | التحويل البنكي متاح دائماً: لا يحتاج مفتاحاً، وهو ما يستعمله
-     | كثير من السناتر فعلاً. وسترايب لا يظهر إلا إن كان مفتاحه مضبوطاً.
+     | القائمة مغلقة، وبياناتها في إعدادات المنصّة لا هنا: رقم حساب
+     | أو عنوان إنستاباي يغيّره صاحب المنصّة من لوحته، لا المبرمج بنشرٍ
+     | جديد. وما يظهر منها للعميل هو ما اكتملت بياناته وحده.
+     |
+     | الطرائق اليدوية الثلاث صنفٌ واحد بمعاملٍ مختلف: مسارها واحد،
+     | والفرق بيانات تُعرض.
      */
     'gateways' => [
-        'manual' => ManualTransferGateway::class,
+        'instapay' => ManualTransferGateway::class,
+        'wallet' => ManualTransferGateway::class,
+        'bank' => ManualTransferGateway::class,
         'stripe' => StripeCheckoutGateway::class,
-    ],
-
-    'manual' => [
-        'enabled' => (bool) env('PLATFORM_BANK_ENABLED', true),
-        'bank' => env('PLATFORM_BANK_NAME'),
-        'account_name' => env('PLATFORM_BANK_ACCOUNT_NAME'),
-        'account_number' => env('PLATFORM_BANK_ACCOUNT'),
-        'iban' => env('PLATFORM_BANK_IBAN'),
-        'wallet' => env('PLATFORM_WALLET_NUMBER'),
-        'instructions' => env('PLATFORM_BANK_INSTRUCTIONS'),
     ],
 
     'stripe' => [

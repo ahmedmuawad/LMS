@@ -5,63 +5,118 @@ declare(strict_types=1);
 namespace App\Core\Billing\Gateways;
 
 use App\Core\Billing\Models\Invoice;
+use App\Core\Billing\PlatformSettings;
 use App\Modules\Commerce\Gateways\PaymentIntent;
 use Illuminate\Http\Request;
 
 /**
- * تحويل بنكي أو محفظة — يُراجَع بيد فريقنا.
+ * تحويل يدوي: إنستاباي · حساب بنكي · محفظة إلكترونية.
  *
- * الفاتورة تبقى مفتوحة حتى يعتمدها الفريق من اللوحة العليا: لا
- * نُفعّل اشتراكاً على وعدٍ بتحويل. والمنصّة تُجهَّز مع ذلك، فيدخل
- * المشترك ويعمل في فترة تجربته ريثما يصل التحويل.
+ * ثلاث طرائق بصنف واحد لأن مسارها واحد: يحوّل العميل، ويُرسل رقم
+ * العملية، ونعتمدها من اللوحة العليا. والفرق بينها بيانات تُعرض —
+ * وهي في الإعدادات لا في الكود: رقم حساب يتغيّر لا يحتاج نشراً.
+ *
+ * ولا نُفعّل اشتراكاً على وعدٍ بتحويل: الفاتورة تبقى مفتوحة حتى
+ * يعتمدها الفريق. والمنصّة تعمل مع ذلك في تجربتها، فلا ينتظر
+ * المشترك يوماً ليبدأ.
  */
 final class ManualTransferGateway implements PlatformGateway
 {
+    public function __construct(
+        private readonly PlatformSettings $settings,
+        private readonly string $method = 'bank',
+    ) {}
+
     public function key(): string
     {
-        return 'manual';
+        return $this->method;
     }
 
     public function title(): string
     {
-        return __('تحويل بنكي أو محفظة');
+        $custom = $this->settings->get($this->method.'.title');
+
+        if (filled($custom)) {
+            return (string) $custom;
+        }
+
+        return match ($this->method) {
+            'instapay' => __('إنستاباي'),
+            'wallet' => __('محفظة إلكترونية'),
+            default => __('تحويل بنكي'),
+        };
     }
 
     public function description(): string
     {
-        return __('حوّل المبلغ ثم أرسل الإيصال — نعتمده خلال يوم عمل، وتعمل منصّتك من الآن.');
+        $custom = $this->settings->get($this->method.'.description');
+
+        if (filled($custom)) {
+            return (string) $custom;
+        }
+
+        return match ($this->method) {
+            'instapay' => __('حوّل على عنوان إنستاباي ثم أرسل رقم العملية — نعتمده خلال يوم عمل.'),
+            'wallet' => __('حوّل على رقم المحفظة ثم أرسل رقم العملية — نعتمده خلال يوم عمل.'),
+            default => __('حوّل على الحساب البنكي ثم أرسل رقم العملية — نعتمده خلال يوم عمل.'),
+        };
     }
 
     public function isReady(): bool
     {
-        $config = config('platform-billing.manual', []);
-
-        // لا نعرض تحويلاً بلا حساب يُحوَّل إليه
-        return ($config['enabled'] ?? false)
-            && (filled($config['account_number'] ?? null) || filled($config['iban'] ?? null) || filled($config['wallet'] ?? null));
+        return $this->settings->methodReady($this->method);
     }
 
     public function start(Invoice $invoice, string $returnUrl): PaymentIntent
     {
-        $config = config('platform-billing.manual', []);
-
         return PaymentIntent::instructions(
-            $config['instructions'] ?: __('حوّل المبلغ إلى الحساب أدناه واذكر رقم الفاتورة في خانة الملاحظات.'),
+            $this->instructions(),
             $invoice->number,
-            array_filter([
-                __('البنك') => $config['bank'] ?? null,
-                __('اسم الحساب') => $config['account_name'] ?? null,
-                __('رقم الحساب') => $config['account_number'] ?? null,
-                __('الآيبان') => $config['iban'] ?? null,
-                __('محفظة') => $config['wallet'] ?? null,
-                __('رقم الفاتورة') => $invoice->number,
-            ]),
+            $this->details($invoice),
         );
     }
 
-    /** لا ردّ آلياً: الاعتماد يدويّ من اللوحة العليا. */
+    /** لا ردّ آلياً: الاعتماد بيد فريقنا بعد أن يرى التحويل. */
     public function handleCallback(Request $request): ?PlatformPaymentResult
     {
         return null;
+    }
+
+    /** @return array<string, string> ما يُعرض للعميل ليحوّل */
+    public function details(Invoice $invoice): array
+    {
+        $rows = match ($this->method) {
+            'instapay' => [
+                __('عنوان إنستاباي') => $this->settings->get('instapay.address'),
+                __('الاسم') => $this->settings->get('instapay.name'),
+            ],
+            'wallet' => [
+                __('رقم المحفظة') => $this->settings->get('wallet.number'),
+                __('الاسم') => $this->settings->get('wallet.name'),
+                __('المشغّل') => $this->settings->get('wallet.provider'),
+            ],
+            default => [
+                __('البنك') => $this->settings->get('bank.name'),
+                __('اسم الحساب') => $this->settings->get('bank.account_name'),
+                __('رقم الحساب') => $this->settings->get('bank.account_number'),
+                __('الآيبان') => $this->settings->get('bank.iban'),
+                __('السويفت') => $this->settings->get('bank.swift'),
+            ],
+        };
+
+        // المبلغ ورقم الفاتورة مع البيانات: من يحوّل بلا مرجع يضيع تحويله
+        $rows[__('المبلغ')] = $invoice->total()->format();
+        $rows[__('رقم الفاتورة')] = $invoice->number;
+
+        return array_filter($rows, fn ($value): bool => filled($value));
+    }
+
+    private function instructions(): string
+    {
+        $custom = $this->settings->get($this->method.'.instructions');
+
+        return filled($custom)
+            ? (string) $custom
+            : __('حوّل المبلغ إلى البيانات أدناه، واذكر رقم الفاتورة في الملاحظات، ثم أرسل لنا رقم العملية.');
     }
 }
