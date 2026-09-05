@@ -50,6 +50,7 @@ use App\Http\Controllers\Lms\LearningRuleController;
 use App\Http\Controllers\Lms\MyCoursesController;
 use App\Http\Controllers\Lms\QuizController;
 use App\Http\Controllers\Lms\VideoMomentController;
+use App\Http\Controllers\Lms\ScormController;
 use App\Http\Controllers\Lms\StudentAreaController;
 use App\Http\Controllers\Lms\StudentDashboardController;
 use App\Http\Controllers\Notifications\InboxController;
@@ -164,6 +165,10 @@ $tenantRoutes = function (): void {
         // إجابة نقطة تفاعل — تُقيَّم فوراً، فالفائدة في أن يعرف الآن
         Route::post('/moments/{moment}/respond', [VideoMomentController::class, 'respond'])
             ->whereNumber('moment')->name('moments.respond');
+
+        // حالة SCORM — يُنادى من جسر الحزمة كل دقيقة وعند الإغلاق
+        Route::post('/scorm/{package}/state', [ScormController::class, 'state'])
+            ->whereNumber('package')->name('scorm.state');
 
         /*
          | مرفقات الدروس — محروسةً لا بروابط تخزين عامة.
@@ -434,6 +439,16 @@ $tenantRoutes = function (): void {
             /*
              | المسار التكيّفي: قواعد تفريع المنهج بالنتيجة.
              */
+            /*
+             | حزم SCORM — رفعُها وتتبّع الطلبة فيها.
+             */
+            Route::prefix('admin/lessons/{lesson}/scorm')->whereNumber('lesson')
+                ->name('admin.lessons.scorm.')->group(function (): void {
+                    Route::get('/', [ScormController::class, 'index'])->name('index');
+                    Route::post('/', [ScormController::class, 'store'])->name('store');
+                    Route::delete('/', [ScormController::class, 'destroy'])->name('destroy');
+                });
+
             Route::prefix('admin/courses/{course}/rules')->whereNumber('course')
                 ->name('admin.courses.rules.')->group(function (): void {
                     Route::get('/', [LearningRuleController::class, 'index'])->name('index');

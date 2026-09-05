@@ -54,6 +54,14 @@ final class LessonResource extends Resource
          | درسُ الفيديو خطوته نقاط التفاعل، ودرسُ الملف مرفقاته —
          | ولافتةٌ واحدة لكليهما تدلّ نصف من يقرؤها على غير حاجته.
          */
+        if ($record->type === 'scorm') {
+            return [
+                'url' => url('/admin/lessons/'.$record->getKey().'/scorm'),
+                'label' => __('حزمة SCORM'),
+                'hint' => __('ارفع الحزمة كما صدّرتها منصّة التأليف — تُفكّ وتُشغَّل هنا ويُتتبَّع تقدّم الطلبة فيها.'),
+            ];
+        }
+
         return $record->type === 'video'
             ? [
                 'url' => url('/admin/lessons/'.$record->getKey().'/moments'),

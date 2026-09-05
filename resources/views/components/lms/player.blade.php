@@ -97,6 +97,46 @@
                 @endif
             </div>
         </div>
+    @elseif($lesson->type === 'scorm')
+        @php
+            $package = App\Modules\Lms\Models\ScormPackage::where('lesson_id', $lesson->getKey())->first();
+            $state = $package !== null && $me !== null ? $package->stateFor($me) : null;
+        @endphp
+
+        @if($package === null)
+            <x-ui.card>
+                <x-ui.empty :title="__('لم تُرفع الحزمة بعد')">
+                    {{ __('هذا الدرس من نوع SCORM ولم يرفع مدرّسك حزمته.') }}
+                </x-ui.empty>
+            </x-ui.card>
+        @else
+            {{--
+                الجسر على النافذة لا على الإطار: الحزمة تصعد في
+                `window.parent` حتى تجد `API`، فوضعه هنا يجعلها تجده
+                مهما عمُق تداخل إطاراتها.
+            --}}
+            <div class="surface-card overflow-hidden"
+                 data-scorm-root
+                 data-scorm-version="{{ $package->version }}"
+                 data-scorm-url="{{ url('/scorm/'.$package->getKey().'/state') }}"
+                 data-scorm-token="{{ csrf_token() }}"
+                 data-scorm-state="{{ json_encode($state?->cmi ?? [], JSON_UNESCAPED_UNICODE) }}">
+
+                <iframe src="{{ $package->entryUrl() }}"
+                        class="w-full h-[75vh] min-h-[480px] bg-white"
+                        title="{{ $package->title ?: $lesson->title }}"
+                        allow="autoplay; fullscreen"></iframe>
+            </div>
+
+            @if($state !== null && $state->lesson_status !== 'not attempted')
+                <p class="text-2xs text-subtle font-mono tabular">
+                    {{ $state->statusLabel() }}
+                    @if($state->score_raw !== null) · {{ rtrim(rtrim(number_format($state->score_raw, 1), '0'), '.') }}% @endif
+                    · {{ $state->timeLabel() }}
+                </p>
+            @endif
+        @endif
+
     @elseif($lesson->type === 'pdf' && $lesson->video_id)
         <div class="surface-card overflow-hidden">
             <iframe src="{{ $lesson->video_id }}" class="w-full h-[70vh]" title="{{ $lesson->title }}" loading="lazy"></iframe>

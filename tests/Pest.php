@@ -33,6 +33,17 @@ pest()->extend(TestCase::class)
             tenancy()->end();
         }
 
+        /*
+         | قاعدة اختبارٍ تالفة تُعاد بناؤها بدل أن توقف كل تشغيل.
+         |
+         | تشغيلٌ قُتل في منتصفه يترك ملفّ SQLite مكسوراً، فتفشل
+         | كل التشغيلات بعده بالخطأ نفسه — «database disk image is
+         | malformed» — في اختبارات لا علاقة لها بالسبب، إلى أن
+         | يحذف أحدٌ الملفّ يدوياً. وقاعدة اختبار لا بيانات فيها
+         | تُفقَد، فإعادة بنائها بلا سؤال أرخص من تعطيل السويت.
+         */
+        healTestDatabase();
+
         Artisan::call('migrate:fresh', ['--force' => true]);
 
         // الدول والعملات مرجع ثابت لا بيانات اختبار: بدونها يُنشأ
@@ -176,4 +187,33 @@ function tenantPost(Tenant $tenant, string $path, array $data = [])
 function tenantDelete(Tenant $tenant, string $path, array $data = [])
 {
     return test()->delete(tenantUrl($tenant, $path), $data);
+}
+
+
+/**
+ * يتحقّق أن قاعدة الاختبار تُقرأ، ويعيد بناءها إن كانت تالفة.
+ */
+function healTestDatabase(): void
+{
+    $path = config('database.connections.'.config('database.default').'.database');
+
+    if (! is_string($path) || $path === ':memory:' || ! file_exists($path)) {
+        return;
+    }
+
+    try {
+        DB::connection()->select('pragma quick_check');
+
+        return;
+    } catch (Throwable) {
+        // تالفة — تُحذف وتُبنى من جديد
+    }
+
+    DB::purge();
+
+    foreach (glob($path.'*') ?: [] as $file) {
+        @unlink($file);
+    }
+
+    touch($path);
 }
