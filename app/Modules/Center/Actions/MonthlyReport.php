@@ -52,7 +52,9 @@ final class MonthlyReport
         $group = $enrollment->group;
 
         $sessionIds = Session::where('group_id', $group->getKey())
-            ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
+            // نصّياً «…-٠٥ ٠٠:٠٠:٠٠» أكبر من «…-٠٥»، فيسقط آخر يوم من التقرير
+            ->whereDate('date', '>=', $from->toDateString())
+            ->whereDate('date', '<=', $to->toDateString())
             ->whereNotNull('attendance_taken_at')
             ->pluck('id');
 
@@ -105,7 +107,9 @@ final class MonthlyReport
     private function overallAttendance(Student $student, Carbon $from, Carbon $to): ?float
     {
         $rows = Attendance::where('student_id', $student->getKey())
-            ->whereHas('session', fn ($q) => $q->whereBetween('date', [$from->toDateString(), $to->toDateString()]))
+            ->whereHas('session', fn ($q) => $q
+                ->whereDate('date', '>=', $from->toDateString())
+                ->whereDate('date', '<=', $to->toDateString()))
             ->get()
             ->reject(fn (Attendance $a): bool => $a->status === 'excused');
 

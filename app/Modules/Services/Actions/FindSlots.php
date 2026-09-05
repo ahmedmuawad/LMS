@@ -130,10 +130,9 @@ final class FindSlots
 
         $bookings = Booking::blocking()
             ->whereIn('provider_id', $providerIds)
-            ->whereBetween('date', [
-                $from->copy()->startOfDay()->toDateString(),
-                $from->copy()->addDays($days)->endOfDay()->toDateString(),
-            ])
+            // نصّياً «…-٠٥ ٠٠:٠٠:٠٠» أكبر من «…-٠٥»، فيسقط آخر يوم من نافذة البحث
+            ->whereDate('date', '>=', $from->copy()->startOfDay()->toDateString())
+            ->whereDate('date', '<=', $from->copy()->addDays($days)->toDateString())
             ->get(['provider_id', 'date', 'starts_at', 'ends_at']);
 
         foreach ($bookings as $booking) {

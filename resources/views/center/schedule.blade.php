@@ -1,3 +1,4 @@
+@php $rooms = app(App\Modules\Live\LiveRooms::class); @endphp
 @php
     use App\Modules\Center\Models\Session;
     $tones = ['scheduled' => 'info', 'running' => 'primary', 'done' => 'success', 'cancelled' => 'danger', 'postponed' => 'warning'];
@@ -51,6 +52,27 @@
                                         <x-ui.badge tone="success" class="mt-1">{{ __('سُجّل') }}</x-ui.badge>
                                     @endif
                                 </a>
+
+                                @php $room = $rooms->forSession($session); @endphp
+                                @if($room)
+                                    {{--
+                                        زرّ الدخول خارج رابط الحضور لا داخله.
+
+                                        رابطان متداخلان يجعلان نقرةً واحدة تفتح
+                                        أحدهما بلا اطّراد، فيفتح المدرّس كشف
+                                        الحضور وهو يريد الحصة.
+                                    --}}
+                                    <a href="{{ $room->url }}" target="_blank" rel="noopener"
+                                       @class([
+                                           'mt-1 flex items-center justify-center gap-1.5 min-h-9 rounded-md text-2xs font-semibold transition-colors',
+                                           'bg-primary text-primary-on hover:bg-primary-hover' => $room->isOpen(),
+                                           'bg-surface-sunken text-subtle pointer-events-none' => ! $room->isOpen(),
+                                       ])
+                                       @if(! $room->isOpen()) aria-disabled="true" tabindex="-1" @endif>
+                                        <span aria-hidden="true">◉</span>
+                                        {{ $room->isOpen() ? __('ابدأ الحصة') : ($room->opensInLabel() ?? __('لم يحن بعد')) }}
+                                    </a>
+                                @endif
                             </li>
                         @endforeach
                     </ul>

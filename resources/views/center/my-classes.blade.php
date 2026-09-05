@@ -11,30 +11,13 @@
     ];
 
     /*
-     | الرابط يُفتح قبل الموعد بنصف ساعة وحتى انتهاء الحصة.
+     | الغرفة ونافذتها من `LiveRooms` لا بحسابٍ هنا.
      |
-     | الرابط الظاهر طوال الأسبوع يُنسخ ويُتداول خارج المشتركين،
-     | والظاهر في اللحظة فقط يُفوّت من تأخّر دقيقةً على اتصاله.
+     | حسابان للنافذة يفترقان يوماً ما، فيرى الطالب زرّاً يعمل
+     | والمدرّس زرّاً لا يعمل — والمصدر الواحد يمنع ذلك.
      */
-    $joinable = function (Session $session) use ($opensBefore): bool {
-        if (blank($session->meeting_url ?? $session->group?->meeting_url)) {
-            return false;
-        }
-
-        $start = $session->date?->copy()->setTimeFromTimeString((string) $session->starts_at);
-
-        if ($start === null) {
-            return false;
-        }
-
-        $end = $session->ends_at
-            ? $session->date->copy()->setTimeFromTimeString((string) $session->ends_at)
-            : $start->copy()->addHours(2);
-
-        return now()->between($start->copy()->subMinutes($opensBefore), $end);
-    };
-
-    $link = fn (Session $s): ?string => $s->meeting_url ?: $s->group?->meeting_url;
+    $rooms = app(App\Modules\Live\LiveRooms::class);
+    $meeting = fn (Session $s): ?App\Modules\Live\LiveMeeting => $rooms->forSession($s);
 @endphp
 
 <x-layouts.student :title="__('حصصي')" current="my-classes">
@@ -63,7 +46,7 @@
             @else
                 <div class="grid gap-3">
                     @foreach($upcoming as $session)
-                        @php $open = $joinable($session); $url = $link($session); @endphp
+                        @php $room = $meeting($session); @endphp
                         <div class="surface-card p-4 flex flex-wrap items-center gap-x-4 gap-y-3">
                             <div class="min-w-0 flex-1">
                                 <p class="font-semibold text-sm truncate">
@@ -92,13 +75,13 @@
                             </div>
 
                             <div class="shrink-0 w-full sm:w-auto">
-                                @if($open && $url)
-                                    <x-ui.button as="a" :href="$url" target="_blank" rel="noopener"
+                                @if($room && $room->isOpen())
+                                    <x-ui.button as="a" :href="$room->url" target="_blank" rel="noopener"
                                                  class="w-full sm:w-auto">{{ __('ادخل الحصة') }}</x-ui.button>
-                                @elseif($url)
+                                @elseif($room)
                                     {{-- الوقت لا الرابط هو ما ينقص: قل متى بدل أن تُخفي --}}
                                     <p class="text-2xs text-subtle text-center sm:text-end leading-relaxed">
-                                        {{ __('يُفتح الرابط قبل الموعد بـ :minutes دقيقة', ['minutes' => $opensBefore]) }}
+                                        {{ $room->opensInLabel() ?? __('يُفتح قبل الموعد بقليل') }}
                                     </p>
                                 @else
                                     <p class="text-2xs text-subtle text-center sm:text-end">{{ __('حضورياً') }}</p>

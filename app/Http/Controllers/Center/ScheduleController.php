@@ -37,7 +37,15 @@ final class ScheduleController
             'to' => $end,
             'days' => collect(range(0, 6))->map(fn (int $i) => $start->copy()->addDays($i)),
             'sessions' => Session::with(['group.subject', 'room', 'teacher'])
-                ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
+                /*
+                 | `whereDate` لا `whereBetween` على نصّ.
+                 |
+                 | العمود يحمل «٢٠٢٦-٠٩-٠٥ ٠٠:٠٠:٠٠»، ومقارنته نصّياً
+                 | بـ«٢٠٢٦-٠٩-٠٥» تجعله أكبر — فتختفي حصص آخر يوم في
+                 | الأسبوع من الجدول كلّه، وهي حصصُ يومٍ كامل.
+                 */
+                ->whereDate('date', '>=', $start->toDateString())
+                ->whereDate('date', '<=', $end->toDateString())
                 ->active()
                 ->orderBy('starts_at')
                 ->get()
