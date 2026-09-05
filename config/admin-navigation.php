@@ -76,6 +76,7 @@ return [
             'items' => [
                 ['key' => 'schedule', 'label' => 'جدول الحصص', 'icon' => '▦', 'module' => 'center', 'route' => 'admin.center.schedule'],
                 ['key' => 'attendance', 'label' => 'الحضور', 'icon' => '✓', 'module' => 'attendance', 'route' => 'admin.center.attendance'],
+                ['key' => 'devices', 'label' => 'أجهزة الحضور', 'icon' => '⌘', 'module' => 'attendance', 'feature' => 'attendance_devices', 'route' => 'admin.center.devices', 'ability' => Ability::ATTENDANCE_TAKE],
                 ['key' => 'groups', 'label' => 'المجموعات', 'icon' => '▩', 'module' => 'center'],
                 ['key' => 'center-students', 'label' => 'الطلاب', 'icon' => '☺', 'module' => 'center'],
                 // ما تُبنى عليه المجموعة: لم يكن له شاشة، فكان يُزرع من الأوامر وحدها

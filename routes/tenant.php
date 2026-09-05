@@ -11,6 +11,7 @@ use App\Http\Controllers\Auth\ProfileController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Center\AttendanceController;
+use App\Http\Controllers\Center\DeviceController as AttendanceDeviceController;
 use App\Http\Controllers\Center\FinanceController;
 use App\Http\Controllers\Center\GroupEnrolmentController;
 use App\Http\Controllers\Center\GuardianPortalController;
@@ -114,6 +115,14 @@ $tenantRoutes = function (): void {
      | ولا CSRF، والمفتاح في ترويسة `Authorization` هو ما تفهمه كل
      | أداة. وكل نقطة تُحرَس بنطاقها، فمفتاحُ القراءة لا يكتب.
      */
+    /*
+     | نقطة استقبال بصمات أجهزة الحضور.
+     |
+     | خارج مِدلوير الويب: الجهاز لا يحمل كوكيّات ولا CSRF، ومفتاحه
+     | في ترويسة `Authorization` — وهذا ما تستطيعه أبسط الأجهزة.
+     */
+    Route::post('api/v1/punch', [AttendanceDeviceController::class, 'punch'])->name('api.punch');
+
     Route::prefix('api/v1')->name('api.')->group(function (): void {
         Route::middleware(AuthenticateApiToken::class)->group(function (): void {
             Route::get('/me', [ApiController::class, 'me'])->name('me');
@@ -464,6 +473,12 @@ $tenantRoutes = function (): void {
             /*
              | مفاتيح الواجهة البرمجية — محروسةٌ بالميزة والصلاحية.
              */
+            // أجهزة الحضور — محروسةٌ بالميزة والصلاحية
+            Route::get('/admin/devices', [AttendanceDeviceController::class, 'index'])->name('admin.center.devices');
+            Route::post('/admin/devices', [AttendanceDeviceController::class, 'store'])->name('admin.center.devices.store');
+            Route::delete('/admin/devices/{id}', [AttendanceDeviceController::class, 'destroy'])
+                ->whereNumber('id')->name('admin.center.devices.destroy');
+
             Route::get('/admin/api', [ApiTokenController::class, 'index'])->name('admin.api');
             Route::post('/admin/api', [ApiTokenController::class, 'store'])->name('admin.api.store');
             Route::delete('/admin/api/{id}', [ApiTokenController::class, 'destroy'])

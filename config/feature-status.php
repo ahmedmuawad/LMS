@@ -49,7 +49,6 @@ return [
         'whatsapp_api',
 
         // الأجهزة والهوية
-        'attendance_devices',
         'mobile_app',   // الموجود تطبيق ويب تقدّمي، لا تطبيق متجر
         'white_label',
         'coaching',

@@ -17,6 +17,19 @@ return Application::configure(basePath: dirname(__DIR__))
             SetLocale::class,
         ]);
 
+        /*
+         | الواجهة البرمجية خارج حراسة CSRF.
+         |
+         | CSRF يحمي متصفّحاً يحمل كوكيّاً؛ والتكامل يعمل من خادمٍ
+         | آخر بلا كوكيّات، وجهازُ البصمة لا يعرف ما هو الرمز أصلاً.
+         | وحراستهما بالمفتاح في `Authorization` — وهي أقوى، لأن
+         | المفتاح لا يُرسَل تلقائياً كما يُرسَل الكوكي.
+         */
+        $middleware->validateCsrfTokens(except: [
+            'api/v1/*',
+            '*/api/v1/*',
+        ]);
+
         // ApplyTenantTheme يُطبَّق داخل routes/tenant.php لأنه يجب أن
         // يعمل بعد InitializeTenancyByDomain لا قبلها.
     })
