@@ -164,6 +164,23 @@ return [
     ],
 
     // ---------- السنتر ----------
+    /*
+     | تذكير الحصة — الغياب سببه النسيان لا الرفض.
+     |
+     | ويصل الطالب ووليّ أمره معاً: الصغير ينسى، والكبير هو من
+     | يوصله. وإرساله لأحدهما وحده يترك نصف السبب قائماً.
+     */
+    'center.session_reminder' => [
+        'group' => 'center', 'label' => 'تذكير قبل الحصة', 'audience' => 'student', 'module' => 'center',
+        'channels' => ['mail', 'whatsapp', 'sms', 'database', 'push'], 'default' => ['mail', 'database'],
+        'variables' => [...$person, 'group_name', 'subject_name', 'teacher_name', 'session_at', 'starts_in', 'join_url'],
+    ],
+    'center.session_started' => [
+        'group' => 'center', 'label' => 'بدأت الحصة', 'audience' => 'student', 'module' => 'center',
+        'channels' => ['whatsapp', 'database', 'push'], 'default' => ['database'],
+        'variables' => [...$person, 'group_name', 'teacher_name', 'join_url'],
+    ],
+
     'center.absence' => [
         'group' => 'center', 'label' => 'غياب الطالب', 'audience' => 'guardian', 'module' => 'attendance',
         'channels' => ['whatsapp', 'sms', 'mail', 'database'], 'default' => ['whatsapp'],

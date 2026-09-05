@@ -37,7 +37,19 @@ return [
 
         'database' => [
             'driver' => 'database',
-            'connection' => env('DB_QUEUE_CONNECTION'),
+
+            /*
+             | الطابور مركزيّ دائماً، لكل المشتركين.
+             |
+             | بلا هذا يتبع الطابورُ اتصالَ القاعدة الجاري، فتُكتَب
+             | مهامّ المشترك في قاعدته هو — ولا يقرؤها عاملٌ واحد
+             | يعمل من الجذر. النتيجة: إيميلات التفعيل والتذكيرات
+             | تُصفّ ولا تُرسَل أبداً، ولا خطأ يظهر في أي سجلّ.
+             |
+             | و`QueueTenancyBootstrapper` يضع معرّف المشترك في حمولة
+             | المهمة، فيستعيد العامل سياقه قبل تنفيذها.
+             */
+            'connection' => env('DB_QUEUE_CONNECTION', env('DB_CONNECTION', 'sqlite')),
             'table' => env('DB_QUEUE_TABLE', 'jobs'),
             'queue' => env('DB_QUEUE', 'default'),
             'retry_after' => (int) env('DB_QUEUE_RETRY_AFTER', 90),
