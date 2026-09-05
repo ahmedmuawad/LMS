@@ -43,8 +43,19 @@ final class ProvisionTenant
          | يُستعمل — وهو ما حدث فعلاً في أول تسجيلين حقيقيين.
          |
          | فنمنحه مهلته صراحةً، ونُنظّف خلفنا إن فشل رغم ذلك.
+         |
+         | ## لكنّه يرفع المهلة ولا يفرضها
+         |
+         | في سطر الأوامر لا مهلةَ أصلاً (`max_execution_time = 0`)،
+         | و`set_time_limit(180)` هناك **يفرض** حدّاً لم يكن — ويعيد
+         | تصفير عدّاده. فكان تشغيل الاختبارات يموت بـ«Maximum
+         | execution time of 180 seconds exceeded» في اختبارٍ لا
+         | علاقة له بالتجهيز، لأن أوّل تجهيزٍ فيه فرض الحدّ على
+         | العملية كلّها.
          */
-        if (function_exists('set_time_limit')) {
+        $limit = (int) ini_get('max_execution_time');
+
+        if ($limit > 0 && $limit < 180 && function_exists('set_time_limit')) {
             @set_time_limit(180);
         }
 

@@ -50,7 +50,16 @@ final class OfflineLessonController
         abort_unless($lesson->video_provider === 'file' && filled($lesson->video_id), 404);
 
         $disk = Storage::disk(config('filesystems.default'));
-        $path = ltrim((string) $lesson->video_id, '/');
+        $path = ltrim(str_replace('\\', '/', (string) $lesson->video_id), '/');
+
+        /*
+         | ولا يخرج المسار عن مجلّد التخزين.
+         |
+         | `video_id` يكتبه المدرّس، وهو داخل منصّته لا خارجها؛ لكنّ
+         | حساباً واحداً مخترَقاً يكفي لقراءة `.env` لو مرّ `..`.
+         | وFlysystem يحرس هذا، والحراسة هنا قبله لا بدلاً منه.
+         */
+        abort_if(str_contains($path, '..') || $path === '', 404);
 
         abort_unless($disk->exists($path), 404);
 
