@@ -54,14 +54,28 @@
         </x-ui.card>
     @endif
 
-    @if(filled($lesson->attachments))
+    @php
+        // المرفقات المحروسة — لا العمود القديم بروابطه العامة
+        $files = App\Modules\Lms\Models\LessonAttachment::where('lesson_id', $lesson->getKey())
+            ->with('media')->orderBy('position')->orderBy('id')->get();
+    @endphp
+
+    @if($files->isNotEmpty())
         <x-ui.card :title="__('المرفقات')">
             <ul class="grid gap-2">
-                @foreach($lesson->attachments as $attachment)
+                @foreach($files as $file)
                     <li>
-                        <a href="{{ $attachment['url'] ?? '#' }}" class="tap-link text-sm text-primary hover:underline inline-flex items-center gap-2"
-                           @if($lesson->is_downloadable) download @endif>
-                            <span aria-hidden="true">◫</span>{{ $attachment['name'] ?? __('مرفق') }}
+                        {{--
+                            الرابط يقود إلى عارضنا لا إلى الملفّ.
+                            رابط الملفّ المباشر يُنسَخ فيقرؤه من لم يدفع.
+                        --}}
+                        <a href="{{ url('/attachments/'.$file->getKey()) }}"
+                           class="tap-link flex items-center gap-2.5 text-sm hover:text-primary transition-colors">
+                            <span class="shrink-0" aria-hidden="true">◫</span>
+                            <span class="min-w-0 truncate">{{ $file->name() }}</span>
+                            <span class="text-2xs text-subtle font-mono tabular shrink-0 ms-auto">
+                                {{ $file->kindLabel() }} · {{ $file->sizeLabel() }}
+                            </span>
                         </a>
                     </li>
                 @endforeach

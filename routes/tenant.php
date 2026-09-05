@@ -35,12 +35,14 @@ use App\Http\Controllers\Instructor\DiscussionController as InstructorDiscussion
 use App\Http\Controllers\Instructor\EarningsController;
 use App\Http\Controllers\Instructor\StatisticsController;
 use App\Http\Controllers\Instructor\StudentController as InstructorStudentController;
+use App\Http\Controllers\Lms\AttachmentController;
 use App\Http\Controllers\Lms\AssignmentController;
 use App\Http\Controllers\Lms\CatalogController;
 use App\Http\Controllers\Lms\CertificateController;
 use App\Http\Controllers\Lms\CurriculumController;
 use App\Http\Controllers\Lms\GradingController;
 use App\Http\Controllers\Lms\LearnController;
+use App\Http\Controllers\Lms\LessonAttachmentController;
 use App\Http\Controllers\Lms\MyCoursesController;
 use App\Http\Controllers\Lms\QuizController;
 use App\Http\Controllers\Lms\StudentAreaController;
@@ -134,6 +136,17 @@ $tenantRoutes = function (): void {
 
         // حصص الطالب ومجموعاته ورابط دخولها — كان الرابط يُحفظ ولا يصل صاحبه
         Route::get('/my-classes', MyClassesController::class)->name('my-classes');
+
+        /*
+         | مرفقات الدروس — محروسةً لا بروابط تخزين عامة.
+         |
+         | رابط التخزين العام يُنسخ إلى مجموعة واتساب فيقرؤه مئةٌ لم
+         | يدفعوا. وهنا لا يمرّ بايتٌ قبل التحقّق من التسجيل.
+         */
+        Route::get('/attachments/{id}', [AttachmentController::class, 'show'])
+            ->whereNumber('id')->name('attachments.show');
+        Route::get('/attachments/{id}/file', [AttachmentController::class, 'stream'])
+            ->whereNumber('id')->name('attachments.file');
 
         /*
          | بقية لوحة الطالب.
@@ -355,6 +368,20 @@ $tenantRoutes = function (): void {
         ->group(function (): void {
             // استهلاك الحدود — الحدّ الذي لا يُرى يُصطدَم به فجأةً
             Route::get('/admin/usage', UsageController::class)->name('admin.usage');
+
+            /*
+             | مرفقات الدرس شاشةٌ مستقلّة لا حقلٌ في نموذجه.
+             |
+             | للمرفق إعداداته (يُنزَّل؟ يُوسَم؟) وسجلّ فتحاته، وحشرُ
+             | ذلك في نموذج الدرس يجعله صفحتين لا يُقرأ أيّهما.
+             */
+            Route::prefix('admin/lessons/{lesson}/attachments')->whereNumber('lesson')
+                ->name('admin.lessons.attachments.')->group(function (): void {
+                    Route::get('/', [LessonAttachmentController::class, 'index'])->name('index');
+                    Route::post('/', [LessonAttachmentController::class, 'store'])->name('store');
+                    Route::put('/{id}', [LessonAttachmentController::class, 'update'])->whereNumber('id')->name('update');
+                    Route::delete('/{id}', [LessonAttachmentController::class, 'destroy'])->whereNumber('id')->name('destroy');
+                });
 
             Route::get('/admin/platform-mode', [PlatformModeController::class, 'show'])->name('admin.platform-mode');
             Route::put('/admin/platform-mode', [PlatformModeController::class, 'update'])->name('admin.platform-mode.update');
