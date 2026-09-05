@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Http\Controllers\Tenant\AssetController;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Stancl\JobPipeline\JobPipeline;
+use Stancl\Tenancy\Controllers\TenantAssetsController;
 use Stancl\Tenancy\Events;
 use Stancl\Tenancy\Jobs;
 use Stancl\Tenancy\Listeners;
@@ -95,7 +97,14 @@ class TenancyServiceProvider extends ServiceProvider
 
     public function register()
     {
-        //
+        /*
+         | متحكّم ملفّات المشترك يُستبدَل بواحدٍ يعرف الأنواع.
+         |
+         | متحكّم الحزمة يخمّن النوع من محتوى الملفّ، فيخرج CSS
+         | بترويسة `text/plain` ويرفضه المتصفّح. والربط هنا لا نسخُ
+         | المسار: يبقى مسار الحزمة كما هو ويُحدَّث معها.
+         */
+        $this->app->bind(TenantAssetsController::class, AssetController::class);
     }
 
     public function boot()
