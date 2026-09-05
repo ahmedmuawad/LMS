@@ -120,6 +120,7 @@ return [
                 ['key' => 'posts', 'label' => 'المدونة', 'icon' => '✎', 'module' => 'blog', 'feature' => 'blog'],
                 ['key' => 'comments', 'label' => 'التعليقات', 'icon' => '❝', 'module' => 'blog', 'feature' => 'blog'],
                 ['key' => 'pages', 'label' => 'الصفحات', 'icon' => '▭', 'module' => 'content'],
+                ['key' => 'events', 'label' => 'الفعاليات', 'icon' => '◷', 'module' => 'content'],
                 ['key' => 'page-builder', 'label' => 'محرّر الصفحات', 'icon' => '◫', 'module' => 'page-builder', 'feature' => 'page_builder', 'route' => 'admin.page-builder.index'],
                 ['key' => 'media', 'label' => 'الوسائط', 'icon' => '◲', 'module' => 'media', 'route' => 'admin.media.index'],
                 ['key' => 'forms', 'label' => 'النماذج', 'icon' => '▤', 'module' => 'forms'],

@@ -22,6 +22,7 @@ use App\Core\Admin\Resources\Commerce\RefundResource;
 use App\Core\Admin\Resources\Community\BadgeResource;
 use App\Core\Admin\Resources\Community\ChallengeResource;
 use App\Core\Admin\Resources\Content\CommentResource;
+use App\Core\Admin\Resources\Content\EventResource;
 use App\Core\Admin\Resources\Content\FormResource;
 use App\Core\Admin\Resources\Content\PageResource;
 use App\Core\Admin\Resources\Content\PostResource;
@@ -76,6 +77,7 @@ return [
         // المحتوى
         'posts' => PostResource::class,
         'pages' => PageResource::class,
+        'events' => EventResource::class,
         'comments' => CommentResource::class,
         'forms' => FormResource::class,
         'redirects' => RedirectResource::class,

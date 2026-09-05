@@ -32,6 +32,7 @@ use App\Http\Controllers\Community\DiscussionController;
 use App\Http\Controllers\Community\ProgressController;
 use App\Http\Controllers\Community\ReviewController;
 use App\Http\Controllers\Content\ContentController;
+use App\Http\Controllers\Content\EventController;
 use App\Http\Controllers\Content\MediaController;
 use App\Http\Controllers\Content\PageBuilderController;
 use App\Http\Controllers\Content\RedirectController;
@@ -214,6 +215,16 @@ $tenantRoutes = function (): void {
      */
     Route::get('/q/{code}', [PrintCodeController::class, 'scan'])
         ->where('code', '[A-Za-z0-9]{4,24}')->name('print-code.scan');
+
+    /*
+     | التقويم — عامٌّ للزائر، والتسجيل يحتاج حساباً.
+     */
+    Route::get('/events', [EventController::class, 'index'])->name('events.index');
+    Route::get('/events/{slug}', [EventController::class, 'show'])->name('events.show');
+    Route::post('/events/{slug}/register', [EventController::class, 'register'])
+        ->middleware('auth')->name('events.register');
+    Route::post('/events/{slug}/cancel', [EventController::class, 'cancel'])
+        ->middleware('auth')->name('events.cancel');
 
     Route::get('/my-bookings', [ServiceController::class, 'mine'])->middleware('auth')->name('bookings.mine');
     Route::get('/bookings/{token}', [ServiceController::class, 'booking'])->name('bookings.show');
