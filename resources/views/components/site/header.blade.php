@@ -9,6 +9,17 @@
         ['url' => url('/courses'), 'label' => __('الكورسات'), 'on' => module_enabled('lms')],
         ['url' => url('/services'), 'label' => __('الخدمات'), 'on' => module_enabled('services')],
         ['url' => url('/blog'), 'label' => __('المدونة'), 'on' => module_enabled('blog')],
+
+        /*
+         | المتجر لا يظهر إن لم يكن فيه ما يُباع.
+         |
+         | منتجات الكورسات ليست متجراً — لكل كورس صفُّ منتجٍ يمثّله
+         | في السلة. ورابطٌ يقود إلى «لا منتجات» أسوأ من غيابه.
+         */
+        ['url' => url('/shop'), 'label' => __('المتجر'), 'on' => module_enabled('commerce')
+            && App\Modules\Commerce\Models\Product::where('status', 'published')->where('type', '!=', 'course')->exists()],
+
+        ['url' => url('/search'), 'label' => __('بحث'), 'on' => true],
     ], fn (array $l): bool => $l['on']));
 
     $unread = $me === null ? 0 : App\Core\Notifications\Models\Notification::where('user_id', $me->getKey())

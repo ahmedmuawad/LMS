@@ -22,6 +22,30 @@
     @if(session('status'))<x-ui.alert tone="success" class="mb-4">{{ session('status') }}</x-ui.alert>@endif
     @error('schedule')<x-ui.alert tone="danger" :title="__('تعارض في الموعد')" class="mb-4">{{ $message }}</x-ui.alert>@enderror
 
+    @php $empty = collect($sessions)->flatten()->isEmpty(); @endphp
+
+    {{--
+        الشاشة تعرض ولا تُنشئ — فتقول أين يُنشأ.
+        شاشةٌ فارغة بلا طريقٍ إلى ملئها تجعل صاحبها يظنّ النظام معطّلاً.
+    --}}
+    @if($empty)
+        <x-ui.card class="mb-5">
+            <div class="grid gap-3">
+                <div>
+                    <p class="text-sm font-bold mb-1">{{ __('لا حصص في هذا الأسبوع — من أين تبدأ؟') }}</p>
+                    <p class="text-sm text-muted leading-relaxed">
+                        {{ __('المواعيد تُضبط داخل المجموعة لا هنا: افتح المجموعة، أضف مواعيدها الأسبوعية (اليوم والوقت والقاعة)، ثم اضغط «توليد الحصص» فتُنشأ حصص الترم كلّه وتظهر في هذا الجدول.') }}
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                    <x-ui.button size="sm" :href="url('/admin/groups')">{{ __('افتح المجموعات') }}</x-ui.button>
+                    <x-ui.button size="sm" variant="secondary" :href="url('/admin/groups/create')">{{ __('أنشئ مجموعة') }}</x-ui.button>
+                </div>
+            </div>
+        </x-ui.card>
+    @endif
+
     <div class="grid gap-3 lg:grid-cols-7">
         @foreach($days as $day)
             @php $daySessions = $sessions[$day->toDateString()] ?? collect(); @endphp

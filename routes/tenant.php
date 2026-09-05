@@ -20,6 +20,7 @@ use App\Http\Controllers\Center\StudentFileController;
 use App\Http\Controllers\Commerce\AdminOrderController;
 use App\Http\Controllers\Commerce\CartController;
 use App\Http\Controllers\Commerce\CheckoutController;
+use App\Http\Controllers\Commerce\ShopController;
 use App\Http\Controllers\Commerce\WalletController;
 use App\Http\Controllers\Commerce\WebhookController;
 use App\Http\Controllers\Community\DiscussionController;
@@ -28,6 +29,7 @@ use App\Http\Controllers\Community\ReviewController;
 use App\Http\Controllers\Content\ContentController;
 use App\Http\Controllers\Content\MediaController;
 use App\Http\Controllers\Content\PageBuilderController;
+use App\Http\Controllers\Content\SearchController;
 use App\Http\Controllers\Content\RedirectController;
 use App\Http\Controllers\Growth\AffiliateController;
 use App\Http\Controllers\Growth\CampaignController;
@@ -96,6 +98,18 @@ $tenantRoutes = function (): void {
     Route::get('/courses', [CatalogController::class, 'index'])->name('courses.index');
     Route::get('/courses/{slug}', [CatalogController::class, 'show'])->name('courses.show');
     Route::get('/certificate/{code}', [CertificateController::class, 'verify'])->name('certificate.verify');
+
+    /*
+     | البحث الموحّد والمتجر — كانا غائبين عن الموقع.
+     |
+     | الزائر كان يجد كتالوج الكورسات وحده: يبحث عن مقال أو خدمة فلا
+     | يجده فيظنّها غير موجودة، والمنتجات تُدار في اللوحة وتُباع في
+     | السلة بلا صفحةٍ تعرضها.
+     */
+    Route::get('/search', SearchController::class)->name('search');
+
+    Route::get('/shop', [ShopController::class, 'index'])->name('shop');
+    Route::get('/shop/{slug}', [ShopController::class, 'show'])->name('shop.show');
 
     // ---------- المدونة والنماذج ----------
     Route::get('/blog', [ContentController::class, 'blog'])->name('blog');

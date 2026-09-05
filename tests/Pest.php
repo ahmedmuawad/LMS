@@ -11,6 +11,7 @@ use Database\Seeders\CountrySeeder;
 use Database\Seeders\CurrencySeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 require_once __DIR__.'/LmsHelpers.php';
@@ -45,11 +46,25 @@ pest()->extend(TestCase::class)
         }
 
         /*
-         | الملفّ ومذكّرته معاً.
+         | يُغلق الاتصال قبل حذف ملفّه.
          |
-         | كان يُحذف `.sqlite` ويُترك `-journal` و`-wal`، فتجد الفتحة
-         | التالية «مذكّرة ساخنة» لقاعدة لم تعد موجودة — فتُفسد قاعدة
-         | الاختبار نفسها، ويظهر العطل بعد اختبارات لا علاقة لها به.
+         | حذف ملفّ SQLite واتصالُه ما زال مفتوحاً يترك في ذاكرة
+         | العملية مقبضاً لملفٍّ لا وجود له؛ ثم يُعاد استعمال الاتصال
+         | من الحاوية للقاعدة التالية فتُكتَب صفحاتٌ في غير موضعها —
+         | وتظهر النتيجة «database disk image is malformed» في قاعدة
+         | الاختبار نفسها، بعد اختباراتٍ لا علاقة لها بالسبب.
+         */
+        foreach (array_keys(config('database.connections')) as $name) {
+            if (str_contains($name, 'tenant')) {
+                DB::purge($name);
+            }
+        }
+
+        DB::purge('tenant');
+
+        /*
+         | الملفّ ومذكّرته معاً: `-journal` و`-wal` متروكةً تجعل
+         | الفتحة التالية ترى «مذكّرة ساخنة» لقاعدة لم تعد موجودة.
          */
         foreach (glob(database_path('test_tenant*')) ?: [] as $file) {
             @unlink($file);

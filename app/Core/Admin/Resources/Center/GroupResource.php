@@ -66,6 +66,15 @@ final class GroupResource extends Resource
      * صفّ في الشاشة رابطٌ مكسور. وأول ما تريده الإدارة من مجموعة هو
      * موعدها وقاعتها، فهذه وجهته الصحيحة.
      */
+    public function nextStep(Model $record, string $key): ?array
+    {
+        return [
+            'url' => url('/admin/groups/'.$record->getKey().'/slots'),
+            'label' => __('مواعيد المجموعة'),
+            'hint' => __('أضف مواعيدها الأسبوعية ثم ولّد حصص الترم.'),
+        ];
+    }
+
     public function recordUrl(Model $record, string $key): ?string
     {
         return url('/admin/groups/'.$record->getKey().'/slots');

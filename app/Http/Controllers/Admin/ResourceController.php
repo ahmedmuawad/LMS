@@ -71,8 +71,13 @@ final class ResourceController
 
         $model = $instance->model()::create($instance->fillable($validated, 'create'));
 
-        return redirect(url('/admin/'.$resource.'/'.$model->getKey().'/edit'))
-            ->with('status', __('تمت الإضافة بنجاح.'));
+        // الخطوة التالية إن كان للسجلّ واحدة: النموذج ليس نهاية الطريق
+        $next = $instance->nextStep($model, $resource);
+
+        return redirect($next['url'] ?? url('/admin/'.$resource.'/'.$model->getKey().'/edit'))
+            ->with('status', $next === null
+                ? __('تمت الإضافة بنجاح.')
+                : __('تمت الإضافة. :hint', ['hint' => $next['hint']]));
     }
 
     public function edit(Request $request, string $resource, string $id): View

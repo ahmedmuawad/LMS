@@ -18,6 +18,23 @@
         </x-slot:breadcrumb>
     </x-ui.page-header>
 
+    @php $next = $isEdit ? $resource->nextStep($record, $key) : null; @endphp
+
+    {{--
+        الخطوة التالية ظاهرةٌ في النموذج لا مخفيّةً خلف نقرةٍ في
+        القائمة: من يعدّل مجموعةً يسأل «أين المواعيد؟» وهو هنا.
+    --}}
+    @if($next)
+        <div class="mb-4">
+            <x-ui.alert tone="info">
+                <div class="flex flex-wrap items-center gap-3">
+                    <p class="min-w-0 flex-1 text-sm">{{ $next['hint'] }}</p>
+                    <x-ui.button size="sm" :href="$next['url']">{{ $next['label'] }}</x-ui.button>
+                </div>
+            </x-ui.alert>
+        </div>
+    @endif
+
     {{--
         بلوغ الحدّ قبل أخطاء الحقول: لا معنى لأن يصحّح المستخدم
         حقولاً في نموذجٍ لن يُقبل حتى يحذف أو يُرقّي.
