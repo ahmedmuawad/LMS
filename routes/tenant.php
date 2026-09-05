@@ -456,7 +456,6 @@ $tenantRoutes = function (): void {
             Route::post('/groups/{group}/invoices', [FinanceController::class, 'issue'])
                 ->whereNumber('group')->name('fees.issue.group');
             Route::post('/fees/collect', [FinanceController::class, 'collect'])->name('fees.collect');
-            Route::post('/groups/{group}/invoices', [FinanceController::class, 'issue'])->name('fees.issue');
             Route::get('/cashboxes', [FinanceController::class, 'cashboxes'])->name('cashboxes');
             Route::post('/cashboxes/{cashbox}/close', [FinanceController::class, 'close'])->name('cashboxes.close');
 
