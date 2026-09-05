@@ -24,9 +24,17 @@ return [
 
     'modes' => [
 
+        /*
+         | تُسمّى الأنماط بما تفعله لا بمن يستخدمها.
+         |
+         | كانت «مدرّس فردي» و«مدرّس مستقل» اسمين لا يفرّق بينهما أحد،
+         | فيختار المدرّس الأول ويجد لوحةً بلا مجموعات ولا حضور ولا
+         | مراحل — وهي في النمط الثاني. الاسم الذي يصف الهوية يفشل
+         | حين يتشارك مستخدمان الهوية نفسها ويختلفان في الحاجة.
+         */
         'solo' => [
-            'name' => ['ar' => 'مدرّس فردي', 'en' => 'Solo instructor'],
-            'summary' => ['ar' => 'أكاديمية باسمك أنت وحدك.', 'en' => 'A personal academy under your name.'],
+            'name' => ['ar' => 'كورسات أونلاين فقط', 'en' => 'Online courses only'],
+            'summary' => ['ar' => 'تبيع كورساتك المسجّلة — بلا مجموعات ولا حضور ولا أقساط.', 'en' => 'Sell recorded courses — no groups, attendance, or fees.'],
             'icon' => '👤',
             'theme' => 'solo-academy',
             'modules' => [...$core, ...$lms, ...$shop, ...$web, 'subscriptions', 'affiliates'],
@@ -61,8 +69,8 @@ return [
          | السنتر، وعرضها على مدرّس تحويلٌ للوحته إلى لوحة غيره.
          */
         'teacher' => [
-            'name' => ['ar' => 'مدرّس مستقل', 'en' => 'Independent teacher'],
-            'summary' => ['ar' => 'مجموعاتك وحصصك أينما تُدرّس: أونلاين أو في البيت أو في سنتر.', 'en' => 'Your groups and sessions wherever you teach: online, at home, or at a center.'],
+            'name' => ['ar' => 'مجموعات وحصص وطلبة', 'en' => 'Groups, sessions and students'],
+            'summary' => ['ar' => 'مراحل ومناهج ومجموعات وحضور وأقساط وأولياء أمور — أينما تُدرّس.', 'en' => 'Stages, curricula, groups, attendance, fees and parents — wherever you teach.'],
             'icon' => '👩‍🏫',
             'theme' => 'solo-academy',
             'modules' => [...$core, ...$lms, ...$shop,

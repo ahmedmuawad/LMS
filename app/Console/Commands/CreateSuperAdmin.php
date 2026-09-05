@@ -14,16 +14,18 @@ final class CreateSuperAdmin extends Command
         {--name= : الاسم}
         {--email= : البريد}
         {--password= : كلمة المرور}
-        {--role=super_admin : الدور (super_admin|support|finance)}';
+        {--role=super_admin : الدور (super_admin|support|finance)}
+        {--reset : يعيد تعيين كلمة مرور حساب موجود بدل الرفض}';
 
-    protected $description = 'ينشئ حساباً لفريق المنصة على القاعدة المركزية';
+    protected $description = 'ينشئ حساباً لفريق المنصة على القاعدة المركزية، أو يعيد تعيين كلمة مروره';
 
     public function handle(): int
     {
         $email = $this->option('email') ?: $this->ask('البريد الإلكتروني');
+        $existing = SuperAdmin::where('email', $email)->first();
 
-        if (SuperAdmin::where('email', $email)->exists()) {
-            $this->error("الحساب [{$email}] موجود بالفعل.");
+        if ($existing !== null && ! $this->option('reset')) {
+            $this->error("الحساب [{$email}] موجود بالفعل. استخدم --reset لإعادة تعيين كلمة مروره.");
 
             return self::FAILURE;
         }
@@ -34,6 +36,19 @@ final class CreateSuperAdmin extends Command
             $this->error('كلمة المرور يجب ألا تقل عن ٨ أحرف.');
 
             return self::FAILURE;
+        }
+
+        if ($existing !== null) {
+            // إعادة التفعيل مقصودة: حسابٌ معطّل بكلمة مرور جديدة ما زال بلا دخول،
+            // فيبدو الأمر وكأنه فشل صامت.
+            $existing->forceFill([
+                'password' => Hash::make($password),
+                'is_active' => true,
+            ])->save();
+
+            $this->info("تم تعيين كلمة مرور جديدة وتفعيل الحساب: {$email}");
+
+            return self::SUCCESS;
         }
 
         SuperAdmin::create([

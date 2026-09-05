@@ -42,6 +42,7 @@ use App\Http\Controllers\Lms\GradingController;
 use App\Http\Controllers\Lms\LearnController;
 use App\Http\Controllers\Lms\MyCoursesController;
 use App\Http\Controllers\Lms\QuizController;
+use App\Http\Controllers\Lms\StudentDashboardController;
 use App\Http\Controllers\Notifications\InboxController;
 use App\Http\Controllers\Notifications\NotificationAdminController;
 use App\Http\Controllers\Pwa\PwaController;
@@ -53,6 +54,7 @@ use App\Http\Controllers\Tenant\BillingController;
 use App\Http\Controllers\Tenant\DashboardController;
 use App\Http\Controllers\Tenant\ImpersonationController;
 use App\Http\Controllers\Tenant\OnboardingController;
+use App\Http\Controllers\Tenant\PlatformModeController;
 use App\Http\Controllers\Tenant\SettingsController;
 use App\Http\Middleware\ApplyTenantTheme;
 use App\Http\Middleware\EnsureAbility;
@@ -122,6 +124,9 @@ $tenantRoutes = function (): void {
 
     // ---------- غرفة التعلّم ----------
     Route::middleware('auth')->group(function (): void {
+        // مدخل الطالب — الشاشة التي تجمع ما كان اثنتي عشرة شاشة متفرّقة
+        Route::get('/me', StudentDashboardController::class)->name('me');
+
         Route::get('/my-courses', MyCoursesController::class)->name('my-courses');
 
         // ---------- المجتمع والتحفيز ----------
@@ -313,6 +318,21 @@ $tenantRoutes = function (): void {
     Route::get('/admin/billing', BillingController::class)
         ->middleware([EnsurePanelAccess::class, RequireOnboarding::class, EnsureAbility::class.':'.Ability::BILLING_MANAGE])
         ->name('admin.billing');
+
+    /*
+     | نمط المنصة — يُغيَّر بعد التسجيل لا في شاشته فقط.
+     |
+     | كان الاختيار يُقفل مرة واحدة، فمن أخطأ فيه بقي في لوحة ناقصة
+     | بلا مخرج إلا حساب جديد.
+     */
+    Route::middleware([EnsurePanelAccess::class, RequireOnboarding::class, EnsureAbility::class.':'.Ability::SETTINGS_MANAGE])
+        ->group(function (): void {
+            Route::get('/admin/platform-mode', [PlatformModeController::class, 'show'])->name('admin.platform-mode');
+            Route::put('/admin/platform-mode', [PlatformModeController::class, 'update'])->name('admin.platform-mode.update');
+        });
+
+    // ‏/admin وحده كان يعطي ٤٠٤: صاحب اللوحة يكتب المسار الطبيعي لا الكامل
+    Route::redirect('/admin', '/admin/dashboard');
 
     // الإعدادات — قبل مسار الموارد
     Route::prefix('admin/settings')
