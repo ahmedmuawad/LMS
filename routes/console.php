@@ -21,3 +21,17 @@ Schedule::command('growth:run')
     ->everyFifteenMinutes()
     ->withoutOverlapping(30)
     ->runInBackground();
+
+/*
+ | دورة الفوترة — مرة كل يوم، لا كل ربع ساعة.
+ |
+ | تُغيّر حالات مشتركين وتُصدر فواتير: ما يُقاس باليوم يُنفَّذ باليوم،
+ | وتكرارُه أكثر يزيد فرص إصدار فاتورة مرتين ولا يزيد دقّة.
+ |
+ | الفجر توقيت مقصود: التعليق يقع قبل أن يبدأ دوام السناتر، فلا
+ | يُقفل الباب على مشترك في منتصف حصّته.
+ */
+Schedule::command('billing:run')
+    ->dailyAt('03:30')
+    ->withoutOverlapping(60)
+    ->runInBackground();
