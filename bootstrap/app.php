@@ -3,6 +3,7 @@
 use App\Http\Middleware\CachePage;
 use App\Http\Middleware\EnsureFeature;
 use App\Http\Middleware\LogNotFound;
+use App\Http\Middleware\MinifyHtml;
 use App\Http\Middleware\MaintenanceMode;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
@@ -49,6 +50,14 @@ return Application::configure(basePath: dirname(__DIR__))
              | باسم أحمد — وهذا تسريبُ هويّة لا بطءُ صفحة.
              */
             CachePage::class,
+
+            /*
+             | التصغير بعد الكاش كي يُخزَّن مصغَّراً مرّةً واحدة.
+             |
+             | ولو سبقه لصُغّرت الصفحة في كل زيارة — وهو عملُ معالجٍ
+             | يتكرّر بلا فائدة على محتوىً لم يتغيّر.
+             */
+            MinifyHtml::class,
         ]);
 
         /*

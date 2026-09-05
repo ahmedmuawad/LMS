@@ -10,9 +10,12 @@ use App\Core\Entitlements\Quota;
 use App\Core\Localization\DatabaseTranslationLoader;
 use App\Core\Modules\ModuleState;
 use App\Core\Settings\SettingsRepository;
+use App\Core\Support\PageCache;
 use App\Core\Theming\ThemeManager;
 use App\Models\User;
 use App\Modules\Commerce\Observers\CourseObserver;
+use App\Modules\Content\Models\Page;
+use App\Modules\Content\Models\Post;
 use App\Modules\Lms\Models\Course;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Event;
@@ -99,7 +102,43 @@ class AppServiceProvider extends ServiceProvider
          */
         Course::observe(CourseObserver::class);
 
+        $this->invalidatePageCache();
+
         $this->guardLazyLoading();
+    }
+
+    /**
+     * ما يُنشَر يُبطل كاش الصفحات.
+     *
+     * ## بلا هذا يصير الكاش عطباً لا تحسيناً
+     *
+     * مشتركٌ يصحّح سعر كورسٍ ثم يفتح موقعه فيرى القديم ساعةً كاملة؛
+     * فيظنّ الحفظ لم ينجح، فيحفظ ثانيةً وثالثة ثم يفتح لنا تذكرة.
+     * والبطء يُحتمَل، والكذب لا.
+     *
+     * ## والوصل بالنماذج لا بأماكن الحفظ
+     *
+     * الكورس يُحفظ من اللوحة ومن المستورد ومن الواجهة البرمجية ومن
+     * أوامر السطر؛ ونداءٌ في كل موضعٍ يُنسى في أحدها — وهو الذي
+     * يشتكي منه المشترك.
+     */
+    private function invalidatePageCache(): void
+    {
+        $models = [
+            Course::class,
+            Post::class,
+            Page::class,
+        ];
+
+        foreach ($models as $model) {
+            if (! class_exists($model)) {
+                continue;
+            }
+
+            // الحفظ والحذف معاً: كورسٌ حُذف يجب أن يختفي من الكتالوج فوراً
+            $model::saved(fn (): mixed => PageCache::flush());
+            $model::deleted(fn (): mixed => PageCache::flush());
+        }
     }
 
     /**

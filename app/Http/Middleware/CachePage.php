@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Core\Support\PageCache;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -122,6 +123,16 @@ final class CachePage
     {
         return 'page:'.sha1(implode('|', [
             (string) tenant('id'),
+
+            /*
+             | رقم النسخة داخل المفتاح.
+             |
+             | فنشرُ كورسٍ يرفعه، فتصير كلُّ المفاتيح القديمة غير
+             | مطلوبةٍ أبداً وتموت وحدها بانتهاء مدّتها. وبلا هذا
+             | يرى المشترك القديم ساعةً بعد حفظه، فيظنّ الحفظ فشل.
+             */
+            PageCache::version(),
+
             app()->getLocale(),
             $request->getPathInfo(),
             $request->getQueryString() ?? '',
