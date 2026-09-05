@@ -16,9 +16,18 @@ beforeEach(function () {
 it('grants boolean features from the plan', function () {
     $tenant = makeTenant('growth');
 
+    /*
+     | «إدارة السنتر» في باقة النمو عمداً.
+     |
+     | كانت خارجها، فوجد المدرّس المشترك فيها أن لا مراحل ولا
+     | مجموعات ولا حضور — وهي أوّل ما يطلبه مدرّسٌ يُدرّس مجموعات.
+     | فأُضيفت مع `groups` و`center_finance` و`parent_portal`.
+     |
+     | وSCORM تبقى خارجها: هي للباقة الاحترافية.
+     */
     expect($tenant->allows('page_builder'))->toBeTrue()
         ->and($tenant->allows('recharge_codes'))->toBeTrue()
-        ->and($tenant->allows('center_management'))->toBeFalse()   // ليست في باقة النمو
+        ->and($tenant->allows('center_management'))->toBeTrue()
         ->and($tenant->allows('scorm'))->toBeFalse();
 });
 
