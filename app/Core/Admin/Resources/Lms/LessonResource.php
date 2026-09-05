@@ -62,6 +62,14 @@ final class LessonResource extends Resource
             ];
         }
 
+        if ($record->type === 'h5p') {
+            return [
+                'url' => url('/admin/lessons/'.$record->getKey().'/h5p'),
+                'label' => __('المحتوى التفاعلي'),
+                'hint' => __('ارفع ملفّ H5P كما صدّرته من أداة التأليف — يُشغَّل هنا وتُسجَّل نتائج الطلبة فيه.'),
+            ];
+        }
+
         return $record->type === 'video'
             ? [
                 'url' => url('/admin/lessons/'.$record->getKey().'/moments'),
@@ -96,7 +104,7 @@ final class LessonResource extends Resource
             TextColumn::make('title')->label(__('الدرس'))->searchable()->wrap()->sortable(),
 
             BadgeColumn::make('type')->label(__('النوع'))->sortable()
-                ->tones(['live' => 'live', 'video' => 'primary', 'scorm' => 'accent'])
+                ->tones(['live' => 'live', 'video' => 'primary', 'scorm' => 'accent', 'h5p' => 'accent'])
                 ->labels(array_map(fn (string $l): string => __($l), Lesson::TYPES)),
 
             TextColumn::make('duration_seconds')->label(__('المدة'))->mono()->align('end')->sortable()
@@ -162,6 +170,10 @@ final class LessonResource extends Resource
                 TextField::make('video_id')->label(__('معرّف الفيديو'))->half(),
                 SwitchField::make('is_downloadable')->label(__('يسمح بالتنزيل'))
                     ->hint(__('التنزيل يعني خروج الملف من حمايتك.')),
+                ...(tenant()?->allows('offline_download') ?? false ? [
+                    SwitchField::make('is_offline')->label(__('يُحفظ للمشاهدة بلا اتصال'))
+                        ->hint(__('يُحفظ داخل المنصة في جهاز الطالب فيشاهده بلا إنترنت — ولا يخرج ملفّاً يُنسَخ. للملفّ المرفوع وحده.')),
+                ] : []),
             ]);
 
         return $form;
@@ -192,6 +204,19 @@ final class LessonResource extends Resource
 
         if ($this->manages()) {
             unset($types['live']);
+        }
+
+        /*
+         | ولا يُعرض نوعٌ لا تحمله الباقة.
+         |
+         | اختيارُه يقود إلى شاشةٍ تردّ ٤٠٢، فيكون المدرّس قد أنشأ
+         | درساً لا يستطيع ملأه. والقائمة التي تعرض ما لا يعمل أسوأ
+         | من قائمةٍ أقصر.
+         */
+        foreach (['scorm' => 'scorm', 'h5p' => 'h5p'] as $type => $feature) {
+            if (tenant() !== null && ! tenant()->allows($feature)) {
+                unset($types[$type]);
+            }
         }
 
         return array_map(fn (string $label): string => __($label), $types);

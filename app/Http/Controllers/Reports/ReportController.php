@@ -14,7 +14,7 @@ use Illuminate\View\View;
 /** تقارير التعليم والمال والتسويق. */
 final class ReportController
 {
-    private const TABS = ['learning', 'financial', 'marketing'];
+    private const TABS = ['learning', 'activity', 'financial', 'marketing'];
 
     public function __construct(private readonly ReportBuilder $reports) {}
 
@@ -32,6 +32,7 @@ final class ReportController
             'to' => $to,
             'preset' => (string) $request->input('preset', '30'),
             'data' => match ($tab) {
+                'activity' => $this->reports->activity($from, $to),
                 'financial' => $this->reports->financial($from, $to),
                 'marketing' => $this->reports->marketing($from, $to),
                 default => $this->reports->learning($from, $to),
@@ -49,6 +50,7 @@ final class ReportController
         [$from, $to] = $this->range($request);
 
         $data = match ($tab) {
+            'activity' => $this->reports->activity($from, $to),
             'financial' => $this->reports->financial($from, $to),
             'marketing' => $this->reports->marketing($from, $to),
             default => $this->reports->learning($from, $to),

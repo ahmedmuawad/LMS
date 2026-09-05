@@ -5,6 +5,7 @@ import { initContentGuard } from './content-guard';
 import { initProctor } from './proctor';
 import { initVideoMoments } from './video-moments';
 import { initScorm } from './scorm-api';
+import { startH5pPlayers } from './h5p-player';
 
 import './math.js';
 import mathEditor from './math-editor.js';
@@ -289,3 +290,6 @@ initContentGuard();
 document.querySelectorAll('[data-proctor-root]').forEach(initProctor);
 document.querySelectorAll('[data-moments-root]').forEach(initVideoMoments);
 document.querySelectorAll('[data-scorm-root]').forEach(initScorm);
+
+// المحتوى التفاعلي — المشغّل يُحمَّل عند وجوده لا في كل صفحة
+startH5pPlayers();

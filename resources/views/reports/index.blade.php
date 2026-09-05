@@ -12,7 +12,7 @@
 </x-ui.page-header>
 
 <div class="flex flex-wrap items-center gap-2 mb-4">
-    @foreach(['learning' => 'التعليم', 'financial' => 'المال', 'marketing' => 'التسويق'] as $key => $label)
+    @foreach(['learning' => 'التعليم', 'activity' => 'النشاط', 'financial' => 'المال', 'marketing' => 'التسويق'] as $key => $label)
         <a href="{{ request()->fullUrlWithQuery(['tab' => $key]) }}"
            @class(['min-h-11 px-4 grid place-items-center rounded-md text-sm font-semibold border transition-colors',
                    'bg-primary text-primary-on border-transparent' => $tab === $key,
@@ -76,6 +76,47 @@
                     </tr>
                 @empty
                     <tr><td colspan="3" class="px-4 py-6 text-center text-subtle">{{ __('لا تسجيلات في هذه المدة.') }}</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </section>
+
+@elseif($tab === 'activity')
+    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 mb-5">
+        <x-ui.stat :label="__('عبارات مسجّلة')" :value="number_format($data['statements'])" />
+        <x-ui.stat :label="__('طلبة نشِطون')" :value="number_format($data['learners'])" />
+        <x-ui.stat :label="__('إتمامات')" :value="number_format($data['completions'])" />
+        <x-ui.stat :label="__('نسبة النجاح')" :value="$data['pass_rate'].'%'" />
+        <x-ui.stat :label="__('متوسّط الدرجة')" :value="$data['avg_score'].'%'" />
+    </div>
+
+    <x-reports.chart :series="$data['daily']" :label="__('النشاط يومياً')" class="mb-5" />
+
+    <section class="surface-card overflow-x-auto">
+        <h2 class="px-4 py-3 border-b border-default font-bold text-sm">{{ __('أكثر الأنشطة تكراراً') }}</h2>
+        <table class="w-full text-sm min-w-[480px]">
+            <thead class="bg-surface-sunken text-2xs text-subtle">
+                <tr>
+                    <th class="text-start font-semibold px-4 py-2.5">{{ __('النشاط') }}</th>
+                    <th class="text-start font-semibold px-4 py-2.5">{{ __('محاولات') }}</th>
+                    <th class="text-start font-semibold px-4 py-2.5">{{ __('متوسّط الدرجة') }}</th>
+                    <th class="text-start font-semibold px-4 py-2.5">{{ __('تعثّرات') }}</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-[var(--color-line)]">
+                @forelse($data['activities'] as $row)
+                    <tr>
+                        <td class="px-4 py-2.5">{{ $row->object_name }}</td>
+                        <td class="px-4 py-2.5 font-mono tabular">{{ number_format((int) $row->attempts) }}</td>
+                        <td class="px-4 py-2.5 font-mono tabular">
+                            {{ $row->avg_score === null ? '—' : number_format((float) $row->avg_score, 1).'%' }}
+                        </td>
+                        <td class="px-4 py-2.5 font-mono tabular">{{ number_format((int) $row->failures) }}</td>
+                    </tr>
+                @empty
+                    <tr><td colspan="4" class="px-4 py-6 text-center text-subtle">
+                        {{ __('لا نشاط في هذه المدة. يظهر هنا ما يُسجّله المحتوى التفاعلي وما يصل من تطبيقات مربوطة.') }}
+                    </td></tr>
                 @endforelse
             </tbody>
         </table>

@@ -92,6 +92,26 @@ final class IntegrationSettings extends SettingsGroup
                         ->hint(__('لا يُعرض بعد الحفظ. وما يُرسَل من مادتك لا نحفظه: يُحفظ عدد الطلبات للمحاسبة وحده.')),
                 ]),
 
+            /*
+             | مخزن عبارات التعلّم.
+             |
+             | العبارات تُحفظ عندنا دائماً — فأكثر المشتركين لا
+             | يملكون LRS ولا يعرفون ما هو، ونصبُ واحدٍ لهم كلفةٌ لا
+             | يحتاجونها. ومن عنده واحدٌ (جامعة أو جهةٌ تدريبية) وضع
+             | عنوانه هنا فتُنسَخ إليه — نسخاً لا تحويلاً: قطعُ
+             | الاتصال بمخزنه لا يجوز أن يُضيّع نتائج طلابه.
+             */
+            Section::make(__('مخزن عبارات التعلّم (LRS)'))
+                ->description(__('اتركه فارغاً — النتائج تُحفظ وتُعرض عندنا. وإن كان لجهتك مخزن xAPI خاص، ضع عنوانه لتصله نسخةٌ من كل عبارة.'))
+                ->fields([
+                    TextField::make('lrs_endpoint')->label(__('عنوان المخزن'))->url()
+                        ->placeholder('https://lrs.example.com/data/xAPI/statements')
+                        ->hint(__('عنوان نقطة statements كاملاً.')),
+                    TextField::make('lrs_username')->label(__('اسم المستخدم'))->half(),
+                    PasswordField::make('lrs_password')->label(__('كلمة المرور'))->half()
+                        ->hint(__('لا تُعرض بعد الحفظ.')),
+                ]),
+
             Section::make(__('التخزين'))->fields([
                 SelectField::make('storage_driver')->label(__('مزوّد التخزين'))->half()
                     ->options(['local' => __('القرص المحلي'), 's3' => 'S3', 'spaces' => 'DigitalOcean Spaces', 'r2' => 'Cloudflare R2'])

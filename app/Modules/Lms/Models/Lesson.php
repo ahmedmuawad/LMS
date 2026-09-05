@@ -16,7 +16,8 @@ final class Lesson extends Model
 
     public const TYPES = [
         'video' => 'فيديو', 'audio' => 'صوت', 'text' => 'نص', 'pdf' => 'ملف PDF',
-        'slides' => 'شرائح', 'live' => 'حصة مباشرة', 'scorm' => 'حزمة SCORM', 'embed' => 'تضمين',
+        'slides' => 'شرائح', 'live' => 'حصة مباشرة', 'scorm' => 'حزمة SCORM',
+        'h5p' => 'محتوى تفاعلي (H5P)', 'embed' => 'تضمين',
     ];
 
     protected $guarded = [];

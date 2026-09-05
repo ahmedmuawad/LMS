@@ -14,6 +14,7 @@ use App\Modules\Growth\Models\Campaign;
 use App\Modules\Lms\Models\Course;
 use App\Modules\Lms\Models\Enrollment;
 use App\Modules\Lms\Models\QuizAttempt;
+use App\Modules\Lms\Models\XapiStatement;
 use App\Modules\Services\Models\Booking;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +29,52 @@ use Illuminate\Support\Facades\Schema;
 final class ReportBuilder
 {
     /** @return array<string, mixed> */
+    /**
+     * سجلّ النشاط: ما فعله الطلبة في المحتوى التفاعلي وخارج المنصة.
+     *
+     * ## ولماذا لا يُدمج في تقرير التعليم
+     *
+     * تقرير التعليم يقيس المسار: من سجّل، ومن أتمّ، ومن نجح. وهذا
+     * يقيس الفعل: من حاول، وأين تعثّر، وكم استغرق. والقارئ لكلٍّ
+     * منهما مختلف — المدرّس يسأل الأول، ومصمّم المحتوى يسأل الثاني.
+     *
+     * @return array<string, mixed>
+     */
+    public function activity(Carbon $from, Carbon $to): array
+    {
+        $window = fn () => XapiStatement::whereBetween('stored_at', [$from, $to]);
+
+        return [
+            'statements' => $window()->count(),
+            'learners' => $window()->whereNotNull('user_id')->distinct()->count('user_id'),
+            'completions' => $window()->where('result_completion', true)->count(),
+
+            'pass_rate' => $this->rate(
+                $window()->where('result_success', true)->count(),
+                $window()->whereNotNull('result_success')->count(),
+            ),
+
+            'avg_score' => round((float) $window()->whereNotNull('result_score')->avg('result_score'), 1),
+
+            /*
+             | أثقل الأنشطة: ما طال زمنه أو كثر فيه الرسوب.
+             |
+             | هذه هي الفائدة العملية للمعيار: مكانٌ يتعثّر فيه
+             | الأكثرون يعني شرحاً ناقصاً لا طلاباً كسالى.
+             */
+            'activities' => XapiStatement::query()
+                ->whereBetween('stored_at', [$from, $to])
+                ->whereNotNull('object_name')
+                ->selectRaw('object_name, object_id, count(*) as attempts, avg(result_score) as avg_score, sum(case when result_success = 0 then 1 else 0 end) as failures')
+                ->groupBy('object_name', 'object_id')
+                ->orderByDesc('attempts')
+                ->limit(12)
+                ->get(),
+
+            'daily' => $this->daily(XapiStatement::query(), 'stored_at', $from, $to),
+        ];
+    }
+
     public function learning(Carbon $from, Carbon $to): array
     {
         $enrollments = Enrollment::whereBetween('created_at', [$from, $to]);

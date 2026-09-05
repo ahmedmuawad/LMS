@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Lms;
 
 use App\Core\Access\Ability;
-use App\Modules\Lms\Models\Enrollment;
+use App\Modules\Lms\LessonAccess;
 use App\Modules\Lms\Models\Lesson;
 use App\Modules\Lms\Models\ScormPackage;
 use App\Modules\Lms\Scorm\ScormPackager;
@@ -92,23 +92,14 @@ final class ScormController
      * مباشرةً بمعرّفٍ في المسار، ومن مرّ عليها بلا تسجيل يكتب
      * درجاتٍ في حزمةٍ لا يملكها — فيظهر في تقرير مدرّسٍ لا يعرفه.
      */
-    public function state(Request $request, int $packageId): JsonResponse
+    public function state(Request $request, int $packageId, LessonAccess $access): JsonResponse
     {
         $package = ScormPackage::with('lesson')->findOrFail($packageId);
         $user = $request->user();
 
         abort_if($user === null, 403);
 
-        if (! $user->allows(Ability::LESSONS_MANAGE)) {
-            $courseIds = $package->lesson?->items()->pluck('course_id')->filter()->unique() ?? collect();
-
-            $enrolled = $courseIds->isNotEmpty() && Enrollment::where('user_id', $user->getKey())
-                ->whereIn('course_id', $courseIds)
-                ->get()
-                ->contains(fn (Enrollment $e): bool => $e->hasAccess());
-
-            abort_unless($enrolled, 403);
-        }
+        abort_unless($access->grants($user, $package->lesson), 403);
 
         $state = $package->stateFor($user);
 

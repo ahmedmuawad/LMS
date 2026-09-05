@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Lms;
 
-use App\Core\Access\Ability;
 use App\Models\User;
+use App\Modules\Lms\LessonAccess;
 use App\Modules\Lms\Models\AttachmentView;
-use App\Modules\Lms\Models\Enrollment;
 use App\Modules\Lms\Models\LessonAttachment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -99,21 +98,11 @@ final class AttachmentController
 
         abort_if($user === null, 403);
 
-        if ($user->allows(Ability::LESSONS_MANAGE)) {
-            return $attachment;
-        }
-
-        // الدرس يصل الكورس عبر عناصر المنهج، وقد يكون في أكثر من كورس
-        $courseIds = $attachment->lesson?->items()->pluck('course_id')->filter()->unique() ?? collect();
-
-        abort_if($courseIds->isEmpty(), 403, __('هذا المرفق غير مرتبط بكورس بعد.'));
-
-        $enrolled = Enrollment::where('user_id', $user->getKey())
-            ->whereIn('course_id', $courseIds)
-            ->get()
-            ->contains(fn (Enrollment $e): bool => $e->hasAccess());
-
-        abort_unless($enrolled, 403, __('سجّل في الكورس أولاً لتفتح مرفقاته.'));
+        abort_unless(
+            app(LessonAccess::class)->grants($user, $attachment->lesson),
+            403,
+            __('سجّل في الكورس أولاً لتفتح مرفقاته.'),
+        );
 
         return $attachment;
     }

@@ -6,6 +6,7 @@ namespace App\Core\Settings\Groups;
 
 use App\Core\Access\Ability;
 use App\Core\Admin\Fields\NumberField;
+use App\Core\Admin\Fields\PasswordField;
 use App\Core\Admin\Fields\Section;
 use App\Core\Admin\Fields\SelectField;
 use App\Core\Admin\Fields\SwitchField;
@@ -53,14 +54,21 @@ final class LiveSettings extends SettingsGroup
 
     public function sections(): array
     {
+        /*
+         | «قريباً» لمن لم يُبنَ وحده.
+         |
+         | Zoom وBigBlueButton مبنيّان ويحتاجان بياناتِ ربطٍ تُملأ
+         | أدناه؛ ووسمُهما «قريباً» يجعل من يملك حساباً لا يجرّبهما.
+         | و Google Meet لم يُبنَ بعد، فيبقى موسوماً.
+         */
         $providers = collect(config('live.providers', []))
             ->map(fn (array $p): string => ($p['name'][app()->getLocale()] ?? $p['name']['ar'])
-                .($p['needs_keys'] ? ' — '.__('قريباً') : ''))
+                .(($p['coming_soon'] ?? false) ? ' — '.__('قريباً') : ''))
             ->all();
 
         return [
             Section::make(__('المزوّد'))
-                ->description(__('Jitsi يعمل فوراً بلا حساب. أمّا Zoom وMeet وBigBlueButton فتحتاج ربط حساب، وهي قيد البناء — واختيارها الآن يعني الرجوع إلى الرابط اليدوي.'))
+                ->description(__('Jitsi يعمل فوراً بلا حساب. وZoom وBigBlueButton يحتاجان بيانات ربطٍ تملؤها أدناه. وGoogle Meet قيد البناء — واختياره الآن يعني الرجوع إلى الرابط اليدوي.'))
                 ->fields([
                     SelectField::make('provider')->label(__('مزوّد الحصص'))->half()
                         ->options($providers)->default('jitsi'),
@@ -71,6 +79,32 @@ final class LiveSettings extends SettingsGroup
                     TextField::make('jitsi_domain')->label(__('خادم Jitsi'))->half()
                         ->placeholder('meet.jit.si')
                         ->hint(__('اتركه فارغاً لاستعمال الخادم العام. ضع خادمك هنا إن كان لديك واحد.')),
+                ]),
+
+            /*
+             | بيانات Zoom: تطبيق Server-to-Server OAuth.
+             |
+             | ثلاثة حقول يُنشئها المشترك مرّةً في marketplace.zoom.us
+             | ولا يرى بعدها شاشة موافقة. والتطبيق العادي يطلب موافقة
+             | كل مدرّس على حدة — وذلك بابٌ يقف عنده أكثرهم.
+             */
+            Section::make('Zoom')
+                ->description(__('من marketplace.zoom.us أنشئ تطبيق Server-to-Server OAuth بصلاحية meeting:write:admin، وانسخ منه الحقول الثلاثة.'))
+                ->fields([
+                    TextField::make('zoom_account_id')->label(__('معرّف الحساب'))->half(),
+                    TextField::make('zoom_client_id')->label(__('معرّف العميل'))->half(),
+                    PasswordField::make('zoom_client_secret')->label(__('سرّ العميل'))
+                        ->hint(__('لا يُعرض بعد الحفظ.')),
+                ]),
+
+            Section::make('BigBlueButton')
+                ->description(__('لخادم BigBlueButton خاص بك. العنوان والسرّ من الأمر: bbb-conf --secret'))
+                ->fields([
+                    TextField::make('bbb_url')->label(__('عنوان الخادم'))->url()
+                        ->placeholder('https://bbb.example.com/bigbluebutton/api')
+                        ->hint(__('ينتهي بـ‎/api‎ — ويُضاف تلقائياً إن نسيته.')),
+                    PasswordField::make('bbb_secret')->label(__('السرّ المشترك'))
+                        ->hint(__('لا يخرج من خادمنا: يُوقَّع به كل نداء ولا يُرسَل في رابط.')),
                 ]),
 
             Section::make(__('نافذة الدخول'))

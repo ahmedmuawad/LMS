@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Core\Access\Ability;
 use App\Http\Controllers\Admin\ResourceController;
+use App\Http\Controllers\Api\ApiController;
+use App\Http\Controllers\Api\XapiController;
 use App\Http\Controllers\Auth\DeviceController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
@@ -30,8 +32,8 @@ use App\Http\Controllers\Community\ReviewController;
 use App\Http\Controllers\Content\ContentController;
 use App\Http\Controllers\Content\MediaController;
 use App\Http\Controllers\Content\PageBuilderController;
-use App\Http\Controllers\Content\SearchController;
 use App\Http\Controllers\Content\RedirectController;
+use App\Http\Controllers\Content\SearchController;
 use App\Http\Controllers\Growth\AffiliateController;
 use App\Http\Controllers\Growth\CampaignController;
 use App\Http\Controllers\Instructor\AnnouncementController;
@@ -39,30 +41,35 @@ use App\Http\Controllers\Instructor\DiscussionController as InstructorDiscussion
 use App\Http\Controllers\Instructor\EarningsController;
 use App\Http\Controllers\Instructor\StatisticsController;
 use App\Http\Controllers\Instructor\StudentController as InstructorStudentController;
-use App\Http\Controllers\Lms\AttachmentController;
+use App\Http\Controllers\Live\LiveJoinController;
+use App\Http\Controllers\Lms\AiAssistantController;
+use App\Http\Controllers\Lms\AiOutlineController;
 use App\Http\Controllers\Lms\AiQuestionController;
 use App\Http\Controllers\Lms\AssignmentController;
+use App\Http\Controllers\Lms\AttachmentController;
 use App\Http\Controllers\Lms\CatalogController;
 use App\Http\Controllers\Lms\CertificateController;
 use App\Http\Controllers\Lms\CurriculumController;
 use App\Http\Controllers\Lms\GradingController;
+use App\Http\Controllers\Lms\H5pController;
 use App\Http\Controllers\Lms\LearnController;
-use App\Http\Controllers\Lms\LessonAttachmentController;
 use App\Http\Controllers\Lms\LearningRuleController;
+use App\Http\Controllers\Lms\LessonAttachmentController;
 use App\Http\Controllers\Lms\MyCoursesController;
+use App\Http\Controllers\Lms\OfflineLessonController;
 use App\Http\Controllers\Lms\QuizController;
-use App\Http\Controllers\Lms\VideoMomentController;
 use App\Http\Controllers\Lms\ScormController;
 use App\Http\Controllers\Lms\StudentAreaController;
 use App\Http\Controllers\Lms\StudentDashboardController;
+use App\Http\Controllers\Lms\VideoMomentController;
 use App\Http\Controllers\Notifications\InboxController;
 use App\Http\Controllers\Notifications\NotificationAdminController;
 use App\Http\Controllers\Pwa\PwaController;
 use App\Http\Controllers\Reports\ReportController;
 use App\Http\Controllers\Seo\SitemapController;
 use App\Http\Controllers\Services\ServiceController;
-use App\Http\Controllers\Tenant\AuthController;
 use App\Http\Controllers\Tenant\ApiTokenController;
+use App\Http\Controllers\Tenant\AuthController;
 use App\Http\Controllers\Tenant\BillingController;
 use App\Http\Controllers\Tenant\DashboardController;
 use App\Http\Controllers\Tenant\HomeController;
@@ -71,7 +78,6 @@ use App\Http\Controllers\Tenant\OnboardingController;
 use App\Http\Controllers\Tenant\PlatformModeController;
 use App\Http\Controllers\Tenant\SettingsController;
 use App\Http\Controllers\Tenant\UsageController;
-use App\Http\Controllers\Api\ApiController;
 use App\Http\Middleware\ApplyTenantTheme;
 use App\Http\Middleware\AuthenticateApiToken;
 use App\Http\Middleware\EnsureAbility;
@@ -149,6 +155,16 @@ $tenantRoutes = function (): void {
 
         Route::get('/invoices', [ApiController::class, 'invoices'])
             ->middleware(AuthenticateApiToken::class.':invoices:read')->name('invoices');
+
+        /*
+         | xAPI — تستقبل ما يرسله محتوى H5P والتطبيقات الخارجية.
+         |
+         | ونطاقها `enrollments:write`: العبارة تكتب تقدّم طالب،
+         | وهي كتابةٌ في سجلّه لا قراءة منه.
+         */
+        Route::post('/statements', [XapiController::class, 'store'])
+            ->middleware([AuthenticateApiToken::class.':enrollments:write', 'feature:xapi'])
+            ->name('xapi.store');
     });
 
     // ---------- الكتالوج العام ----------
@@ -216,6 +232,42 @@ $tenantRoutes = function (): void {
         // حالة SCORM — يُنادى من جسر الحزمة كل دقيقة وعند الإغلاق
         Route::post('/scorm/{package}/state', [ScormController::class, 'state'])
             ->whereNumber('package')->name('scorm.state');
+
+        /*
+         | نتائج H5P — يُبلّغ بها المشغّل في متصفّح الطالب.
+         |
+         | بالجلسة لا بمفتاح واجهة: الطالب لا يملك مفتاحاً، وصاحب
+         | الجلسة هو الفاعل يقيناً.
+         */
+        Route::post('/h5p/{package}/xapi', [H5pController::class, 'xapi'])
+            ->whereNumber('package')->name('h5p.xapi');
+
+        /*
+         | المساعد الدراسي — سؤال الطالب عن درسه.
+         |
+         | محروسٌ بالميزة كذلك: يُنفق على مزوّدٍ خارجي، ونقطةٌ مفتوحة
+         | لكل باقة تجعل مشترِكاً في الباقة الصغرى يستهلك ما لم يشترِه.
+         */
+        Route::post('/ai/ask', [AiAssistantController::class, 'ask'])
+            ->middleware('feature:ai_assistant')->name('ai.ask');
+
+        /*
+         | دخول غرفة BigBlueButton.
+         |
+         | رابطها موقَّعٌ باسم الداخل ودوره، فيُبنى هنا لكل واحد بعد
+         | فحص تسجيله ونافذة موعده.
+         */
+        Route::get('/live/{seed}/join', LiveJoinController::class)
+            ->where('seed', '(session|group)-[0-9]+')->name('live.join');
+
+        /*
+         | ملفّ الدرس بعنوانٍ ثابت — ليُحفَظ للمشاهدة بلا اتصال.
+         |
+         | محروسٌ بالميزة وبإتاحة المدرّس وبالتسجيل، وثلاثتها في
+         | المتحكّم لا في المسار: الفحص الأخير يحتاج الدرس نفسه.
+         */
+        Route::get('/lessons/{lesson}/offline', OfflineLessonController::class)
+            ->whereNumber('lesson')->name('lessons.offline');
 
         /*
          | مرفقات الدروس — محروسةً لا بروابط تخزين عامة.
@@ -485,8 +537,25 @@ $tenantRoutes = function (): void {
              */
             // أجهزة الحضور — محروسةٌ بالميزة والصلاحية
             // توليد أسئلة من مادة — محروسٌ بالميزة والصلاحية والحدّ
-            Route::get('/admin/ai/questions', [AiQuestionController::class, 'index'])->name('admin.ai.questions');
-            Route::post('/admin/ai/questions', [AiQuestionController::class, 'store'])->name('admin.ai.questions.store');
+            Route::middleware('feature:ai_exam_from_pdf')->group(function (): void {
+                Route::get('/admin/ai/questions', [AiQuestionController::class, 'index'])->name('admin.ai.questions');
+                Route::post('/admin/ai/questions', [AiQuestionController::class, 'store'])->name('admin.ai.questions.store');
+            });
+
+            /*
+             | بناء هيكل المنهج — محروسٌ بالميزة والصلاحية والحدّ.
+             |
+             | تحت الكورس لا تحت `/admin/ai`: ما يُبنى يدخل منهج كورسٍ
+             | بعينه، وشاشةٌ عامّة تسأل «أيّ كورس؟» سؤالاً أجاب عنه
+             | المدرّس حين فتحها من منهجه.
+             */
+            Route::middleware(['feature:ai_course_builder', EnsureAbility::class.':'.Ability::CURRICULUM_MANAGE])
+                ->group(function (): void {
+                    Route::get('/admin/courses/{course}/ai-outline', [AiOutlineController::class, 'index'])
+                        ->name('admin.courses.ai-outline');
+                    Route::post('/admin/courses/{course}/ai-outline', [AiOutlineController::class, 'store'])
+                        ->name('admin.courses.ai-outline.store');
+                });
 
             Route::get('/admin/devices', [AttendanceDeviceController::class, 'index'])->name('admin.center.devices');
             Route::post('/admin/devices', [AttendanceDeviceController::class, 'store'])->name('admin.center.devices.store');
@@ -517,13 +586,26 @@ $tenantRoutes = function (): void {
              | حزم SCORM — رفعُها وتتبّع الطلبة فيها.
              */
             Route::prefix('admin/lessons/{lesson}/scorm')->whereNumber('lesson')
+                ->middleware('feature:scorm')
                 ->name('admin.lessons.scorm.')->group(function (): void {
                     Route::get('/', [ScormController::class, 'index'])->name('index');
                     Route::post('/', [ScormController::class, 'store'])->name('store');
                     Route::delete('/', [ScormController::class, 'destroy'])->name('destroy');
                 });
 
+            /*
+             | حزم H5P — رفعُها وقراءة نتائجها.
+             */
+            Route::prefix('admin/lessons/{lesson}/h5p')->whereNumber('lesson')
+                ->middleware('feature:h5p')
+                ->name('admin.lessons.h5p.')->group(function (): void {
+                    Route::get('/', [H5pController::class, 'index'])->name('index');
+                    Route::post('/', [H5pController::class, 'store'])->name('store');
+                    Route::delete('/', [H5pController::class, 'destroy'])->name('destroy');
+                });
+
             Route::prefix('admin/courses/{course}/rules')->whereNumber('course')
+                ->middleware('feature:adaptive_learning')
                 ->name('admin.courses.rules.')->group(function (): void {
                     Route::get('/', [LearningRuleController::class, 'index'])->name('index');
                     Route::post('/', [LearningRuleController::class, 'store'])->name('store');
@@ -531,6 +613,7 @@ $tenantRoutes = function (): void {
                 });
 
             Route::prefix('admin/lessons/{lesson}/moments')->whereNumber('lesson')
+                ->middleware('feature:interactive_video')
                 ->name('admin.lessons.moments.')->group(function (): void {
                     Route::get('/', [VideoMomentController::class, 'index'])->name('index');
                     Route::post('/', [VideoMomentController::class, 'store'])->name('store');

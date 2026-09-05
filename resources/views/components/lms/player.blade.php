@@ -8,6 +8,21 @@
     $src = app(App\Modules\Lms\VideoUrl::class)->for($lesson, auth()->id());
 
     /*
+     | الدرس المتاح بلا اتصال يُشغَّل من عنوانٍ ثابت.
+     |
+     | الرابط الموقَّع ينتهي، والنسخة المحفوظة تحته تُرفَض غداً —
+     | والطالب لا يفهم لماذا «اختفى» ما حفظه. فالعنوان الثابت هو
+     | المصدر، وحراستُه في الخادم عند كل طلب.
+     */
+    $offline = (bool) ($lesson->is_offline ?? false)
+        && $lesson->video_provider === 'file'
+        && (tenant()?->allows('offline_download') ?? false);
+
+    if ($offline) {
+        $src = url('/lessons/'.$lesson->getKey().'/offline');
+    }
+
+    /*
      | نقاط التفاعل — تُحمَّل مرة واحدة إلى المتصفّح.
      |
      | وحالة «أُجيب» تُحسب هنا لا في المتصفّح: من أجاب أمس لا يُسأل
@@ -90,6 +105,21 @@
                     <p class="absolute inset-0 grid place-items-center text-muted text-sm px-4 text-center">{{ __('لم يُرفع فيديو هذا الدرس بعد.') }}</p>
                 @endif
 
+                @if($offline)
+                    {{--
+                        الزرّ داخل إطار الفيديو لا تحته: من يبحث عن
+                        الحفظ ينظر إلى ما يريد حفظه.
+                    --}}
+                    <div class="absolute top-3 end-3 z-10" x-data="offlineLesson({ url: @js($src) })">
+                        <button type="button" @click="save()" ::disabled="busy || done"
+                                class="text-2xs font-semibold rounded px-2.5 py-1.5 transition-colors
+                                       bg-[rgba(0,0,0,.55)] text-[#fff] hover:bg-[rgba(0,0,0,.75)]
+                                       disabled:opacity-70">
+                            <span x-text="label"></span>
+                        </button>
+                    </div>
+                @endif
+
                 @if($watermark)
                     {{-- علامة مائية باسم الطالب: لا تمنع التسجيل لكنها تجعله يقود إلى صاحبه --}}
                     <span class="absolute bottom-3 end-3 text-[10px] font-mono px-2 py-1 rounded pointer-events-none select-none"
@@ -137,6 +167,37 @@
             @endif
         @endif
 
+    @elseif($lesson->type === 'h5p')
+        @php
+            $h5p = App\Modules\Lms\Models\H5pPackage::where('lesson_id', $lesson->getKey())->first();
+        @endphp
+
+        @if($h5p === null)
+            <x-ui.card>
+                <x-ui.empty :title="__('لم تُرفع الحزمة بعد')">
+                    {{ __('هذا الدرس محتوى تفاعلي ولم يرفع مدرّسك حزمته.') }}
+                </x-ui.empty>
+            </x-ui.card>
+        @else
+            {{--
+                المشغّل يقرأ h5p.json من مجلّد الحزمة، ومكتباته من
+                public/vendor/h5p — فلا خادم H5P ولا مكتبة مركزية
+                تُرقّى فتكسر محتوى مشترِكٍ آخر.
+            --}}
+            <div class="surface-card overflow-hidden p-2 sm:p-4 bg-white"
+                 data-h5p-folder="{{ $h5p->folderUrl() }}"
+                 data-h5p-base="{{ url('/vendor/h5p') }}"
+                 data-h5p-url="{{ url('/h5p/'.$h5p->getKey().'/xapi') }}"
+                 data-h5p-token="{{ csrf_token() }}">
+
+                <div data-h5p-frame></div>
+
+                <p data-h5p-error hidden class="text-sm text-danger p-4">
+                    {{ __('تعذّر تشغيل المحتوى التفاعلي. حدّث الصفحة، وإن تكرّر فأبلغ مدرّسك.') }}
+                </p>
+            </div>
+        @endif
+
     @elseif($lesson->type === 'pdf' && $lesson->video_id)
         <div class="surface-card overflow-hidden">
             <iframe src="{{ $lesson->video_id }}" class="w-full h-[70vh]" title="{{ $lesson->title }}" loading="lazy"></iframe>
@@ -179,12 +240,138 @@
     @endif
 </div>
 
+{{--
+    المساعد الدراسي.
+
+    تحت الدرس لا في زاوية عائمة: الطالب يسأل عمّا قرأه للتوّ، ولوحةٌ
+    تطفو فوق المحتوى تحجب ما يسأل عنه.
+--}}
+@if(tenant()?->allows('ai_assistant') && filled($lesson->content) && $me !== null)
+    <x-ui.card :title="__('اسأل عن الدرس')" class="mt-4"
+               x-data="lessonAssistant({
+                   url: @js(url('/ai/ask')),
+                   token: @js(csrf_token()),
+                   lesson: {{ $lesson->getKey() }},
+                   {{--
+                       المحادثة السابقة تعود مع الصفحة.
+                       من سأل أمس ورجع اليوم يجد ما سأل، فلا يعيده —
+                       وإعادتُه تُنفق طلباً على مزوّدٍ يُحاسَب بالطلب.
+                   --}}
+                   thread: @js(App\Modules\Ai\Actions\AnswerStudent::threadFor($me, $lesson)
+                       ->map(fn ($m) => ['role' => $m->role, 'body' => $m->body])
+                       ->values()),
+               })">
+
+        <p class="text-2xs text-subtle mb-3">
+            {{ __('يجيب من مادة هذا الدرس وحدها. وما ليس فيها يحيلك إلى مدرّسك — ولا يحلّ لك واجباً.') }}
+        </p>
+
+        <div class="grid gap-3 mb-3" x-show="thread.length" x-cloak>
+            <template x-for="(message, index) in thread" :key="index">
+                <div class="text-sm leading-relaxed rounded-md px-3 py-2.5"
+                     :class="message.role === 'student'
+                         ? 'bg-surface-sunken'
+                         : 'bg-info-subtle text-info'">
+                    <span class="block text-2xs font-semibold mb-1 opacity-70"
+                          x-text="message.role === 'student' ? @js(__('سؤالك')) : @js(__('المساعد'))"></span>
+                    <span class="whitespace-pre-line" x-text="message.body"></span>
+                </div>
+            </template>
+        </div>
+
+        <form class="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]" @submit.prevent="send()">
+            <label class="sr-only" for="assistant-question">{{ __('سؤالك') }}</label>
+            <x-ui.input id="assistant-question" x-model="question" autocomplete="off"
+                        ::disabled="busy" :placeholder="__('اسأل عمّا لم تفهمه…')" />
+            <x-ui.button type="submit" ::disabled="busy || question.trim().length < 2">
+                <span x-text="busy ? @js(__('يفكّر…')) : @js(__('اسأل'))"></span>
+            </x-ui.button>
+        </form>
+
+        <p x-show="error" x-cloak x-text="error" class="text-sm text-danger mt-2"></p>
+    </x-ui.card>
+@endif
+
 @once
     @push('scripts')
     <script>
         // نُبلّغ الخادم بموضع المشاهدة على فترات لا مع كل إطار:
         // الاستئناف يستحقّ الحفظ، لا أن يُغرق الخادم بطلبات.
         document.addEventListener('alpine:init', () => {
+            /* المساعد الدراسي: سؤالٌ واحد في الطريق، فالضغط مرّتين
+               لا يُنفق طلبين على مزوّدٍ يُحاسَب بالطلب. */
+            /* الحفظ للمشاهدة بلا اتصال: يُجلَب الملفّ مرّةً ويوضع في
+               مخزن المتصفّح، فيقرؤه عامل الخدمة بعدها بلا شبكة. */
+            Alpine.data('offlineLesson', (config) => ({
+                busy: false,
+                done: false,
+                label: @js(__('احفظ للمشاهدة بلا إنترنت')),
+                async init() {
+                    if (!('caches' in window)) { this.done = true; this.label = @js(__('متصفّحك لا يدعم الحفظ')); return; }
+                    try {
+                        const cache = await caches.open('lessons');
+                        if (await cache.match(config.url)) {
+                            this.done = true;
+                            this.label = @js(__('محفوظ في جهازك'));
+                        }
+                    } catch (e) { /* مخزنٌ مغلق في تصفّحٍ خاص — لا شيء يُعطَّل */ }
+                },
+                async save() {
+                    if (this.busy || this.done) return;
+                    this.busy = true;
+                    this.label = @js(__('يُحفظ…'));
+                    try {
+                        const cache = await caches.open('lessons');
+                        await cache.add(config.url);
+                        this.done = true;
+                        this.label = @js(__('محفوظ في جهازك'));
+                    } catch (e) {
+                        this.label = @js(__('تعذّر الحفظ — جرّب لاحقاً'));
+                    }
+                    this.busy = false;
+                },
+            }));
+
+            Alpine.data('lessonAssistant', (config) => ({
+                question: '',
+                busy: false,
+                error: '',
+                thread: config.thread || [],
+                async send() {
+                    const asked = this.question.trim();
+                    if (this.busy || asked.length < 2) return;
+
+                    this.busy = true;
+                    this.error = '';
+                    this.thread.push({ role: 'student', body: asked });
+                    this.question = '';
+
+                    try {
+                        const response = await fetch(config.url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': config.token,
+                            },
+                            body: JSON.stringify({ lesson_id: config.lesson, question: asked }),
+                        });
+
+                        const data = await response.json().catch(() => ({}));
+
+                        if (!response.ok) {
+                            this.error = data.message || 'تعذّر إرسال السؤال. أعد المحاولة.';
+                        } else {
+                            this.thread.push({ role: 'assistant', body: data.answer });
+                        }
+                    } catch (e) {
+                        this.error = 'تعذّر الاتصال. تحقّق من الإنترنت.';
+                    }
+
+                    this.busy = false;
+                },
+            }));
+
             Alpine.data('lessonPlayer', (config) => ({
                 watched: 0,
                 last: 0,

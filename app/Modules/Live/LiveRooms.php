@@ -6,8 +6,12 @@ namespace App\Modules\Live;
 
 use App\Modules\Center\Models\Group;
 use App\Modules\Center\Models\Session;
+use App\Modules\Live\Models\LiveRoom;
+use App\Modules\Live\Providers\BigBlueButtonProvider;
+use App\Modules\Live\Providers\ZoomProvider;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 /**
  * إنشاء غرف الحصص المباشرة.
@@ -77,17 +81,23 @@ final class LiveRooms
     {
         $provider = $this->provider();
 
-        /*
-         | ما لم يُبنَ بعد لا يُولّد رابطاً مكسوراً.
-         |
-         | Zoom وMeet وBBB مُعلَنة في الإعدادات ولم تُنفَّذ؛ واختيار
-         | أحدها يعني الرجوع إلى الرابط اليدوي، لا زرّاً يفتح صفحة
-         | خطأ عند مزوّد لا نكلّمه أصلاً.
-         */
-        if ($provider !== 'jitsi') {
-            return null;
-        }
+        return match ($provider) {
+            'jitsi' => $this->jitsi($seed, $start, $end),
+            'zoom' => $this->zoom($seed, $start, $end),
+            'bbb' => $this->bbb($seed, $start, $end),
+            /*
+             | ما لم يُبنَ بعد لا يُولّد رابطاً مكسوراً.
+             |
+             | Google Meet يحتاج ربط حساب Google بموافقةٍ لكل مدرّس،
+             | ولم يُبنَ؛ واختياره يعني الرجوع إلى الرابط اليدوي، لا
+             | زرّاً يفتح صفحة خطأ عند مزوّد لا نكلّمه أصلاً.
+             */
+            default => null,
+        };
+    }
 
+    private function jitsi(string $seed, ?Carbon $start, ?Carbon $end): LiveMeeting
+    {
         $domain = trim((string) setting('live.jitsi_domain', config('live.providers.jitsi.domain', 'meet.jit.si')), '/ ');
         $room = $this->room($seed);
 
@@ -98,6 +108,90 @@ final class LiveRooms
             $this->opens($start),
             $this->closes($end),
         );
+    }
+
+    /**
+     * Zoom: الاجتماع يُنشأ مرّةً ويُحفظ رابطه.
+     *
+     * الإنشاء نداءٌ على الشبكة، وشاشةُ جدولٍ فيها عشرون حصةً تُنشئ
+     * عشرين اجتماعاً في كل فتحة لو لم يُحفَظ — فيبطؤ الجدول ويُستنزف
+     * حدّ طلبات المشترك عند Zoom.
+     *
+     * وفشلُ الإنشاء لا يرمي استثناءً إلى الشاشة: يسقط إلى «لا رابط»،
+     * فالجدول يُعرَض ولو تعذّر اجتماعٌ واحد.
+     */
+    private function zoom(string $seed, ?Carbon $start, ?Carbon $end): ?LiveMeeting
+    {
+        if (! ZoomProvider::configured()) {
+            return null;
+        }
+
+        $room = $this->stored($seed, 'zoom', fn (): array => app(ZoomProvider::class)
+            ->create($this->topic($seed), $start, $end));
+
+        return $room === null ? null : new LiveMeeting(
+            'zoom',
+            (string) $room->join_url,
+            (string) ($room->external_id ?? ''),
+            $this->opens($start),
+            $this->closes($end),
+        );
+    }
+
+    /**
+     * BigBlueButton: الغرفة تُنشأ، والرابط يُبنى لكل داخلٍ باسمه.
+     *
+     * فلا يصلح رابطٌ واحد محفوظ: الاسم والدور داخل الرابط الموقَّع.
+     * ولذلك يقود الرابط إلى نقطتنا `/live/{seed}/join` التي توقّع
+     * لصاحب الجلسة ثم تحوّله.
+     */
+    private function bbb(string $seed, ?Carbon $start, ?Carbon $end): ?LiveMeeting
+    {
+        if (! BigBlueButtonProvider::configured()) {
+            return null;
+        }
+
+        return new LiveMeeting(
+            'bbb',
+            url('/live/'.$seed.'/join'),
+            $this->room($seed),
+            $this->opens($start),
+            $this->closes($end),
+        );
+    }
+
+    /**
+     * غرفةٌ محفوظة، أو تُنشأ عند المزوّد ثم تُحفظ.
+     *
+     * @param  callable():array{join_url:string, host_url:?string, external_id:?string}  $make
+     */
+    private function stored(string $seed, string $provider, callable $make): ?LiveRoom
+    {
+        $room = LiveRoom::where('seed', $seed)->where('provider', $provider)->first();
+
+        if ($room !== null) {
+            return $room;
+        }
+
+        try {
+            $made = $make();
+        } catch (RuntimeException) {
+            return null;
+        }
+
+        return LiveRoom::create([
+            'seed' => $seed,
+            'provider' => $provider,
+            'join_url' => $made['join_url'],
+            'host_url' => $made['host_url'],
+            'external_id' => $made['external_id'],
+        ]);
+    }
+
+    /** عنوانٌ يقرؤه المدرّس في قائمة اجتماعاته عند المزوّد */
+    private function topic(string $seed): string
+    {
+        return trim((string) (tenant('name') ?? config('app.name'))).' — '.$seed;
     }
 
     /**

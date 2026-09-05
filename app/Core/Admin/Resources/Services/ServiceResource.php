@@ -103,6 +103,31 @@ final class ServiceResource extends Resource
         ];
     }
 
+    /**
+     * أنواع الخدمات المتاحة لهذا المشترك.
+     *
+     * ## «الجلسات الفردية» هي «الموعد المحجوز»
+     *
+     * ما تَعِد به الباقة باسم `coaching` هو هذا بعينه: ساعةٌ من وقت
+     * المقدّم تُحجَز في تقويمه فلا تُباع مرّتين. ومفتاح `services_module`
+     * يفتح ما يُسلَّم بمدّة أو يتجدّد اشتراكاً — وهما لا يمسّان تقويمه.
+     *
+     * فمن لا يحمل `coaching` لا يرى نوع الموعد: أنشأه فوجد تقويماً
+     * لا يفتح، وهو ما تعنيه لافتةٌ بلا كود.
+     *
+     * @return array<string, string>
+     */
+    private function types(): array
+    {
+        $types = Service::TYPES;
+
+        if (tenant() !== null && ! tenant()->allows('coaching')) {
+            unset($types['appointment']);
+        }
+
+        return array_map(fn (string $label): string => __($label), $types);
+    }
+
     public function form(): array
     {
         $currency = (string) (tenant('currency') ?? config('money.default', 'EGP'));
@@ -113,8 +138,8 @@ final class ServiceResource extends Resource
                 TextField::make('slug')->label(__('الرابط'))->required()->half()
                     ->rules(['alpha_dash', 'max:200', 'unique:services,slug']),
                 SelectField::make('type')->label(__('النوع'))->half()->required()
-                    ->options(array_map(fn (string $l): string => __($l), Service::TYPES))
-                    ->default('appointment'),
+                    ->options($this->types())
+                    ->default(array_key_first($this->types())),
                 SelectField::make('category_id')->label(__('القسم'))->half()
                     ->options(Taxonomy::ofType('category')->pluck('name', 'id')->all())
                     ->placeholder(__('بلا قسم')),

@@ -18,7 +18,8 @@ self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys()
             .then((keys) => Promise.all(
-                keys.filter((key) => key !== SHELL && key !== RUNTIME).map((key) => caches.delete(key))
+                keys.filter((key) => key !== SHELL && key !== RUNTIME && key !== 'lessons')
+                    .map((key) => caches.delete(key))
             ))
             .then(() => self.clients.claim())
     );
@@ -28,6 +29,23 @@ self.addEventListener('fetch', (event) => {
     const request = event.request;
 
     if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) {
+        return;
+    }
+
+    /* الدروس المحفوظة للمشاهدة بلا اتصال.
+
+       المخزن `lessons` يملؤه الطالب بزرّ الحفظ، ولا يُمسح مع تغيّر
+       النسخة كما تُمسح مخازن البناء: هو ما حفظه بنفسه، ومحوُه عند
+       كل تحديثٍ للمنصة يجعل الحفظ بلا معنى.
+
+       والكاش أولاً بلا شبكة: من حفظ درساً يريده يعمل في المترو، لا
+       أن ينتظر مهلة اتصالٍ فاشل قبل أن يُقرأ من جهازه. */
+    if (request.url.includes('/offline') && /\/lessons\/\d+\/offline/.test(request.url)) {
+        event.respondWith(
+            caches.open('lessons')
+                .then((cache) => cache.match(request.url))
+                .then((hit) => hit || fetch(request))
+        );
         return;
     }
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureFeature;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -29,6 +30,15 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/v1/*',
             '*/api/v1/*',
         ]);
+
+        /*
+         | حارس الميزات باسمٍ مختصر.
+         |
+         | القفل في القائمة الجانبية بصريّ لا أمنيّ: المسار يُفتح
+         | بكتابته. فما كان ميزةً في الباقة يُحرَس في مساره أيضاً،
+         | و`feature:h5p` أقصر من ذكر الصنف في كل مجموعة.
+         */
+        $middleware->alias(['feature' => EnsureFeature::class]);
 
         // ApplyTenantTheme يُطبَّق داخل routes/tenant.php لأنه يجب أن
         // يعمل بعد InitializeTenancyByDomain لا قبلها.

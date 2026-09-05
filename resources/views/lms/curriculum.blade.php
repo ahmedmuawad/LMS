@@ -10,6 +10,16 @@
                       :back="url('/admin/courses')">
         <x-slot:actions>
             <x-ui.button size="sm" variant="ghost" :href="url('/admin/courses/'.$course->id.'/edit')">{{ __('بيانات الكورس') }}</x-ui.button>
+
+            {{--
+                بناء الهيكل يُدَلّ عليه من هنا: الصفحة البيضاء هي ما
+                يُعطّل، ومن يفتح منهجاً فارغاً هو من يحتاجه.
+            --}}
+            @if(tenant()?->allows('ai_course_builder'))
+                <x-ui.button size="sm" variant="ghost" :href="url('/admin/courses/'.$course->id.'/ai-outline')">
+                    {{ __('ابنِ الهيكل') }}
+                </x-ui.button>
+            @endif
             <x-ui.button size="sm" variant="secondary" :href="url('/courses/'.$course->slug)" target="_blank" rel="noopener">
                 {{ __('معاينة') }}
             </x-ui.button>

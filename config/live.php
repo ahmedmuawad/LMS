@@ -32,7 +32,7 @@ return [
 
         'zoom' => [
             'name' => ['ar' => 'Zoom', 'en' => 'Zoom'],
-            'summary' => ['ar' => 'يحتاج ربط حسابك على Zoom.', 'en' => 'Requires connecting your Zoom account.'],
+            'summary' => ['ar' => 'يحتاج بيانات ربط من حسابك على Zoom.', 'en' => 'Requires connection details from your Zoom account.'],
             'needs_keys' => true,
         ],
 
@@ -40,6 +40,7 @@ return [
             'name' => ['ar' => 'Google Meet', 'en' => 'Google Meet'],
             'summary' => ['ar' => 'يحتاج ربط حساب Google.', 'en' => 'Requires connecting a Google account.'],
             'needs_keys' => true,
+            'coming_soon' => true,
         ],
 
         'bbb' => [

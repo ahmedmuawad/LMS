@@ -184,11 +184,22 @@ function tenantPost(Tenant $tenant, string $path, array $data = [])
     return test()->post(tenantUrl($tenant, $path), $data);
 }
 
+/*
+ | طلبٌ بجسم JSON.
+ |
+ | ما يُرسله المتصفّح إلى نقاط النتائج JSON لا نموذجاً، والفرق ليس
+ | شكلياً: النموذج يحوّل `true` إلى «1»، فيمرّ اختبارٌ على قيمةٍ لا
+ | تصل من الواجهة أبداً.
+ */
+function tenantPostJson(Tenant $tenant, string $path, array $data = [])
+{
+    return test()->postJson(tenantUrl($tenant, $path), $data);
+}
+
 function tenantDelete(Tenant $tenant, string $path, array $data = [])
 {
     return test()->delete(tenantUrl($tenant, $path), $data);
 }
-
 
 /**
  * يتحقّق أن قاعدة الاختبار تُقرأ، ويعيد بناءها إن كانت تالفة.

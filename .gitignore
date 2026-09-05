@@ -15,6 +15,7 @@
 /auth.json
 /node_modules
 /public/build
+/public/vendor/h5p
 /public/fonts-manifest.dev.json
 /public/hot
 /public/storage
