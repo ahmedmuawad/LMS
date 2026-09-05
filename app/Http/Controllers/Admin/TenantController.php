@@ -98,6 +98,22 @@ final class TenantController
             'reason' => ['nullable', 'string', 'max:500'],
         ]);
 
+        /*
+         | القيمة تُطابق نوع الميزة.
+         |
+         | حقلا «القيمة» و«السبب» متجاوران في النموذج، فكُتب السبب في
+         | القيمة: حدّ المجموعات صار «استثناء». و`(int)` على نصٍّ
+         | عربيّ يساوي صفراً، وصفرٌ يعني المنع — فمُنع المشترك من
+         | إنشاء مجموعة واحدة، وصفحة الأسعار تعده بخمس عشرة.
+         |
+         | ولا يكفي فحصٌ في الواجهة: هذا الحقل يصله ما يصله.
+         */
+        if (filled($input['value']) && ! $this->valueFitsFeature($input['feature_key'], $input['value'])) {
+            throw ValidationException::withMessages([
+                'value' => __('قيمة غير صالحة لهذه الميزة: الحدود تقبل رقماً أو «unlimited»، والمزايا تقبل 1 أو 0. والسبب يُكتب في حقل السبب.'),
+            ]);
+        }
+
         $table = DB::connection(config('tenancy.database.central_connection'))->table('tenant_features');
         $match = ['tenant_id' => $tenant->id, 'feature_key' => $input['feature_key']];
 
@@ -220,6 +236,23 @@ final class TenantController
             '1', 'true' => __('متاح'),
             '0', 'false' => __('غير متاح'),
             default => $value,
+        };
+    }
+
+    /**
+     * هل تصلح هذه القيمة لهذه الميزة؟
+     *
+     * الحدّ والحصة يقبلان رقماً أو «بلا حدّ»؛ والميزة المنطقية تقبل
+     * ١ أو ٠. وما عدا ذلك يُرَدّ عند الباب لا يُخزَّن ليُقرأ صفراً.
+     */
+    private function valueFitsFeature(string $key, string $value): bool
+    {
+        $type = (string) DB::connection(config('tenancy.database.central_connection'))
+            ->table('features')->where('key', $key)->value('type');
+
+        return match ($type) {
+            'limit', 'quota' => $value === Entitlements::UNLIMITED || ctype_digit($value),
+            default => in_array($value, ['0', '1'], true),
         };
     }
 }
