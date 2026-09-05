@@ -6,6 +6,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Stancl\Tenancy\Exceptions\TenantCouldNotBeIdentifiedOnDomainException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -47,4 +48,33 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        /*
+         | عنوانٌ لا منصّة عليه: ٤٠٤ لا ٥٠٠.
+         |
+         | كان أيّ نطاقٍ فرعيّ غير مسجّل يرمي استثناءً غير مُعالَج،
+         | فيرى من أخطأ حرفاً في عنوان مدرّسه «خطأ في الخادم» ويظنّ
+         | المنصّة معطّلة. وهو ليس خطأً عندنا، فلا يُكتب في السجلّ
+         | كذلك — كان كل زائرٍ مخطئ يكتب أثراً كاملاً.
+         */
+        $exceptions->dontReport(TenantCouldNotBeIdentifiedOnDomainException::class);
+
+        $exceptions->render(function (
+            TenantCouldNotBeIdentifiedOnDomainException $e,
+            Request $request,
+        ) {
+            $home = rtrim((string) config('app.url'), '/');
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => __('لا توجد منصّة على هذا العنوان.'),
+                    'home' => $home,
+                ], 404);
+            }
+
+            return response()->view('errors.tenant-not-found', [
+                'host' => $request->getHost(),
+                'home' => $home,
+            ], 404);
+        });
     })->create();
