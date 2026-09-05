@@ -44,7 +44,14 @@ pest()->extend(TestCase::class)
             tenancy()->end();
         }
 
-        foreach (glob(database_path('test_tenant*.sqlite')) ?: [] as $file) {
+        /*
+         | الملفّ ومذكّرته معاً.
+         |
+         | كان يُحذف `.sqlite` ويُترك `-journal` و`-wal`، فتجد الفتحة
+         | التالية «مذكّرة ساخنة» لقاعدة لم تعد موجودة — فتُفسد قاعدة
+         | الاختبار نفسها، ويظهر العطل بعد اختبارات لا علاقة لها به.
+         */
+        foreach (glob(database_path('test_tenant*')) ?: [] as $file) {
             @unlink($file);
         }
     })
