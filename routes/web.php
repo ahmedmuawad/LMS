@@ -47,6 +47,16 @@ $central = function (): void {
     Route::get('/start/{slug}/return/{gateway}', [PlatformCheckoutController::class, 'return'])->name('start.return');
     Route::post('/start/{slug}/enter', [PlatformCheckoutController::class, 'enter'])->name('start.enter');
 
+    /*
+     | الوثائق القانونية.
+     |
+     | نموذج التسجيل يطلب الموافقة عليها، فوجودها شرطُ صحّة تلك
+     | الموافقة: خانةٌ تُشير إلى صفحة غير موجودة لا تُلزم أحداً.
+     */
+    Route::view('/terms', 'marketing.legal.terms')->name('legal.terms');
+    Route::view('/privacy', 'marketing.legal.privacy')->name('legal.privacy');
+    Route::view('/refund', 'marketing.legal.refund')->name('legal.refund');
+
     // «ادخل إلى منصّتك» — دلالةٌ على نطاقه لا مصادقة عندنا
     Route::get('/login', [OwnerLoginController::class, 'show'])->name('owner.login');
     Route::post('/login', [OwnerLoginController::class, 'find'])

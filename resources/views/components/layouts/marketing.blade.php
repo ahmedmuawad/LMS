@@ -112,8 +112,11 @@
             </div>
         </div>
 
-        <div class="border-t border-line py-4 text-center text-2xs text-subtle">
-            © {{ now()->year }} {{ $brand }} — {{ __('كل الحقوق محفوظة') }}
+        <div class="border-t border-line py-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-2xs text-subtle">
+            <span>© {{ now()->year }} {{ $brand }} — {{ __('كل الحقوق محفوظة') }}</span>
+            <a href="{{ url('/terms') }}" class="tap-link hover:text-content transition-colors">{{ __('الشروط') }}</a>
+            <a href="{{ url('/privacy') }}" class="tap-link hover:text-content transition-colors">{{ __('الخصوصية') }}</a>
+            <a href="{{ url('/refund') }}" class="tap-link hover:text-content transition-colors">{{ __('الاسترداد') }}</a>
         </div>
     </footer>
 

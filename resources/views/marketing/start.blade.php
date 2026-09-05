@@ -185,8 +185,14 @@
                     </x-ui.field>
                 </div>
 
+                {{-- الرابطان يفتحان في تبويب جديد: من قرأ الشروط لا يفقد ما ملأه --}}
                 <x-ui.checkbox name="terms" value="1" :checked="(bool) old('terms')" class="mt-2">
-                    {{ __('أوافق على شروط الخدمة وسياسة الخصوصية.') }}
+                    {{ __('أوافق على') }}
+                    <a href="{{ url('/terms') }}" target="_blank" rel="noopener"
+                       class="text-primary font-semibold hover:underline">{{ __('شروط الخدمة') }}</a>
+                    {{ __('و') }}
+                    <a href="{{ url('/privacy') }}" target="_blank" rel="noopener"
+                       class="text-primary font-semibold hover:underline">{{ __('سياسة الخصوصية') }}</a>.
                 </x-ui.checkbox>
                 @error('terms')<p class="text-xs text-danger mt-1">{{ $message }}</p>@enderror
             </x-ui.card>
