@@ -42,6 +42,18 @@
             'html' => $m->kind === 'question'
                 ? (string) ($m->question?->body ?? '')
                 : e((string) ($m->body ?? $m->url ?? '')),
+
+            /*
+             | الخيارات تُرسَل مع النقطة.
+             |
+             | كانت اللوحة تعرض نصّ السؤال وحده وتحته خانةُ كتابة —
+             | فسؤال «اختيار واحد» يظهر بلا خياراته، ولا سبيل للطالب
+             | أن يعرف أن عليه كتابة حرف الخيار. جرّبناه فرأيناه.
+             */
+            'type' => (string) ($m->question?->type ?? 'short_text'),
+            'options' => $m->kind === 'question' && $m->question?->type === 'true_false'
+                ? ['1' => __('صح'), '0' => __('خطأ')]
+                : (array) ($m->question?->options ?? []),
         ]);
 @endphp
 
@@ -88,9 +100,14 @@
                                  class="text-sm leading-relaxed [&_p]:mb-2 [&_img]:max-w-full"></div>
 
                             <form data-moment-form class="grid gap-3">
-                                <label class="sr-only" for="moment-answer">{{ __('إجابتك') }}</label>
-                                <x-ui.input id="moment-answer" data-moment-answer
-                                            :placeholder="__('إجابتك…')" autocomplete="off" />
+                                {{-- الخيارات حيث توجد، وخانة الكتابة لما لا خيارات له --}}
+                                <div data-moment-choices class="grid gap-1" hidden></div>
+
+                                <div data-moment-text>
+                                    <label class="sr-only" for="moment-answer">{{ __('إجابتك') }}</label>
+                                    <x-ui.input id="moment-answer" data-moment-answer
+                                                :placeholder="__('إجابتك…')" autocomplete="off" />
+                                </div>
                                 <div class="flex flex-wrap gap-2">
                                     <x-ui.button type="submit" size="sm">{{ __('تحقّق') }}</x-ui.button>
                                     <x-ui.button type="button" size="sm" variant="ghost"

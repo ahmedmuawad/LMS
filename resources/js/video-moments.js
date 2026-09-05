@@ -51,10 +51,47 @@ export function initVideoMoments(root) {
         panel.querySelector('[data-moment-body]').innerHTML = moment.html;
         panel.querySelector('[data-moment-result]').hidden = true;
 
+        /*
+         | الخيارات تُرسَم أزراراً، وما لا خيارات له يبقى خانةَ كتابة.
+         |
+         | كان السؤال يظهر بنصّه وحده وتحته خانة كتابة — فسؤال
+         | «اختيار واحد» بلا خياراته، والطالب لا يعرف أن عليه كتابة
+         | حرف الخيار.
+         */
+        const choices = panel.querySelector('[data-moment-choices]');
         const input = panel.querySelector('[data-moment-answer]');
+        const options = moment.options || {};
+        const keys = Object.keys(options);
+
+        if (choices) {
+            choices.innerHTML = '';
+            choices.hidden = keys.length === 0;
+        }
 
         if (input) {
             input.value = '';
+            input.closest('[data-moment-text]')?.toggleAttribute('hidden', keys.length > 0);
+        }
+
+        if (keys.length > 0 && choices) {
+            for (const key of keys) {
+                const label = document.createElement('label');
+                label.className = 'flex items-center gap-2.5 text-sm cursor-pointer py-1 min-h-11';
+
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = 'moment-choice';
+                radio.value = key;
+                radio.className = 'size-5 shrink-0 accent-[var(--color-primary)] rounded-full';
+
+                const text = document.createElement('span');
+                text.className = 'min-w-0';
+                text.textContent = options[key];
+
+                label.append(radio, text);
+                choices.append(label);
+            }
+        } else if (input) {
             input.focus();
         }
 
@@ -100,7 +137,10 @@ export function initVideoMoments(root) {
 
         if (!showing) return;
 
-        const answer = panel.querySelector('[data-moment-answer]').value.trim();
+        const picked = panel.querySelector('[data-moment-choices] input:checked');
+        const answer = picked
+            ? picked.value
+            : panel.querySelector('[data-moment-answer]').value.trim();
 
         if (answer === '') return;
 
