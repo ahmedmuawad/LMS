@@ -79,8 +79,16 @@
                             allow="accelerometer; autoplay; encrypted-media; picture-in-picture"
                             allowfullscreen loading="lazy"></iframe>
                 @elseif($src)
+                    {{--
+                        `nodownload` يُخفي الزرّ ولا يمنع «حفظ باسم»
+                        من زرّ الفأرة الأيمن — وذاك يُمنع في
+                        content-guard.js. وكلاهما يمنع العابر لا
+                        المصمِّم: الحماية الحقيقية في الرابط الموقَّع
+                        والعلامة المائية.
+                    --}}
                     <video x-ref="video" class="absolute inset-0 size-full" controls preload="metadata"
-                           controlsList="{{ $lesson->is_downloadable ? '' : 'nodownload' }}"
+                           disablepictureinpicture
+                           controlsList="{{ $lesson->is_downloadable ? '' : 'nodownload noplaybackrate noremoteplayback' }}"
                            @loadedmetadata="restore()" @timeupdate.throttle.10s="report()" @pause="report()"
                            @ended="report()">
                         <source src="{{ $src }}">

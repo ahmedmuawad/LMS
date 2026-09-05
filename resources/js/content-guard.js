@@ -71,7 +71,36 @@ function blockCopy() {
     }
 }
 
+/*
+ | الفيديو يُحرَس دائماً، لا بإعدادٍ يُنسى.
+ |
+ | `controlsList="nodownload"` يُخفي زرّ التنزيل من شريط المتصفّح،
+ | ولا يمنع «حفظ الفيديو باسم» من زرّ الفأرة الأيمن. وذلك أوّل ما
+ | يجرّبه الطالب.
+ |
+ | ## وهذا يمنع العابر لا المصمِّم
+ |
+ | أيّ فيديو يعمل في متصفّح يمكن التقاطه — بتسجيل الشاشة إن لم يكن
+ | بغيره. فالحماية الحقيقية ثلاث: رابطٌ موقَّع لا ينفع غير صاحبه،
+ | وعلامةٌ مائية تقود المسرَّب إلى من سرّبه، وDRM لمن يشتريه من
+ | مزوّد. وهذا يمنع الضغطة السهلة وحدها — ولا نَعِد بأكثر.
+ */
+function guardVideos() {
+    document.addEventListener('contextmenu', (event) => {
+        if (event.target.closest('video, [data-guard-video]')) {
+            event.preventDefault();
+        }
+    }, true);
+
+    for (const video of document.querySelectorAll('video')) {
+        video.setAttribute('controlsList', 'nodownload noplaybackrate noremoteplayback');
+        video.disablePictureInPicture = true;
+    }
+}
+
 export function initContentGuard() {
     if (flag('guardBlur')) guardOnBlur();
     if (flag('guardCopy')) blockCopy();
+
+    guardVideos();
 }
