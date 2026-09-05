@@ -3,8 +3,8 @@
 use App\Http\Middleware\CachePage;
 use App\Http\Middleware\EnsureFeature;
 use App\Http\Middleware\LogNotFound;
-use App\Http\Middleware\MinifyHtml;
 use App\Http\Middleware\MaintenanceMode;
+use App\Http\Middleware\MinifyHtml;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
