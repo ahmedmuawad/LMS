@@ -59,6 +59,7 @@ use App\Http\Controllers\Services\ServiceController;
 use App\Http\Controllers\Tenant\AuthController;
 use App\Http\Controllers\Tenant\BillingController;
 use App\Http\Controllers\Tenant\DashboardController;
+use App\Http\Controllers\Tenant\HomeController;
 use App\Http\Controllers\Tenant\ImpersonationController;
 use App\Http\Controllers\Tenant\OnboardingController;
 use App\Http\Controllers\Tenant\PlatformModeController;
@@ -83,7 +84,13 @@ use Stancl\Tenancy\Middleware\PreventAccessFromCentralDomains;
  */
 
 $tenantRoutes = function (): void {
-    Route::get('/', fn () => view('tenant.home'))->name('tenant.home');
+    /*
+     | الصفحة الرئيسية — كانت لافتةً ثابتة «منصّتك جاهزة».
+     |
+     | يراها طلّابه وأولياء أمورهم فيظنّون الموقع قيد الإنشاء، وهي
+     | أول ما يرونه وأكثر ما يُشارَك رابطه.
+     */
+    Route::get('/', HomeController::class)->name('tenant.home');
 
     // ---------- تطبيق الويب التقدّمي ----------
     Route::get('/manifest.webmanifest', [PwaController::class, 'manifest'])->name('pwa.manifest');

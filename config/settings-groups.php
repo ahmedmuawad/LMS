@@ -13,6 +13,7 @@ use App\Core\Settings\Groups\GeneralSettings;
 use App\Core\Settings\Groups\GrowthSettings;
 use App\Core\Settings\Groups\IntegrationSettings;
 use App\Core\Settings\Groups\LmsSettings;
+use App\Core\Settings\Groups\HomepageSettings;
 use App\Core\Settings\Groups\LiveSettings;
 use App\Core\Settings\Groups\LocaleSettings;
 use App\Core\Settings\Groups\NotificationSettings;
@@ -37,6 +38,7 @@ return [
     'users' => UserSettings::class,
     'lms' => LmsSettings::class,
     'commerce' => CommerceSettings::class,
+    'homepage' => HomepageSettings::class,
     'live' => LiveSettings::class,
     'services' => ServiceSettings::class,
     'payments' => PaymentSettings::class,
