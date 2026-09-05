@@ -25,6 +25,7 @@ use App\Core\Admin\Resources\Content\PageResource;
 use App\Core\Admin\Resources\Content\PostResource;
 use App\Core\Admin\Resources\Content\RedirectResource;
 use App\Core\Admin\Resources\Lms\AssignmentResource;
+use App\Core\Admin\Resources\Lms\MembershipPlanResource;
 use App\Core\Admin\Resources\Lms\CertificateResource;
 use App\Core\Admin\Resources\Lms\CourseResource;
 use App\Core\Admin\Resources\Lms\EnrollmentResource;
@@ -54,6 +55,7 @@ return [
         'questions' => QuestionResource::class,
         'assignments' => AssignmentResource::class,
         'enrollments' => EnrollmentResource::class,
+        'membership-plans' => MembershipPlanResource::class,
         'certificates' => CertificateResource::class,
         'taxonomies' => TaxonomyResource::class,
 

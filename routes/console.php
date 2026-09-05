@@ -74,3 +74,15 @@ Schedule::command('backup:run')
     ->dailyAt('02:00')
     ->withoutOverlapping(120)
     ->runInBackground();
+
+/*
+ | عضويات الطلبة — مرة كل يوم كدورة الفوترة.
+ |
+ | ولا تُحصّل مالاً: التحصيل التلقائي يحتاج بطاقةً محفوظة، وأكثر
+ | المشتركين يحصّلون نقداً أو إنستاباي. فالدورة تُعلّم وتُنبّه،
+ | والتحصيل يقع بين الطالب ومدرّسه.
+ */
+Schedule::command('memberships:run')
+    ->dailyAt('04:00')
+    ->withoutOverlapping(60)
+    ->runInBackground();

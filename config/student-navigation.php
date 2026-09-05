@@ -39,6 +39,7 @@ return [
             'items' => [
                 ['key' => 'orders', 'label' => 'طلباتي', 'icon' => '◨', 'url' => '/my-orders', 'module' => 'commerce'],
                 ['key' => 'wallet', 'label' => 'محفظتي', 'icon' => '⛁', 'url' => '/wallet', 'module' => 'commerce'],
+                ['key' => 'memberships', 'label' => 'اشتراكاتي', 'icon' => '◉', 'url' => '/my-memberships', 'module' => 'subscriptions', 'feature' => 'subscriptions'],
                 ['key' => 'wishlist', 'label' => 'قائمة الأمنيات', 'icon' => '♡', 'url' => '/wishlist', 'module' => 'lms'],
                 ['key' => 'bookings', 'label' => 'حجوزاتي', 'icon' => '◷', 'url' => '/my-bookings', 'module' => 'bookings'],
                 ['key' => 'service-requests', 'label' => 'طلبات خدماتي', 'icon' => '◇', 'url' => '/my-services', 'module' => 'services'],

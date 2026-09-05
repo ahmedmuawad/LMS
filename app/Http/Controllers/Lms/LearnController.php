@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Lms;
 
+use App\Models\User;
 use App\Modules\Lms\Actions\BuildCurriculum;
 use App\Modules\Lms\Actions\EnrollStudent;
 use App\Modules\Lms\Actions\TrackProgress;
 use App\Modules\Lms\Models\Course;
 use App\Modules\Lms\Models\CourseItem;
 use App\Modules\Lms\Models\Enrollment;
+use App\Modules\Lms\Models\Membership;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -100,6 +102,21 @@ final class LearnController
             ->where('course_id', $course->getKey())
             ->first();
 
+        /*
+         | العضوية تفتح ما لم يُشترَ كورساً كورساً.
+         |
+         | مدرّس المجموعات يبيع بالشهر: «مئتان شهرياً تفتح كل
+         | كورساتي». وبلا هذا يضطرّ إلى تسجيل كل طالب في كل كورس
+         | يدوياً كلما اشترك — أو إنشاء كورسٍ وهميّ كل شهر.
+         |
+         | والتسجيل يُنشأ فعلاً لا يُتخطّى الفحص: التقدّم والدرجات
+         | والشهادة كلّها معلّقة بالتسجيل، فعضويةٌ بلا تسجيل تفتح
+         | المحتوى وتفقد أثره.
+         */
+        if ($enrollment === null && $request->user() !== null) {
+            $enrollment = $this->fromMembership($request->user(), $course);
+        }
+
         abort_if($enrollment === null, 403, __('لست مسجّلاً في هذا الكورس.'));
         abort_unless($enrollment->hasAccess(), 403, __('انتهت مدة وصولك إلى هذا الكورس.'));
 
@@ -143,5 +160,30 @@ final class LearnController
             'prev' => $index > 0 ? $flat[$index - 1] : null,
             'next' => $flat[$index + 1] ?? null,
         ];
+    }
+
+    /**
+     * تسجيلٌ يُنشأ من عضويةٍ سارية تُغطّي هذا الكورس.
+     *
+     * ويُوسَم `subscription` ليُعرف مصدره: عضويةٌ انتهت لا تُلغي
+     * تسجيلاً اشتُري بثمنه، والتمييز بينهما لا يكون بعد الخلط.
+     */
+    private function fromMembership(User $user, Course $course): ?Enrollment
+    {
+        $covers = Membership::where('user_id', $user->getKey())
+            ->live()
+            ->with('plan')
+            ->get()
+            ->contains(fn (Membership $m): bool => $m->grants($course));
+
+        if (! $covers) {
+            return null;
+        }
+
+        return Enrollment::firstOrCreate(
+            ['user_id' => $user->getKey(), 'course_id' => $course->getKey()],
+            // `subscription` قيمةٌ في العمود أصلاً — ولا تُخترع ثانية بمعناها
+            ['status' => 'active', 'progress_percent' => 0, 'source' => 'subscription'],
+        );
     }
 }

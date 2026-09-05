@@ -170,6 +170,12 @@ return [
      | ويصل الطالب ووليّ أمره معاً: الصغير ينسى، والكبير هو من
      | يوصله. وإرساله لأحدهما وحده يترك نصف السبب قائماً.
      */
+    'lms.membership_due' => [
+        'group' => 'lms', 'label' => 'اشتراك مستحق', 'audience' => 'student', 'module' => 'subscriptions',
+        'channels' => ['mail', 'whatsapp', 'database'], 'default' => ['mail', 'database'],
+        'variables' => [...$person, 'plan', 'amount', 'grace_days'],
+    ],
+
     'center.session_reminder' => [
         'group' => 'center', 'label' => 'تذكير قبل الحصة', 'audience' => 'student', 'module' => 'center',
         'channels' => ['mail', 'whatsapp', 'sms', 'database', 'push'], 'default' => ['mail', 'database'],

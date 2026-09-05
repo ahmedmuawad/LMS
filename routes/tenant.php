@@ -244,6 +244,11 @@ $tenantRoutes = function (): void {
         Route::put('/my-notes/{id}', [StudentAreaController::class, 'updateNote'])->name('notes.update');
         Route::delete('/my-notes/{id}', [StudentAreaController::class, 'destroyNote'])->name('notes.destroy');
 
+        // اشتراكاتي — عضويةٌ شهرية تفتح المحتوى بدل شراء كل كورس
+        Route::get('/my-memberships', [StudentAreaController::class, 'memberships'])->name('my-memberships');
+        Route::post('/my-memberships/{id}/cancel', [StudentAreaController::class, 'cancelMembership'])
+            ->whereNumber('id')->name('my-memberships.cancel');
+
         Route::get('/wishlist', [StudentAreaController::class, 'wishlist'])->name('wishlist');
         Route::post('/wishlist', [StudentAreaController::class, 'toggleWishlist'])->name('wishlist.toggle');
 

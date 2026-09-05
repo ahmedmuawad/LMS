@@ -7,6 +7,8 @@ namespace App\Http\Controllers\Lms;
 use App\Modules\Commerce\Models\Order;
 use App\Modules\Gamification\Models\Badge;
 use App\Modules\Lms\Models\Certificate;
+use App\Modules\Lms\Models\Membership;
+use App\Modules\Lms\Models\MembershipPlan;
 use App\Modules\Lms\Models\Note;
 use App\Modules\Lms\Models\Wishlist;
 use App\Modules\Services\Models\Booking;
@@ -81,6 +83,52 @@ final class StudentAreaController
                 ->orderByDesc('date')->orderByDesc('starts_at')
                 ->paginate(15),
         ]);
+    }
+
+    /**
+     * اشتراكات الطالب.
+     *
+     * والباقات المتاحة معها: من ليس مشتركاً يجدها، ومن انتهت
+     * عضويته يجد بابها — وشاشةٌ تقول «لا اشتراك» بلا طريق إليه
+     * تُغلق على صاحبها.
+     */
+    public function memberships(Request $request): View
+    {
+        $mine = Membership::where('user_id', $request->user()->getKey())
+            ->with('plan')
+            ->latest('id')
+            ->get();
+
+        return view('lms.student.memberships', [
+            'memberships' => $mine,
+            'plans' => MembershipPlan::where('is_active', true)
+                ->orderBy('position')->orderBy('price_minor')
+                ->get(),
+            'liveIds' => $mine->filter(fn (Membership $m): bool => $m->isLive())->pluck('plan_id'),
+        ]);
+    }
+
+    /**
+     * إلغاء عضوية — ولا تنقطع فوراً.
+     *
+     * من ألغى في اليوم الثاني من شهرٍ دفعه يبقى إلى آخره: القطعُ
+     * الفوري سرقةٌ لما دُفع، ويُحوّل إلغاءً هادئاً إلى شكوى.
+     */
+    public function cancelMembership(Request $request, int $id): RedirectResponse
+    {
+        $membership = Membership::where('user_id', $request->user()->getKey())->findOrFail($id);
+
+        abort_unless($membership->isLive(), 409, __('هذه العضوية منتهية بالفعل.'));
+
+        $membership->forceFill([
+            'status' => 'cancelled',
+            'cancelled_at' => now(),
+            'ends_at' => $membership->renews_at ?? now(),
+        ])->save();
+
+        return back()->with('status', __('أُلغي التجديد. عضويتك سارية حتى :date.', [
+            'date' => $membership->endsOn()?->translatedFormat('j F Y') ?? '—',
+        ]));
     }
 
     // ---------------------------------------------------------------
