@@ -14,9 +14,40 @@
                    :value="rtrim(rtrim(number_format($attempt->score, 2), '0'), '.').' / '.rtrim(rtrim(number_format($attempt->max_score, 2), '0'), '.')" />
         <x-ui.stat :label="__('النسبة')" :value="rtrim(rtrim(number_format($attempt->percentage, 2), '0'), '.').'%'" />
         <x-ui.stat :label="__('زمن الحل')" :value="gmdate('i:s', (int) $attempt->time_spent_seconds)" />
+
+        @if($attempt->quiz?->proctored)
+            <x-ui.stat :label="__('مخالفات المراقبة')" :value="(int) $attempt->violations" />
+        @endif
     </div>
 
     <div class="grid gap-4">
+        @if($events->isNotEmpty())
+            {{--
+                السجلّ قبل الإجابات: يقرؤه المصحّح ثم ينظر بعينٍ تعرف
+                ما وقع، لا بعد أن يكون قد قرّر.
+            --}}
+            <x-ui.card :title="__('سجلّ المراقبة')" class="mb-4">
+                @if($attempt->auto_submitted)
+                    <x-ui.alert tone="warning" class="mb-3">
+                        {{ __('سُلّمت هذه الورقة تلقائياً لبلوغ حدّ المخالفات.') }}
+                    </x-ui.alert>
+                @endif
+
+                <p class="text-xs text-muted leading-relaxed mb-3">
+                    {{ __('ما يقع خارج الجهاز لا يُرصد — لا كتابٌ بجواره ولا هاتفٌ ثانٍ. وهذا ما وقع داخله.') }}
+                </p>
+
+                <ul class="grid gap-1.5">
+                    @foreach($events as $event)
+                        <li class="flex items-center gap-3 text-xs">
+                            <span class="font-mono tabular text-subtle shrink-0">{{ $event->atLabel() }}</span>
+                            <span class="text-muted">{{ $event->label() }}</span>
+                        </li>
+                    @endforeach
+                </ul>
+            </x-ui.card>
+        @endif
+
         @foreach($attempt->answers as $answer)
             @php
                 $frozen = $snapshot[$answer->question_id] ?? null;

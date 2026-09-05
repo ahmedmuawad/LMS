@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Modules\Lms\Actions\GradeAssignment;
 use App\Modules\Lms\Actions\GradeQuizAttempt;
 use App\Modules\Lms\Models\AssignmentSubmission;
+use App\Modules\Lms\Models\AttemptEvent;
 use App\Modules\Lms\Models\QuizAnswer;
 use App\Modules\Lms\Models\QuizAttempt;
 use Illuminate\Http\RedirectResponse;
@@ -61,6 +62,16 @@ final class GradingController
         return view('lms.grade-attempt', [
             'attempt' => $this->attemptFor($request, $attemptId)
                 ->load(['quiz', 'answers.question', 'enrollment.user', 'enrollment.course']),
+
+            /*
+             | أحداث المراقبة مع الورقة لا في شاشةٍ أخرى.
+             |
+             | المصحِّح يقرّر وهو ينظر إلى الإجابات: ورقةٌ ممتازة خرج
+             | صاحبها من النافذة سبع مرات تُقرأ غير ورقةٍ مثلها لم
+             | يخرج صاحبها — والقرار يحتاج الاثنين معاً.
+             */
+            'events' => AttemptEvent::where('attempt_id', $attemptId)
+                ->orderBy('at_second')->get(),
         ]);
     }
 

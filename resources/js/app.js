@@ -2,6 +2,7 @@ import Alpine from 'alpinejs';
 import focus from '@alpinejs/focus';
 import collapse from '@alpinejs/collapse';
 import { initContentGuard } from './content-guard';
+import { initProctor } from './proctor';
 
 import './math.js';
 import mathEditor from './math-editor.js';
@@ -281,3 +282,6 @@ pwa.register();
 
 // حماية المحتوى — تُشغَّل بإعدادات المشترك لا افتراضاً
 initContentGuard();
+
+// المراقبة تعمل حيث توجد ورقةٌ مُراقَبة فقط
+document.querySelectorAll('[data-proctor-root]').forEach(initProctor);

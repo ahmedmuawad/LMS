@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Lms;
 
 use App\Modules\Lms\Actions\GradeQuizAttempt;
 use App\Modules\Lms\Actions\StartQuizAttempt;
+use App\Modules\Lms\Models\AttemptEvent;
 use App\Modules\Lms\Models\Course;
 use App\Modules\Lms\Models\CourseItem;
 use App\Modules\Lms\Models\Enrollment;
@@ -16,6 +17,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\Response;
 
 final class QuizController
 {
@@ -55,6 +57,43 @@ final class QuizController
         ]);
     }
 
+    /**
+     * تسجيل حدث مراقبة — يُنادى من المتصفّح بـ`sendBeacon`.
+     *
+     * يردّ فارغاً دائماً ولا يكشف شيئاً: الطالب هو من يرسل، فلا
+     * نخبره كم بقي له من مخالفات ولا متى يُنهى امتحانه — وإلا
+     * قايس حدّه واقترب منه بأمان.
+     *
+     * والمحاولة المغلقة تُرفض بصمت: حدثٌ بعد التسليم لا معنى له،
+     * وردُّ خطأٍ عليه يفتح باباً لقياس حالة المحاولة من الخارج.
+     */
+    public function event(Request $request, string $slug, string $itemId, string $attemptId): Response
+    {
+        [, $enrollment] = $this->resolve($request, $slug, $itemId);
+
+        $attempt = QuizAttempt::where('enrollment_id', $enrollment->getKey())->find($attemptId);
+
+        if ($attempt === null || ! $attempt->isOpen()) {
+            return response()->noContent();
+        }
+
+        $input = $request->validate([
+            'kind' => ['required', 'string', 'in:'.implode(',', array_keys(AttemptEvent::KINDS))],
+            'at_second' => ['nullable', 'integer', 'min:0', 'max:86400'],
+        ]);
+
+        AttemptEvent::create([
+            'attempt_id' => $attempt->getKey(),
+            'kind' => $input['kind'],
+            'at_second' => (int) ($input['at_second'] ?? 0),
+        ]);
+
+        // العدّاد على المحاولة: قراءته لا تحتاج عدّ سطور السجلّ
+        $attempt->increment('violations');
+
+        return response()->noContent();
+    }
+
     public function submit(Request $request, string $slug, string $itemId, string $attemptId, GradeQuizAttempt $action): RedirectResponse
     {
         [$course, $enrollment, $item] = $this->resolve($request, $slug, $itemId);
@@ -62,6 +101,11 @@ final class QuizController
         $attempt = QuizAttempt::where('enrollment_id', $enrollment->getKey())->findOrFail($attemptId);
 
         abort_unless($attempt->isOpen(), 409, __('هذه المحاولة سُلّمت بالفعل.'));
+
+        // الورقة المُسلَّمة تلقائياً تُوسَم: المصحّح يقرؤها بعينٍ تعرف
+        if ($request->boolean('auto_submitted')) {
+            $attempt->forceFill(['auto_submitted' => true])->save();
+        }
 
         $action->handle($attempt, (array) $request->input('answers', []));
 

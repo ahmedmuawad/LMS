@@ -220,6 +220,10 @@ $tenantRoutes = function (): void {
 
         Route::get('/learn/{slug}', [LearnController::class, 'room'])->name('learn');
         Route::get('/learn/{slug}/quiz/{item}/attempt/{attempt}', [QuizController::class, 'attempt'])->name('learn.quiz.attempt');
+        // حدث مراقبة — يصل بـsendBeacon عند مغادرة الصفحة
+        Route::post('/learn/{slug}/quiz/{item}/attempt/{attempt}/event', [QuizController::class, 'event'])
+            ->name('quiz.event');
+
         Route::post('/learn/{slug}/quiz/{item}/attempt/{attempt}', [QuizController::class, 'submit'])->name('learn.quiz.submit');
         Route::post('/learn/{slug}/quiz/{item}/start', [QuizController::class, 'start'])->name('learn.quiz.start');
         Route::post('/learn/{slug}/{item}/assignment', [AssignmentController::class, 'submit'])->name('learn.assignment');

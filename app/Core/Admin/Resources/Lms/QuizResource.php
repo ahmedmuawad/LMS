@@ -121,6 +121,19 @@ final class QuizResource extends Resource
                     ->range(0, 720)->half()->default(0),
                 SwitchField::make('shuffle_questions')->label(__('خلط الأسئلة'))->default(true),
                 SwitchField::make('shuffle_answers')->label(__('خلط الإجابات'))->default(true),
+
+                /*
+                 | المراقبة تُعلَن للطالب قبل أن تبدأ.
+                 |
+                 | مراقبةٌ خفيّة تُشعره بالخديعة حين يكتشفها، والمعلَنة
+                 | تردعه قبل أن يحاول — والردع هو الغرض لا الإيقاع.
+                 */
+                SwitchField::make('proctored')->label(__('مراقبة الامتحان'))
+                    ->hint(__('يُسجَّل خروج الطالب من النافذة ونسخه ولصقه، ويرى المدرّس التقرير مع ورقته.')),
+
+                NumberField::make('max_violations')->label(__('إنهاء تلقائي بعد'))->half()
+                    ->suffix(__('مخالفة'))->range(0, 20)->default(0)
+                    ->hint(__('صفر يعني: سجّل ولا تُنهِ. وإشعارٌ يقفز على الهاتف يُخرج الطالب بلا إرادته، فالإنهاء بعد واحدة ظلمٌ يقع كثيراً.')),
                 SwitchField::make('negative_marking')->label(__('درجات سالبة للخطأ'))
                     ->hint(__('يردع التخمين ويُحبط المتردّد — فعّله بوعي.')),
                 SelectField::make('show_answers')->label(__('إظهار الإجابات الصحيحة'))->half()

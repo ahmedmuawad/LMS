@@ -55,9 +55,44 @@
             </x-ui.card>
         @endunless
 
-        <form method="POST" x-ref="form"
+        @php $proctored = $open && (bool) ($quiz->proctored ?? false); @endphp
+
+        {{--
+            المراقبة تُعلَن قبل أن تبدأ.
+
+            مراقبةٌ خفيّة تُشعر الطالب بالخديعة حين يكتشفها، والمعلَنة
+            تردعه قبل أن يحاول — والردع هو الغرض لا الإيقاع.
+        --}}
+        @if($proctored)
+            <div class="mb-4"
+                 data-proctor-root
+                 data-proctor-url="{{ url('/learn/'.$course->slug.'/quiz/'.$item->getKey().'/attempt/'.$attempt->getKey().'/event') }}"
+                 data-proctor-token="{{ csrf_token() }}"
+                 data-proctor-started="{{ $attempt->started_at?->timestamp ?? 0 }}"
+                 data-proctor-count="{{ (int) $attempt->violations }}"
+                 data-proctor-max="{{ (int) ($quiz->max_violations ?? 0) }}">
+
+                <x-ui.alert tone="warning" :title="__('هذا امتحان مُراقَب')">
+                    <p class="text-sm leading-relaxed">
+                        {{ __('يُسجَّل خروجك من هذه النافذة ونسخك ولصقك، ويرى مدرّسك التقرير مع ورقتك.') }}
+                        @if(($quiz->max_violations ?? 0) > 0)
+                            {{ __('وتُسلَّم ورقتك تلقائياً بعد :n مخالفات.', ['n' => $quiz->max_violations]) }}
+                        @endif
+                    </p>
+
+                    <p class="text-xs mt-2 font-mono tabular">
+                        {{ __('المخالفات') }}: <span data-proctor-counter>{{ (int) $attempt->violations }}</span>
+                    </p>
+
+                    <p class="text-xs mt-1 font-semibold" data-proctor-notice hidden></p>
+                </x-ui.alert>
+            </div>
+        @endif
+
+        <form method="POST" x-ref="form" @if($proctored) data-quiz-form @endif
               action="{{ url('/learn/'.$course->slug.'/quiz/'.$item->getKey().'/attempt/'.$attempt->getKey()) }}">
             @csrf
+            @if($proctored)<input type="hidden" name="auto_submitted" value="0">@endif
 
             <div class="grid gap-4">
                 @foreach($attempt->snapshot ?? [] as $index => $q)
