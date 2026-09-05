@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Core\Access\Ability;
 use App\Http\Controllers\Admin\ResourceController;
+use App\Http\Controllers\Auth\DeviceController;
 use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\ProfileController;
@@ -255,6 +256,10 @@ $tenantRoutes = function (): void {
         Route::get('/account/two-factor', [TwoFactorController::class, 'setup'])->name('account.two-factor');
         Route::post('/account/two-factor', [TwoFactorController::class, 'enable'])->name('account.two-factor.enable');
         Route::delete('/account/two-factor', [TwoFactorController::class, 'disable'])->name('account.two-factor.disable');
+
+        // فصل جهاز — الحدّ بلا شاشةٍ لفكّه سجنٌ لا قاعدة
+        Route::delete('/account/devices/{id}', [DeviceController::class, 'destroy'])
+            ->whereNumber('id')->name('account.devices.destroy');
     });
 
     // معالج التهيئة — يسبق اللوحة

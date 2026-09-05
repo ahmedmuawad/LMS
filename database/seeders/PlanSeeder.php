@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Core\Entitlements\Entitlements;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -33,9 +34,22 @@ final class PlanSeeder extends Seeder
                 'trial' => 14,
                 'features' => [
                     'students' => '100', 'instructors' => '1', 'staff' => '1', 'courses' => '10',
+
+                    /*
+                     | حدّ المجموعات مذكورٌ صراحةً.
+                     |
+                     | الباقة تسمح بنمط «مجموعات وحصص وطلبة»، وحدٌّ غائب
+                     | يُقرأ صفراً لا «بلا حدّ» — فيشتري المدرّس نمطاً
+                     | لا يستطيع إنشاء مجموعة واحدة فيه. وخمس عشرة
+                     | مجموعة تناسب مئة طالب.
+                     */
+                    'groups' => '15',
+
                     'storage_gb' => '5', 'video_minutes' => '5000', 'emails' => '2000',
                     'blog' => '1', 'live_zoom' => '1', 'live_jitsi' => '1',
                     'video_watermark' => '1', 'screenshot_block' => '1',
+                    'device_limit' => '2', 'center_management' => '1', 'parent_portal' => '1',
+                    'center_finance' => '1', 'gamification' => '1', 'page_builder' => '1',
                 ],
             ],
             'growth' => [
@@ -48,11 +62,12 @@ final class PlanSeeder extends Seeder
                     'students' => '1000', 'instructors' => '10', 'staff' => '5', 'courses' => 'unlimited',
                     'storage_gb' => '50', 'video_minutes' => '50000', 'emails' => '20000',
                     'sms' => '500', 'whatsapp' => '2000', 'groups' => '50',
+                    'center_management' => '1', 'center_finance' => '1', 'parent_portal' => '1',
                     'custom_domain' => '1', 'white_label' => '1', 'multi_language' => '1',
                     'multi_instructor' => '1', 'page_builder' => '1', 'blog' => '1',
                     'services_module' => '1', 'subscriptions' => '1', 'installments' => '1',
                     'recharge_codes' => '1', 'coaching' => '1', 'gamification' => '1',
-                    'video_watermark' => '1', 'screenshot_block' => '1', 'device_limit' => '1',
+                    'video_watermark' => '1', 'screenshot_block' => '1', 'device_limit' => '2',
                     'offline_download' => '1', 'live_zoom' => '1', 'live_meet' => '1',
                     'live_bbb' => '1', 'live_jitsi' => '1', 'email_automation' => '1',
                     'whatsapp_api' => '1', 'affiliates' => '1', 'community' => '1',
@@ -70,16 +85,19 @@ final class PlanSeeder extends Seeder
                     'courses' => 'unlimited', 'storage_gb' => '500', 'video_minutes' => 'unlimited',
                     'emails' => 'unlimited', 'sms' => '5000', 'whatsapp' => 'unlimited',
                     'branches' => '5', 'groups' => 'unlimited',
+                    'community' => '1', 'services_module' => '1',
                     'custom_domain' => '1', 'white_label' => '1', 'custom_css' => '1',
                     'multi_language' => '1', 'multi_currency' => '1', 'api_access' => '1',
                     'mobile_app' => '1', 'multi_instructor' => '1',
                     'interactive_video' => '1', 'h5p' => '1', 'scorm' => '1', 'xapi' => '1',
                     'adaptive_learning' => '1', 'proctoring' => '1', 'gamification' => '1',
                     'offline_download' => '1', 'drm' => '1', 'screenshot_block' => '1',
-                    'device_limit' => '1', 'video_watermark' => '1',
+                    'device_limit' => '3', 'video_watermark' => '1',
                     'live_zoom' => '1', 'live_meet' => '1', 'live_bbb' => '1', 'live_jitsi' => '1',
                     'center_management' => '1', 'attendance_devices' => '1', 'parent_portal' => '1',
                     'center_finance' => '1', 'inventory' => '1',
+                    // «السنتر» تبيع النمط الشامل، وفيه المجتمع والخدمات
+                    'community' => '1', 'services_module' => '1',
                     'services_module' => '1', 'physical_products' => '1', 'subscriptions' => '1',
                     'installments' => '1', 'recharge_codes' => '1', 'coaching' => '1',
                     'funnels' => '1', 'email_automation' => '1', 'whatsapp_api' => '1',
@@ -96,13 +114,15 @@ final class PlanSeeder extends Seeder
                 'trial' => 14,
                 'features' => [
                     'students' => '2000', 'instructors' => '50', 'staff' => '20', 'courses' => 'unlimited',
+                    // «السنتر» تبيع النمط الشامل، وفيه المجتمع والخدمات
+                    'community' => '1', 'services_module' => '1',
                     'storage_gb' => '100', 'video_minutes' => '100000', 'emails' => '50000',
                     'sms' => '10000', 'whatsapp' => '20000', 'branches' => '3', 'groups' => 'unlimited',
                     'center_management' => '1', 'attendance_devices' => '1', 'parent_portal' => '1',
                     'center_finance' => '1', 'inventory' => '1',
                     'custom_domain' => '1', 'white_label' => '1', 'multi_instructor' => '1',
                     'page_builder' => '1', 'blog' => '1', 'gamification' => '1',
-                    'video_watermark' => '1', 'screenshot_block' => '1', 'device_limit' => '1',
+                    'video_watermark' => '1', 'screenshot_block' => '1', 'device_limit' => '2',
                     'live_zoom' => '1', 'live_meet' => '1', 'live_bbb' => '1', 'live_jitsi' => '1',
                     'recharge_codes' => '1', 'installments' => '1',
                     'whatsapp_api' => '1', 'email_automation' => '1', 'ai_assistant' => '1',
@@ -134,6 +154,27 @@ final class PlanSeeder extends Seeder
                     ['value' => $value, 'created_at' => now(), 'updated_at' => now()],
                 );
             }
+
+            /*
+             | ما لم يعد في التعريف يُحذف.
+             |
+             | `updateOrInsert` وحده يُبقي صفوفاً من نسخةٍ سابقة إلى
+             | الأبد: ميزةٌ حُذفت من الباقة تبقى ممنوحةً في القاعدة،
+             | فتُعرض في صفحة الأسعار وتُباع وهي غير مقصودة.
+             */
+            DB::table('plan_features')
+                ->where('plan_key', $key)
+                ->whereNotIn('feature_key', array_keys($plan['features']))
+                ->delete();
         }
+
+        /*
+         | إبطال الاستحقاقات المخزَّنة.
+         |
+         | بلا هذا يبقى كل مشترك ساعةً على حدوده القديمة — والحدّ
+         | المضاف حديثاً يُقرأ غائباً، وغيابُه يعني صفراً لا «بلا
+         | حدّ»، فيُمنع المشترك ممّا اشتراه للتوّ.
+         */
+        Entitlements::bumpVersion();
     }
 }

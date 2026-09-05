@@ -86,6 +86,45 @@
             </ol>
         </div>
     @endif
+
+    {{--
+        الأجهزة تحت التوثيق: كلاهما جواب «كيف أحمي حسابي؟»، وفصلهما
+        شاشتين يجعل صاحب الحساب يجد نصف الجواب ويظنّه كلّه.
+    --}}
+    <section class="mt-10 pt-8 border-t border-line">
+        <h2 class="text-base font-bold mb-1">{{ __('الأجهزة الداخلة إلى حسابك') }}</h2>
+        <p class="text-sm text-muted leading-relaxed mb-5">
+            @if($deviceLimit)
+                {{ __('حسابك يسمح بـ :n جهاز. افصل ما لم تعد تستعمله ليتّسع لغيره.', ['n' => $deviceLimit]) }}
+            @else
+                {{ __('هذه الأجهزة التي دخلت إلى حسابك. افصل أيّ جهاز لا تعرفه.') }}
+            @endif
+        </p>
+
+        @if($devices->isEmpty())
+            <p class="text-sm text-subtle">{{ __('لا أجهزة مسجّلة بعد.') }}</p>
+        @else
+            <div class="grid gap-2">
+                @foreach($devices as $device)
+                    <div class="surface-card p-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-semibold">{{ $device->label ?: __('جهاز') }}</p>
+                            <p class="text-2xs text-subtle font-mono tabular mt-0.5">
+                                {{ __('آخر دخول') }}: {{ $device->last_seen_at?->diffForHumans() ?? '—' }}
+                                @if($device->last_ip) · {{ $device->last_ip }} @endif
+                            </p>
+                        </div>
+
+                        <form method="POST" action="{{ route('account.devices.destroy', $device->getKey()) }}"
+                              onsubmit="return confirm('{{ __('فصل هذا الجهاز؟') }}')">
+                            @csrf @method('DELETE')
+                            <x-ui.button type="submit" size="sm" variant="secondary">{{ __('افصل') }}</x-ui.button>
+                        </form>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </section>
 </main>
 
 <x-site.footer />

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Tenant;
 
 use App\Core\Auth\TwoFactor;
+use App\Core\Security\DeviceGuard;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -16,7 +17,10 @@ use Illuminate\View\View;
 
 final class AuthController
 {
-    public function __construct(private readonly TwoFactor $twoFactor) {}
+    public function __construct(
+        private readonly TwoFactor $twoFactor,
+        private readonly DeviceGuard $devices,
+    ) {}
 
     public function show(Request $request): View|RedirectResponse
     {
@@ -77,6 +81,21 @@ final class AuthController
             ]);
         }
 
+        /*
+         | حدّ الأجهزة يُفحص قبل إنشاء الجلسة.
+         |
+         | فحصُه بعدها يعني أن يدخل ثم يُطرد — وهذا يترك جلسةً قائمة
+         | لحظةً، ويجعل رسالة المنع تبدو عطلاً لا قاعدة.
+         |
+         | ويُفحص قبل التوثيق بخطوتين كذلك: لا معنى لأن يُطالَب برمزٍ
+         | ثم يُقال له إن جهازه غير مسموح.
+         */
+        $device = $this->devices->register($request, $user, $this->deviceLimit());
+
+        if (! $device->allowed) {
+            throw ValidationException::withMessages(['email' => $device->message()]);
+        }
+
         if ($this->twoFactor->isEnabled($user)) {
             TwoFactorController::hold($request, $user, $request->boolean('remember'));
 
@@ -104,5 +123,24 @@ final class AuthController
         $request->session()->regenerateToken();
 
         return redirect(url('/'));
+    }
+
+    /**
+     * حدّ الأجهزة من باقة المشترك — أو بلا حدّ.
+     *
+     * صفرٌ يعني «ممنوع» في بقية الحدود، لكنه هنا يعني «بلا حدّ»:
+     * باقةٌ لا تشتري الميزة لا تمنع صاحبها من الدخول أصلاً.
+     */
+    private function deviceLimit(): ?int
+    {
+        $tenant = tenant();
+
+        if ($tenant === null || ! $tenant->allows('device_limit')) {
+            return null;
+        }
+
+        $limit = $tenant->limitOf('device_limit');
+
+        return $limit === null || $limit < 1 ? null : $limit;
     }
 }

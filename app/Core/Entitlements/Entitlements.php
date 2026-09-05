@@ -8,6 +8,7 @@ use App\Core\Entitlements\Models\Feature;
 use App\Core\Entitlements\Models\PlanFeature;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 /**
  * ADR-011 — طبقة الصلاحيات.
@@ -20,6 +21,8 @@ use Illuminate\Support\Facades\DB;
 final class Entitlements
 {
     public const UNLIMITED = 'unlimited';
+
+    private const VERSION_KEY = 'entitlements_version';
 
     public function __construct(
         private readonly string $tenantId,
@@ -156,9 +159,62 @@ final class Entitlements
         });
     }
 
+    /**
+     * المفتاح يحمل نسخة الباقات.
+     *
+     * كان يحمل معرّف المشترك وباقته فقط، ويُخزَّن ساعةً كاملة. فحين
+     * تتغيّر حدود الباقة — بترقية أو بتصحيح أو بإعادة بذر — يبقى
+     * المشترك ساعةً كاملة على الحدود القديمة. والأسوأ من التأخّر أن
+     * الحدّ المضاف حديثاً يُقرأ **غائباً**، وغيابُ الحدّ يعني صفراً
+     * لا «بلا حدّ» — فيُمنع من كل شيء.
+     *
+     * ورقمُ النسخة يُرفع مع كل تغيير في `plan_features`، فتسقط كل
+     * المفاتيح القديمة دفعةً واحدة بلا مسحٍ للكاش كلّه.
+     */
     private function cacheKey(): string
     {
-        return "entitlements:{$this->tenantId}:".($this->planKey ?? 'none');
+        return 'entitlements:v'.self::version().":{$this->tenantId}:".($this->planKey ?? 'none');
+    }
+
+    /**
+     * نسخة الباقات الحالية — رقمٌ في القاعدة المركزية.
+     *
+     * في القاعدة لا في الكاش: الكاش هو ما نُبطله، فوضعُ مفتاح
+     * الإبطال فيه يجعله يسقط مع ما يُبطله.
+     */
+    public static function version(): int
+    {
+        try {
+            return (int) DB::connection(config('tenancy.database.central_connection'))
+                ->table('platform_settings')
+                ->where('key', self::VERSION_KEY)
+                ->value('value') ?: 1;
+        } catch (Throwable) {
+            // قبل الهجرات أو خارج سياق قاعدة: نسخةٌ ثابتة خيرٌ من انفجار
+            return 1;
+        }
+    }
+
+    /**
+     * يرفع النسخة فتسقط كل الاستحقاقات المخزَّنة.
+     *
+     * يُستدعى من كل ما يغيّر حدود الباقات: بذر الباقات، وتغيير باقة
+     * مشترك، وتجاوزات المشترك.
+     */
+    public static function bumpVersion(): void
+    {
+        $conn = DB::connection(config('tenancy.database.central_connection'));
+
+        try {
+            $current = self::version();
+
+            $conn->table('platform_settings')->updateOrInsert(
+                ['key' => self::VERSION_KEY],
+                ['value' => (string) ($current + 1), 'updated_at' => now(), 'created_at' => now()],
+            );
+        } catch (Throwable) {
+            // لا نُفشل عملية العميل لأن الإبطال تعذّر
+        }
     }
 
     private function centralConnection(): ?string

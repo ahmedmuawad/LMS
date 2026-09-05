@@ -1,6 +1,7 @@
 import Alpine from 'alpinejs';
 import focus from '@alpinejs/focus';
 import collapse from '@alpinejs/collapse';
+import { initContentGuard } from './content-guard';
 
 import './math.js';
 import mathEditor from './math-editor.js';
@@ -277,3 +278,6 @@ Alpine.data('imageField', (config) => ({
 Alpine.start();
 
 pwa.register();
+
+// حماية المحتوى — تُشغَّل بإعدادات المشترك لا افتراضاً
+initContentGuard();

@@ -6,9 +6,22 @@
     // الوضع الذي يفرضه المشترك، إن فرض واحداً — وإلا فاختيار الزائر وحده
     $forcedScheme = setting('appearance.dark_mode');
     $forcedScheme = in_array($forcedScheme, ['light', 'dark'], true) ? $forcedScheme : null;
+
+    /*
+     | أعلام حماية المحتوى تُقرأ في الجذر لا في كل صفحة.
+     |
+     | وتُقرأ من الإعدادات لا تُفترض: مشتركٌ أطفأها لا يُصاب طلابُه
+     | بستارٍ يومض، ومشتركٌ شغّلها تعمل في كل شاشة بلا أن يذكرها
+     | أحدٌ في قالبه.
+     */
+    $guardBlur = tenant() !== null && (bool) setting('security.block_screenshot', false);
+    $guardCopy = tenant() !== null && (bool) setting('security.block_copy', false);
 @endphp
 <!DOCTYPE html>
-<html lang="{{ $locale }}" dir="{{ $dir }}">
+<html lang="{{ $locale }}" dir="{{ $dir }}"
+      @if($guardBlur) data-guard-blur="1" data-guard-print="{{ __('هذه الصفحة محميّة ولا تُطبع.') }}" @endif
+      @if($guardCopy) data-guard-copy="1" @endif
+      @if($guardBlur) data-guard-message="{{ __('المحتوى مخفيّ — عُد إلى النافذة لمتابعته.') }}" @endif>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">

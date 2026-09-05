@@ -249,3 +249,58 @@ main > [class*="max-w-"] {
 @media (prefers-reduced-motion: reduce) {
   .marquee-track { animation: none; }
 }
+
+/* ---------------------------------------------------------------
+   حماية المحتوى
+
+   الستار فوق كل شيء ويظهر بالانتقال لا بالقفز: الظهور المفاجئ
+   يبدو عطلاً، والانتقال القصير يبدو قراراً.
+   --------------------------------------------------------------- */
+.content-guard-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  text-align: center;
+  background: var(--sem-surface);
+  color: var(--sem-content-muted);
+  font-size: 0.875rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 120ms ease, visibility 120ms;
+}
+
+.content-guard-veil.is-on {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* الحقول مستثناة: الطالب يكتب إجابته ويصحّحها */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.no-select input,
+.no-select textarea,
+.no-select [contenteditable] {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* الطباعة تلتقط الصفحة كاملةً: نُخفي المحمي ونترك رسالةً تشرح */
+@media print {
+  html[data-guard-blur="1"] main {
+    display: none !important;
+  }
+
+  html[data-guard-blur="1"] body::after {
+    content: attr(data-guard-print);
+    display: block;
+    padding: 4rem 2rem;
+    text-align: center;
+    font-size: 14px;
+  }
+}

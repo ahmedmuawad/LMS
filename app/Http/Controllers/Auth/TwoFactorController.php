@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Core\Auth\TwoFactor;
 use App\Models\User;
+use App\Modules\Lms\Models\UserDevice;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -43,6 +44,18 @@ final class TwoFactorController
             'qr' => $secret === null ? null : $this->twoFactor->qrSvg($user, $secret),
             'recoveryCodes' => $enabled ? $this->twoFactor->recoveryCodesFor($user) : [],
             'forced' => (string) setting('users.two_factor', 'optional') === 'required',
+
+            /*
+             | الأجهزة في شاشة الأمان لا في شاشةٍ خاصة.
+             |
+             | «من يدخل حسابي؟» و«كيف أحميه؟» سؤالٌ واحد عند صاحب
+             | الحساب، وشاشتان له تجعلانه يجد نصف الجواب.
+             */
+            'devices' => UserDevice::where('user_id', $user->getKey())
+                ->orderByDesc('last_seen_at')->get(),
+            'deviceLimit' => tenant()?->allows('device_limit')
+                ? tenant()->limitOf('device_limit')
+                : null,
         ]);
     }
 
