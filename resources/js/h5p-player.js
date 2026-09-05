@@ -89,12 +89,40 @@ async function boot(root) {
      | ويُستمَع إلى الاثنين: بعض أنواع المحتوى تُدمَج في الصفحة بلا
      | إطار (embedType: div)، فمُرسِلها هو مُرسِل الصفحة.
      */
+    /*
+     | العبارة الواحدة تصل مرّتين.
+     |
+     | H5P يُطلق الحدث في مُرسِل الإطار ثم يمرّره إلى مُرسِل الصفحة،
+     | ونحن مستمعون إلى الاثنين — فتُسجَّل نتيجةٌ واحدة صفّين. رأيناه
+     | حيّاً: عبارتان بالثانية نفسها والدرجة نفسها.
+     |
+     | فتُبصَم العبارة بفعلها وهدفها ودرجتها، ولا تُرسَل بصمةٌ مرّتين
+     | في الثانيتين. والفاصل قصير عمداً: طالبٌ يعيد المحاولة بعد
+     | دقيقة نتيجتُه نتيجةٌ ثانية لا تكرار.
+     */
+    const seen = new Map();
+
     const send = (event) => {
         const statement = event?.data?.statement;
 
         if (!statement?.verb?.id) {
             return;
         }
+
+        const print = [
+            statement.verb.id,
+            statement.object?.id ?? '',
+            statement.result?.score?.raw ?? '',
+            statement.result?.completion ?? '',
+        ].join('|');
+
+        const now = Date.now();
+
+        if (seen.has(print) && now - seen.get(print) < 2000) {
+            return;
+        }
+
+        seen.set(print, now);
 
         /*
          | لا يُرسَل إلا ما يعني تقدّماً.
