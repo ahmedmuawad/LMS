@@ -247,49 +247,54 @@
     تطفو فوق المحتوى تحجب ما يسأل عنه.
 --}}
 @if(tenant()?->allows('ai_assistant') && filled($lesson->content) && $me !== null)
-    <x-ui.card :title="__('اسأل عن الدرس')" class="mt-4"
-               x-data="lessonAssistant({
-                   url: @js(url('/ai/ask')),
-                   token: @js(csrf_token()),
-                   lesson: {{ $lesson->getKey() }},
-                   {{--
-                       المحادثة السابقة تعود مع الصفحة.
-                       من سأل أمس ورجع اليوم يجد ما سأل، فلا يعيده —
-                       وإعادتُه تُنفق طلباً على مزوّدٍ يُحاسَب بالطلب.
-                   --}}
-                   thread: @js(App\Modules\Ai\Actions\AnswerStudent::threadFor($me, $lesson)
-                       ->map(fn ($m) => ['role' => $m->role, 'body' => $m->body])
-                       ->values()),
-               })">
+    {{--
+        الحالة على عنصرٍ عاديّ لا على مكوّن Blade.
 
-        <p class="text-2xs text-subtle mb-3">
-            {{ __('يجيب من مادة هذا الدرس وحدها. وما ليس فيها يحيلك إلى مدرّسك — ولا يحلّ لك واجباً.') }}
-        </p>
+        مُصرّف المكوّنات يلتقط سمات `<x-…>` نصّاً قبل تصريف
+        التوجيهات، فيبقى `@js(...)` داخلها كما كُتب ولا يُنفَّذ —
+        فلا تعمل اللوحة، بلا خطأ في أي مكان. جرّبناه فرأيناه.
+    --}}
+    <div class="mt-4"
+         x-data="lessonAssistant({
+             url: @js(url('/ai/ask')),
+             token: @js(csrf_token()),
+             lesson: {{ $lesson->getKey() }},
+             thread: @js(App\Modules\Ai\Actions\AnswerStudent::threadFor($me, $lesson)
+                 ->map(fn ($m) => ['role' => $m->role, 'body' => $m->body])
+                 ->values()),
+         })">
 
-        <div class="grid gap-3 mb-3" x-show="thread.length" x-cloak>
-            <template x-for="(message, index) in thread" :key="index">
-                <div class="text-sm leading-relaxed rounded-md px-3 py-2.5"
-                     :class="message.role === 'student'
-                         ? 'bg-surface-sunken'
-                         : 'bg-info-subtle text-info'">
-                    <span class="block text-2xs font-semibold mb-1 opacity-70"
-                          x-text="message.role === 'student' ? @js(__('سؤالك')) : @js(__('المساعد'))"></span>
-                    <span class="whitespace-pre-line" x-text="message.body"></span>
-                </div>
-            </template>
-        </div>
+        <x-ui.card :title="__('اسأل عن الدرس')">
+            <p class="text-2xs text-subtle mb-3">
+                {{ __('يجيب من مادة هذا الدرس وحدها. وما ليس فيها يحيلك إلى مدرّسك — ولا يحلّ لك واجباً.') }}
+            </p>
 
-        <form class="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]" @submit.prevent="send()">
-            <label class="sr-only" for="assistant-question">{{ __('سؤالك') }}</label>
-            <x-ui.input id="assistant-question" x-model="question" autocomplete="off"
-                        ::disabled="busy" :placeholder="__('اسأل عمّا لم تفهمه…')" />
-            <x-ui.button type="submit" ::disabled="busy || question.trim().length < 2">
-                <span x-text="busy ? @js(__('يفكّر…')) : @js(__('اسأل'))"></span>
-            </x-ui.button>
-        </form>
+            <div class="grid gap-3 mb-3" x-show="thread.length" x-cloak>
+                <template x-for="(message, index) in thread" :key="index">
+                    <div class="text-sm leading-relaxed rounded-md px-3 py-2.5"
+                         :class="message.role === 'student'
+                             ? 'bg-surface-sunken'
+                             : 'bg-info-subtle text-info'">
+                        <span class="block text-2xs font-semibold mb-1 opacity-70"
+                              x-text="message.role === 'student' ? @js(__('سؤالك')) : @js(__('المساعد'))"></span>
+                        <span class="whitespace-pre-line" x-text="message.body"></span>
+                    </div>
+                </template>
+            </div>
 
-        <p x-show="error" x-cloak x-text="error" class="text-sm text-danger mt-2"></p>
-    </x-ui.card>
+            <form class="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]" @submit.prevent="send()">
+                <label class="sr-only" for="assistant-question">{{ __('سؤالك') }}</label>
+                <x-ui.input id="assistant-question" x-model="question" autocomplete="off"
+                            ::disabled="busy" :placeholder="__('اسأل عمّا لم تفهمه…')" />
+                <x-ui.button type="submit" ::disabled="busy || question.trim().length < 2">
+                    <span x-text="busy ? @js(__('يفكّر…')) : @js(__('اسأل'))"></span>
+                </x-ui.button>
+            </form>
+
+            <p x-show="error" x-cloak x-text="error" class="text-sm text-danger mt-2"></p>
+        </x-ui.card>
+    </div>
+
 @endif
 
 @once
