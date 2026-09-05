@@ -3,7 +3,15 @@
     $progress = App\Modules\Lms\Models\LessonProgress::where('enrollment_id', $enrollment->getKey())
         ->where('item_id', $item->getKey())->first();
     $resume = setting('lms.resume', true) ? (int) ($progress?->last_position_seconds ?? 0) : 0;
-    $watermark = setting('security.video_watermark', true) ? auth()->user()?->email : null;
+    /*
+     | الوسم: الاسم والبريد معاً.
+     |
+     | البريد وحده صغيرٌ يُقرأ بصعوبة في تسجيلٍ للشاشة، والاسم وحده
+     | يتكرّر بين الطلبة. واجتماعهما يجعل الوسم دالّاً ومقروءاً معاً.
+     */
+    $watermark = setting('security.video_watermark', true) && auth()->check()
+        ? trim(auth()->user()->name.' · '.auth()->user()->email)
+        : null;
     // الرابط يُوقَّع هنا لكل طلب ولا يُخزَّن؛ الرابط الثابت يُوزَّع خلال دقائق
     $src = app(App\Modules\Lms\VideoUrl::class)->for($lesson, auth()->id());
 
@@ -146,9 +154,22 @@
                 @endif
 
                 @if($watermark)
-                    {{-- علامة مائية باسم الطالب: لا تمنع التسجيل لكنها تجعله يقود إلى صاحبه --}}
-                    <span class="absolute bottom-3 end-3 text-[10px] font-mono px-2 py-1 rounded pointer-events-none select-none"
-                          style="color: rgba(255,255,255,.55); background: rgba(0,0,0,.35)" aria-hidden="true">{{ $watermark }}</span>
+                    {{--
+                        علامة مائية باسم الطالب — تتنقّل ولا تثبت.
+
+                        الوسم الثابت في زاوية يُقصّ في ثانية، فيصير
+                        زينةً لا رادعاً. والمتنقّل يجعل القصّ يأكل
+                        الصورة نفسها.
+
+                        وهي لا تمنع التسجيل — تجعله يقود إلى صاحبه.
+                        وذلك أقوى رادعٍ عملي: الطالب يعرف أن اسمه على
+                        الشاشة.
+                    --}}
+                    <span data-watermark
+                          class="absolute text-[11px] font-mono px-2 py-1 rounded pointer-events-none select-none
+                                 transition-[inset] duration-1000"
+                          style="color: rgba(255,255,255,.5); background: rgba(0,0,0,.3); bottom: 12px; inset-inline-end: 12px;"
+                          aria-hidden="true">{{ $watermark }}</span>
                 @endif
             </div>
         </div>
@@ -325,6 +346,41 @@
 @once
     @push('scripts')
     <script>
+        /* الوسم يتنقّل بين تسع مواضع كل عشرين ثانية.
+           الثابت في زاوية يُقصّ، والمتنقّل يأكل قصُّه الصورة. */
+        document.querySelectorAll('[data-watermark]').forEach((mark) => {
+            const spots = [
+                { top: '12px', insetInlineStart: '12px' },
+                { top: '12px', insetInlineEnd: '12px' },
+                { top: '12px', insetInlineStart: '42%' },
+                { top: '45%', insetInlineStart: '12px' },
+                { top: '45%', insetInlineEnd: '12px' },
+                { bottom: '12px', insetInlineStart: '12px' },
+                { bottom: '12px', insetInlineEnd: '12px' },
+                { bottom: '12px', insetInlineStart: '42%' },
+                { top: '45%', insetInlineStart: '42%' },
+            ];
+
+            let last = -1;
+
+            const move = () => {
+                let next = last;
+
+                // لا يبقى في موضعه مرّتين: القفزة هي المقصودة
+                while (next === last) next = Math.floor(Math.random() * spots.length);
+
+                last = next;
+
+                mark.style.top = mark.style.bottom = '';
+                mark.style.insetInlineStart = mark.style.insetInlineEnd = '';
+
+                Object.assign(mark.style, spots[next]);
+            };
+
+            move();
+            setInterval(move, 20000);
+        });
+
         // نُبلّغ الخادم بموضع المشاهدة على فترات لا مع كل إطار:
         // الاستئناف يستحقّ الحفظ، لا أن يُغرق الخادم بطلبات.
         document.addEventListener('alpine:init', () => {
