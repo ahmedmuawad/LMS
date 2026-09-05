@@ -36,10 +36,11 @@
         <a href="{{ url('/') }}" class="flex items-center gap-3 min-w-0 shrink-0">
             <span class="size-11 rounded-md bg-primary text-primary-on grid place-items-center text-xl font-bold shrink-0"
                   aria-hidden="true">{{ mb_substr($siteName, 0, 1) }}</span>
-            <span class="min-w-0 hidden sm:block">
+            {{-- الاسم يبقى على الهاتف مقتطعاً: مربّعُ حرفٍ وحده لا يقول لزائرٍ أين هو --}}
+            <span class="min-w-0">
                 <span class="block font-bold text-lg leading-tight truncate">{{ $siteName }}</span>
                 @if($tagline)
-                    <span class="block text-xs text-muted leading-tight truncate">{{ $tagline }}</span>
+                    <span class="hidden sm:block text-xs text-muted leading-tight truncate">{{ $tagline }}</span>
                 @endif
             </span>
         </a>

@@ -8,6 +8,7 @@
     "version": "1.0.0",
     "modes": [
         "solo",
+        "teacher",
         "marketplace",
         "center",
         "hybrid"

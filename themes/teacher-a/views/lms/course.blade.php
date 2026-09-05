@@ -101,13 +101,13 @@
 
             <div class="flex flex-wrap gap-x-6 gap-y-2 py-5 border-y border-line mb-8">
                 @if($totalItems > 0)
-                    <p><span class="text-subtle">{{ __('العناصر') }} </span><strong class="font-mono tabular">{{ $totalItems }}</strong></p>
+                    <p><span class="text-subtle">{{ __('العناصر') }} </span><strong class="tabular">{{ $totalItems }}</strong></p>
                 @endif
                 @if((int) $course->duration_minutes >= 60)
                     <p><span class="text-subtle">{{ __('المدة') }} </span><strong>{{ trans_choice('{1} ساعة|{2} ساعتان|[3,10] :count ساعات|[11,*] :count ساعة', $hours, ['count' => $hours]) }}</strong></p>
                 @endif
                 @if($quizCount > 0)
-                    <p><span class="text-subtle">{{ __('الاختبارات') }} </span><strong class="font-mono tabular">{{ $quizCount }}</strong></p>
+                    <p><span class="text-subtle">{{ __('الاختبارات') }} </span><strong class="tabular">{{ $quizCount }}</strong></p>
                 @endif
                 <p><span class="text-subtle">{{ __('اللغة') }} </span><strong>{{ config('locales.supported.'.$course->language.'.native') ?? $course->language }}</strong></p>
                 @if($course->instructor)
@@ -169,7 +169,7 @@
                             <summary class="flex items-center justify-between gap-3 px-5 py-4 bg-surface-sunken cursor-pointer
                                             hover:bg-bg transition-colors">
                                 <span class="font-bold min-w-0 truncate">{{ $section['title'] }}</span>
-                                <span class="text-sm text-muted shrink-0 font-mono tabular">
+                                <span class="text-sm text-muted shrink-0 tabular">
                                     {{ $section['total'] }}@if($minutes > 0) · {{ $minutes }} {{ __('د') }}@endif
                                 </span>
                             </summary>
@@ -182,9 +182,9 @@
 
                                     @php $itemable = $row['item']->itemable; @endphp
                                     @if($itemable instanceof Lesson && (int) $itemable->duration_seconds > 0)
-                                        <span class="text-sm text-subtle shrink-0 font-mono tabular">{{ $itemable->durationLabel() }}</span>
+                                        <span class="text-sm text-subtle shrink-0 tabular">{{ $itemable->durationLabel() }}</span>
                                     @elseif($itemable instanceof Quiz && (int) $itemable->time_limit_minutes > 0)
-                                        <span class="text-sm text-subtle shrink-0 font-mono tabular">{{ $itemable->time_limit_minutes }} {{ __('د') }}</span>
+                                        <span class="text-sm text-subtle shrink-0 tabular">{{ $itemable->time_limit_minutes }} {{ __('د') }}</span>
                                     @endif
 
                                     @if($row['completed'])

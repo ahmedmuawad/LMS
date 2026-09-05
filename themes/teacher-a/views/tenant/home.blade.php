@@ -27,8 +27,14 @@
     $statCourses = $lms && Schema::hasTable('courses')
         ? Course::where('status', 'published')->where('visibility', 'public')->count() : 0;
 
+    /*
+     | العدّ بنفس نطاق النموذج الذي يجلب البطاقات (`scopeOpen`).
+     |
+     | شرطٌ مختلف هنا يعطي شارةً تقول «٢٨ مجموعة مفتوحة» فوق قسمٍ
+     | يعرض أربعاً — والزائر يعدّ ما يرى ويحسبنا نكذب.
+     */
     $statGroups = $center && Schema::hasTable('center_groups')
-        ? App\Modules\Center\Models\Group::whereIn('status', ['open', 'running'])->count() : 0;
+        ? App\Modules\Center\Models\Group::open()->count() : 0;
 
     $stats = array_values(array_filter([
         $statStudents > 0 ? ['value' => $statStudents, 'label' => __('طالب وطالبة')] : null,
@@ -177,7 +183,7 @@
                         <div class="absolute bottom-4 start-3 sm:bottom-7 sm:-start-5 flex items-center gap-3.5
                                     bg-surface text-content rounded-lg shadow-lg px-4 py-3.5">
                             <span class="size-11 rounded-md bg-accent-subtle text-accent-text grid place-items-center
-                                         font-bold text-lg font-mono tabular shrink-0" aria-hidden="true">{{ $highlight['value'] }}</span>
+                                         font-bold text-lg tabular shrink-0" aria-hidden="true">{{ $highlight['value'] }}</span>
                             <span class="leading-snug min-w-0">
                                 <span class="block font-bold">{{ $highlight['label'] }}</span>
                                 @if($highlight['note'])
@@ -197,7 +203,7 @@
             <div class="max-w-[1180px] mx-auto px-4 sm:px-6 grid grid-cols-[repeat(auto-fit,minmax(min(180px,100%),1fr))]">
                 @foreach($stats as $stat)
                     <div class="py-8 px-3 border-s border-line">
-                        <p class="text-3xl sm:text-4xl font-bold text-primary leading-tight font-mono tabular">{{ $stat['value'] }}</p>
+                        <p class="text-3xl sm:text-4xl font-bold text-primary leading-tight tabular">{{ $stat['value'] }}</p>
                         <p class="text-muted">{{ $stat['label'] }}</p>
                     </div>
                 @endforeach
@@ -379,7 +385,7 @@
 
                     @foreach($previewItems as $index => $item)
                         <div class="flex items-center gap-3.5 px-4 py-3.5 border-t border-spot-line">
-                            <span class="size-8 rounded-md bg-spot text-on-spot-muted grid place-items-center text-sm font-bold font-mono tabular shrink-0"
+                            <span class="size-8 rounded-md bg-spot text-on-spot-muted grid place-items-center text-sm font-bold tabular shrink-0"
                                   aria-hidden="true">{{ $index + 1 }}</span>
 
                             <span class="min-w-0 flex-1">
@@ -523,7 +529,7 @@
                     ] as $i => $label)
                         <div class="px-5 py-5 border-line {{ $i < 2 ? 'border-b' : '' }} {{ $i % 2 === 0 ? 'border-e' : '' }}">
                             <p class="text-sm text-subtle mb-1">{{ $label }}</p>
-                            <p class="text-2xl font-bold text-subtle font-mono tabular">—</p>
+                            <p class="text-2xl font-bold text-subtle tabular">—</p>
                         </div>
                     @endforeach
                 </div>
