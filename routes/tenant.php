@@ -299,6 +299,10 @@ $tenantRoutes = function (): void {
         Route::get('/login', [AuthController::class, 'show'])->name('login');
         Route::post('/login', [AuthController::class, 'login'])->name('login.attempt');
 
+        // مخرجٌ لمن بلغ حدّ أجهزته: شاشة الفكّ خلف الدخول، والمقفول لا يصلها
+        Route::post('/login/release-device', [AuthController::class, 'releaseDevice'])
+            ->name('login.release-device');
+
         Route::get('/register', [RegisterController::class, 'show'])->name('register');
         Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
 

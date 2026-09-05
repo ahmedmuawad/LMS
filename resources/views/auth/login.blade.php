@@ -10,7 +10,37 @@
         </div>
 
         <x-ui.card>
-            <form method="POST" action="{{ url('/login') }}">
+            @if(session('status'))
+        <x-ui.alert tone="success" class="mb-4">{{ session('status') }}</x-ui.alert>
+    @endif
+
+    {{--
+        من بلغ حدّ أجهزته يجد مخرجاً هنا.
+        شاشة فكّ الأجهزة خلف الدخول، فالمقفول لا يصلها — ويبقى
+        محبوساً خارج حسابه بلا باب إلا الدعم.
+    --}}
+    @if(session('device_limit'))
+        <x-ui.alert tone="warning" :title="__('بلغتَ حدّ الأجهزة')" class="mb-4">
+            <p class="text-sm mb-3">{{ session('device_limit') }}</p>
+
+            <form method="POST" action="{{ url('/login/release-device') }}"
+                  x-data
+                  @submit="$el.password.value = document.getElementById('password')?.value ?? ''">
+                @csrf
+                <input type="hidden" name="email" value="{{ old('email') }}">
+                <input type="hidden" name="password" value="">
+                <x-ui.button type="submit" size="sm" variant="secondary">
+                    {{ __('افصل أقدم جهاز وادخل') }}
+                </x-ui.button>
+            </form>
+
+            <p class="text-2xs text-muted mt-2 leading-relaxed">
+                {{ __('اكتب كلمة مرورك أعلاه ثم اضغط الزرّ — العدد لا يزيد، والأقدم هو الذي يخرج.') }}
+            </p>
+        </x-ui.alert>
+    @endif
+
+    <form method="POST" action="{{ url('/login') }}">
                 @csrf
 
                 <x-ui.field :label="__('البريد الإلكتروني أو الهاتف')" for="email" :required="true"

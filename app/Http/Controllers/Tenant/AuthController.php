@@ -9,6 +9,7 @@ use App\Core\Auth\TwoFactor;
 use App\Core\Security\DeviceGuard;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Models\User;
+use App\Modules\Lms\Models\UserDevice;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -94,7 +95,22 @@ final class AuthController
         $device = $this->devices->register($request, $user, $this->deviceLimitFor($user));
 
         if (! $device->allowed) {
-            throw ValidationException::withMessages(['email' => $device->message()]);
+            /*
+             | مخرجٌ لمن أثبت كلمة مروره.
+             |
+             | شاشة فكّ الأجهزة خلف الدخول، والمقفول لا يصلها — فيجد
+             | نفسه محبوساً خارج حسابه بلا باب إلا الدعم. وهذا فخٌّ
+             | يقع كثيراً: من بدّل هاتفه أو مسح كوكيّاته يبلغ حدّه
+             | وهو صاحب الحساب لا سارقه.
+             |
+             | وقد أثبت كلمة مروره للتوّ، فيُعرض عليه فصلُ أقدم جهاز
+             | والدخول — ويبقى الحدّ قائماً: العدد لا يزيد، والأقدم
+             | هو الذي يخرج.
+             */
+            return back()
+                ->withInput($request->only('email'))
+                ->with('device_limit', $device->message())
+                ->withErrors(['email' => $device->message()]);
         }
 
         if ($this->twoFactor->isEnabled($user)) {
@@ -198,5 +214,36 @@ final class AuthController
             $field => $credentials['email'],
             'password' => $credentials['password'],
         ]);
+    }
+
+    /**
+     * يفصل أقدم جهاز ثم يترك المستخدم يدخل.
+     *
+     * يُطلب من شاشة الدخول بعد رفضٍ للحدّ، ويُعاد فيه التحقّق
+     * كاملاً: من يضغط الزرّ قد لا يكون من كتب كلمة المرور.
+     */
+    public function releaseDevice(Request $request): RedirectResponse
+    {
+        $input = $request->validate([
+            'email' => ['required', 'string'],
+            'password' => ['required', 'string'],
+        ]);
+
+        $field = filter_var($input['email'], FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
+
+        if (! Auth::guard()->validate([$field => $input['email'], 'password' => $input['password']])) {
+            throw ValidationException::withMessages(['email' => __('بيانات الدخول غير صحيحة.')]);
+        }
+
+        $user = Auth::guard()->getLastAttempted();
+
+        UserDevice::where('user_id', $user->getKey())
+            ->orderBy('last_seen_at')
+            ->limit(1)
+            ->get()
+            ->each
+            ->delete();
+
+        return back()->with('status', __('فُصل أقدم جهاز. سجّل دخولك الآن.'));
     }
 }

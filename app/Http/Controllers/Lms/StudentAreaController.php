@@ -137,12 +137,27 @@ final class StudentAreaController
 
     public function wishlist(Request $request): View
     {
-        $items = Wishlist::ownedBy($request->user()->getKey())
-            ->latest()
-            ->get()
+        $rows = Wishlist::ownedBy($request->user()->getKey())->latest()->get();
+
+        /*
+         | استعلامٌ لكل نوع لا لكل صفّ.
+         |
+         | `Wishlist::item()` تسأل القاعدة مرة لكل أمنية: قائمةٌ
+         | فيها أربعون عنصراً تعني أربعين استعلاماً. وهي ثلاثة أنواع
+         | لا أكثر، فيُجلب كلٌّ منها دفعةً واحدة.
+         */
+        $loaded = $rows->groupBy('itemable_type')->map(function ($group, string $type) {
+            $model = Wishlist::modelFor($type);
+
+            return $model === null
+                ? collect()
+                : $model::whereKey($group->pluck('itemable_id'))->get()->keyBy('id');
+        });
+
+        $items = $rows
             ->map(fn (Wishlist $row): array => [
                 'row' => $row,
-                'item' => $row->item(),
+                'item' => $loaded[$row->itemable_type][$row->itemable_id] ?? null,
             ])
             // العنصر المحذوف يُطرح: بطاقة فارغة أسوأ من غيابها
             ->filter(fn (array $entry): bool => $entry['item'] !== null)
