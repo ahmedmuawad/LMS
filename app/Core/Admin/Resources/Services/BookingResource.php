@@ -38,6 +38,11 @@ final class BookingResource extends Resource
         return $query->whereHas('provider', fn ($q) => $q->where('user_id', $user?->getKey()));
     }
 
+    public function feature(): ?string
+    {
+        return 'services_module';
+    }
+
     public function model(): string
     {
         return Booking::class;

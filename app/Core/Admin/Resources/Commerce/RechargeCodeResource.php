@@ -20,6 +20,11 @@ final class RechargeCodeResource extends Resource
         return Ability::CODES_MANAGE;
     }
 
+    public function feature(): ?string
+    {
+        return 'recharge_codes';
+    }
+
     public function model(): string
     {
         return RechargeCode::class;

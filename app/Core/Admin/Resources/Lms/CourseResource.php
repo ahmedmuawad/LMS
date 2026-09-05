@@ -25,6 +25,7 @@ use App\Modules\Lms\Models\Instructor;
 use App\Modules\Lms\Models\Taxonomy;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 
 final class CourseResource extends Resource
 {
@@ -41,6 +42,12 @@ final class CourseResource extends Resource
     public function scopeFor(Builder $query, ?User $user): Builder
     {
         return app(Scope::class)->byInstructor($query, $user);
+    }
+
+    /** الكورس يستهلك حدّ «الكورسات» في الباقة. */
+    public function quotaKey(Request $request): ?string
+    {
+        return 'courses';
     }
 
     public function model(): string

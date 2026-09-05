@@ -24,12 +24,19 @@ use App\Modules\Center\Models\SubjectTeacher;
 use App\Modules\Center\Models\Term;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 
 final class GroupResource extends Resource
 {
     public function viewAbility(): string
     {
         return Ability::CENTER_MANAGE;
+    }
+
+    /** المجموعة تستهلك حدّ «المجموعات» في الباقة. */
+    public function quotaKey(Request $request): ?string
+    {
+        return 'groups';
     }
 
     public function model(): string

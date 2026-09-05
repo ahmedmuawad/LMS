@@ -18,6 +18,23 @@
         </x-slot:breadcrumb>
     </x-ui.page-header>
 
+    {{--
+        بلوغ الحدّ قبل أخطاء الحقول: لا معنى لأن يصحّح المستخدم
+        حقولاً في نموذجٍ لن يُقبل حتى يحذف أو يُرقّي.
+    --}}
+    @if(session('quota_exceeded'))
+        @php $quota = session('quota_exceeded'); @endphp
+        <div class="mb-4">
+            <x-ui.alert tone="warning" :title="__('بلغتَ حدّ باقتك')">
+                <p class="mb-3">{{ $quota['message'] }}</p>
+                <div class="flex flex-wrap gap-2">
+                    <x-ui.button size="sm" :href="url('/admin/billing')">{{ __('ترقية الباقة') }}</x-ui.button>
+                    <x-ui.button size="sm" variant="secondary" :href="url('/admin/usage')">{{ __('عرض استهلاكي') }}</x-ui.button>
+                </div>
+            </x-ui.alert>
+        </div>
+    @endif
+
     @if($errors->any())
         @php $errorCount = count($errors->all()); @endphp
         <div class="mb-4">

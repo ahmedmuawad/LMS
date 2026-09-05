@@ -23,6 +23,11 @@ final class CommentResource extends Resource
         return Ability::COMMENTS_MODERATE;
     }
 
+    public function feature(): ?string
+    {
+        return 'blog';
+    }
+
     public function model(): string
     {
         return Comment::class;

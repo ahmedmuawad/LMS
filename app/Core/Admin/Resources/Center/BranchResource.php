@@ -17,12 +17,19 @@ use App\Core\Admin\Resource;
 use App\Models\User;
 use App\Modules\Center\Models\Branch;
 use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 
 final class BranchResource extends Resource
 {
     public function viewAbility(): string
     {
         return Ability::CENTER_MANAGE;
+    }
+
+    /** الفرع يستهلك حدّ «الفروع» في الباقة. */
+    public function quotaKey(Request $request): ?string
+    {
+        return 'branches';
     }
 
     public function model(): string

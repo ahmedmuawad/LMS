@@ -6,6 +6,7 @@ use App\Core\Access\Ability;
 use App\Core\Access\Roles;
 use App\Core\Access\Scope;
 use App\Core\Admin\Navigation;
+use App\Core\Entitlements\Quota;
 use App\Core\Modules\ModuleState;
 use App\Core\Settings\SettingsRepository;
 use App\Core\Theming\ThemeManager;
@@ -46,6 +47,9 @@ class AppServiceProvider extends ServiceProvider
          | تغيير النمط، فتعرض قوائم لا تخصّ المشترك المعروض.
          */
         $this->app->bind(Navigation::class, fn (): Navigation => new Navigation(tenant()));
+
+        // ولنفس السبب: الحدود تخصّ مشترك الطلب الحالي لا نسخةً مشتركة
+        $this->app->bind(Quota::class, fn (): Quota => new Quota(tenant()));
     }
 
     /**

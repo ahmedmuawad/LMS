@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Tenant;
 
 use App\Core\Entitlements\Models\Feature;
 use App\Core\Entitlements\Models\Plan;
+use App\Core\Entitlements\Quota;
 use App\Http\Controllers\Instructor\DashboardController as InstructorDashboard;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -56,24 +57,28 @@ final class DashboardController
      */
     private function usage(): array
     {
-        $tenant = tenant();
-
-        $rows = Feature::query()
+        /*
+         | الأرقام من `Quota` لا من عدّاد الاستهلاك.
+         |
+         | كانت تُقرأ من `usage_records`، وهو جدول لا يكتب فيه شيء في
+         | التطبيق — فكانت البطاقة تعرض صفراً لكل حدّ مهما بلغ استهلاك
+         | المشترك، وتطمئنه وهو على حافّة التوقّف.
+         */
+        $labels = Feature::query()
             ->whereIn('type', ['limit', 'quota'])
-            ->where('is_visible', true)
-            ->get()
-            ->map(fn (Feature $feature): array => [
-                'key' => $feature->key,
-                'label' => $feature->name[app()->getLocale()] ?? $feature->name['ar'] ?? $feature->key,
-                'used' => $tenant->usageOf($feature->key),
-                'limit' => $tenant->limitOf($feature->key),
-                'percent' => $tenant->entitlements()->usagePercent($feature->key),
-            ])
-            // الحد صفر يعني ميزة خارج الباقة — مكانها صفحة الترقية لا لوحة الاستهلاك
-            ->reject(fn (array $row): bool => $row['limit'] === 0)
-            ->sortByDesc(fn (array $row): float => $row['percent'] ?? -1)
-            ->values();
+            ->pluck('name', 'key')
+            ->map(fn ($name): ?array => is_array($name) ? $name : json_decode((string) $name, true))
+            ->all();
 
-        return $rows->all();
+        return collect(app(Quota::class)->overview())
+            ->map(fn (array $row): array => [
+                ...$row,
+                'label' => $labels[$row['key']][app()->getLocale()]
+                    ?? $labels[$row['key']]['ar']
+                    ?? $row['key'],
+            ])
+            ->sortByDesc(fn (array $row): float => $row['percent'] ?? -1)
+            ->values()
+            ->all();
     }
 }

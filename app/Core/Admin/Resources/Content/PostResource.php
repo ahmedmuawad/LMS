@@ -28,6 +28,11 @@ final class PostResource extends Resource
         return Ability::CONTENT_MANAGE;
     }
 
+    public function feature(): ?string
+    {
+        return 'blog';
+    }
+
     public function model(): string
     {
         return Post::class;

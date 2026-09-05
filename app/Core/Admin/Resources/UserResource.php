@@ -17,6 +17,7 @@ use App\Core\Admin\Filters\BooleanFilter;
 use App\Core\Admin\Filters\SelectFilter;
 use App\Core\Admin\Resource;
 use App\Models\User;
+use Illuminate\Http\Request;
 
 /**
  * أول مورد حقيقي — يثبت أن تعريفاً واحداً في PHP يكفي لتوليد
@@ -37,6 +38,26 @@ final class UserResource extends Resource
     public function model(): string
     {
         return User::class;
+    }
+
+    /**
+     * الحدّ يتبع الدور المختار في النموذج.
+     *
+     * المستخدم ليس صنفاً واحداً في التسعير: الطالب يُحسب على «الطلبة»
+     * والمدرّس على «المدرّسون»، وباقةٌ بمئة طالب ومدرّسٍ واحد تنهار
+     * لو حُسبا معاً.
+     *
+     * ويُقرأ الدور من الطلب قبل التحقّق: أسوأ ما يقع أن يصل دورٌ غير
+     * صالح فلا يُطابق حدّاً، ثم يردّه التحقّق بعد سطرين.
+     */
+    public function quotaKey(Request $request): ?string
+    {
+        return match ((string) $request->input('role')) {
+            'student' => 'students',
+            'instructor' => 'instructors',
+            'staff' => 'staff',
+            default => null,
+        };
     }
 
     public function label(): string

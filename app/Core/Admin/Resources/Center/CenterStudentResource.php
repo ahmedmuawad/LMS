@@ -14,6 +14,7 @@ use App\Modules\Center\Models\Grade;
 use App\Modules\Center\Models\Student;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 
 final class CenterStudentResource extends Resource
 {
@@ -25,6 +26,12 @@ final class CenterStudentResource extends Resource
     public function manageAbility(): string
     {
         return Ability::CENTER_MANAGE;
+    }
+
+    /** ملفّ الطالب يستهلك حدّ «الطلبة» — وهو الحدّ الذي يُقاس به سعر الباقة. */
+    public function quotaKey(Request $request): ?string
+    {
+        return 'students';
     }
 
     public function model(): string

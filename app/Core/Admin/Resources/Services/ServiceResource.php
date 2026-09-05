@@ -47,6 +47,11 @@ final class ServiceResource extends Resource
         );
     }
 
+    public function feature(): ?string
+    {
+        return 'services_module';
+    }
+
     public function model(): string
     {
         return Service::class;

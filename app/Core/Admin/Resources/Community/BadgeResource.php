@@ -26,6 +26,11 @@ final class BadgeResource extends Resource
         return Ability::GAMIFICATION_MANAGE;
     }
 
+    public function feature(): ?string
+    {
+        return 'gamification';
+    }
+
     public function model(): string
     {
         return Badge::class;

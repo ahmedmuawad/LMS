@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Content\Actions;
 
+use App\Core\Entitlements\Quota;
 use App\Models\User;
 use App\Modules\Content\Models\Media;
 use Illuminate\Http\UploadedFile;
@@ -48,6 +49,15 @@ final class StoreMedia
         if ($existing !== null) {
             return $existing;
         }
+
+        /*
+         | حدّ مساحة الباقة — بعد فحص التكرار لا قبله.
+         |
+         | الملف المكرّر لا يشغل مساحة جديدة، فمنعُه عند بلوغ الحدّ
+         | يمنع ما لا يكلّف شيئاً. والترتيب هنا هو الفرق بين حدٍّ
+         | عادل وحدٍّ يبدو عشوائياً لمن يرفع شعاره مرتين.
+         */
+        app(Quota::class)->enforceStorage((int) $file->getSize());
 
         $disk = (string) setting('integrations.storage_driver', 'public');
         $disk = Storage::getDefaultDriver() === $disk ? $disk : 'public';

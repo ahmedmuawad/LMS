@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Core\Access\Roles;
 use App\Core\Admin\Resource;
+use App\Core\Entitlements\Quota;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,12 +19,15 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 final class ResourceController
 {
-    public function __construct(private readonly Roles $roles) {}
+    public function __construct(
+        private readonly Roles $roles,
+        private readonly Quota $quota,
+    ) {}
 
     public function index(Request $request, string $resource): View
     {
         $instance = $this->resolve($resource);
-        $this->authorise($request, $instance->viewAbility());
+        $this->guard($request, $instance, $instance->viewAbility());
 
         return view('admin.resource-index', [
             'resource' => $instance,
@@ -35,7 +39,7 @@ final class ResourceController
     public function create(Request $request, string $resource): View
     {
         $instance = $this->resolveCreatable($resource);
-        $this->authorise($request, $instance->manageAbility());
+        $this->guard($request, $instance, $instance->manageAbility());
 
         return view('admin.resource-form', [
             'resource' => $instance,
@@ -47,7 +51,21 @@ final class ResourceController
     public function store(Request $request, string $resource): RedirectResponse
     {
         $instance = $this->resolveCreatable($resource);
-        $this->authorise($request, $instance->manageAbility());
+        $this->guard($request, $instance, $instance->manageAbility());
+
+        /*
+         | الحدّ يُفحص هنا لا في كل مورد على حدة.
+         |
+         | هذه هي نقطة الاختناق الوحيدة لإنشاء أي صفٍّ في اللوحة، ففحصٌ
+         | واحد هنا يغطّي الموارد الستّة والثلاثين — ومورد جديد ينسى
+         | حدّه لن يُنشئ ثغرة، لأن `quotaKey()` تُعلَن حيث تُعرَف.
+         |
+         | والفحص قبل التحقّق من المدخلات: من بلغ حدّه لا يُطالَب
+         | بتصحيح نموذجٍ لن يُقبل على أي حال.
+         */
+        if (($quota = $instance->quotaKey($request)) !== null) {
+            $this->quota->enforce($quota);
+        }
 
         $validated = $request->validate($instance->validationRules('create'));
 
@@ -60,7 +78,7 @@ final class ResourceController
     public function edit(Request $request, string $resource, string $id): View
     {
         $instance = $this->resolveCreatable($resource);
-        $this->authorise($request, $instance->manageAbility());
+        $this->guard($request, $instance, $instance->manageAbility());
 
         return view('admin.resource-form', [
             'resource' => $instance,
@@ -72,7 +90,7 @@ final class ResourceController
     public function update(Request $request, string $resource, string $id): RedirectResponse
     {
         $instance = $this->resolveCreatable($resource);
-        $this->authorise($request, $instance->manageAbility());
+        $this->guard($request, $instance, $instance->manageAbility());
 
         $record = $this->findOrFail($instance, $id, $request);
 
@@ -87,7 +105,7 @@ final class ResourceController
     public function destroy(Request $request, string $resource, string $id): RedirectResponse
     {
         $instance = $this->resolveCreatable($resource);
-        $this->authorise($request, $instance->manageAbility());
+        $this->guard($request, $instance, $instance->manageAbility());
 
         $this->findOrFail($instance, $id, $request)->delete();
 
@@ -126,6 +144,23 @@ final class ResourceController
     private function findOrFail(Resource $resource, string $id, Request $request): Model
     {
         return $resource->queryFor($request->user())->findOrFail($id);
+    }
+
+    /**
+     * ميزة المورد تُفحص مع صلاحيته: كلاهما شرطٌ للدخول.
+     *
+     * جُمعا في دالة واحدة عمداً — فمن يضيف فعلاً جديداً للمتحكّم
+     * يستدعي حارساً واحداً، ولا ينسى نصفه.
+     */
+    private function guard(Request $request, Resource $instance, string $ability): void
+    {
+        $feature = $instance->feature();
+
+        if ($feature !== null && tenant() !== null && ! tenant()->allows($feature)) {
+            abort(402, __('هذه الميزة غير متاحة في باقتك.'));
+        }
+
+        $this->authorise($request, $ability);
     }
 
     private function authorise(Request $request, string $ability): void

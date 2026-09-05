@@ -40,7 +40,15 @@
 
         // المزايا المنطقية وحدها (قيمتها "1") — أما الحدود فقد عُرضت أعلاه
         $enabled = $values->filter(fn ($value): bool => (string) $value === '1')->keys();
-        $shown = collect($headlineFeatures)->filter(fn (string $key): bool => $enabled->contains($key))->take(8);
+        /*
+     | الجاهز أولاً ثم «قريباً»: البطاقة التي تبدأ بوعودٍ تبدو وعوداً
+     | كلّها، والمشتري يقرأ أول ثلاثة أسطر ثم يقرّر.
+     */
+    $soonKeys = config('feature-status.coming_soon', []);
+    $shown = collect($headlineFeatures)
+        ->filter(fn (string $key): bool => $enabled->contains($key))
+        ->sortBy(fn (string $key): int => in_array($key, $soonKeys, true) ? 1 : 0)
+        ->take(8);
 
         return [
             'key' => $plan->key,
@@ -52,7 +60,10 @@
             'modes' => collect($plan->modes ?? [])
                 ->map(fn (string $mode): string => $modes[$mode]['name'] ?? $mode)
                 ->all(),
-            'features' => $shown->map(fn (string $key): string => $featureNames[$key]['name'] ?? $key)->values()->all(),
+            'features' => $shown->map(fn (string $key): array => [
+                'name' => $featureNames[$key]['name'] ?? $key,
+                'soon' => in_array($key, config('feature-status.coming_soon', []), true),
+            ])->values()->all(),
             'more' => max(0, $enabled->count() - $shown->count()),
         ];
     });
@@ -156,8 +167,24 @@
                             <ul class="grid gap-1.5">
                                 @foreach($card['features'] as $feature)
                                     <li @class(['flex items-start gap-2.5 text-sm', 'text-on-spot-muted' => $featured, 'text-muted' => ! $featured])>
-                                        <span @class(['shrink-0 leading-6', 'text-on-spot-accent' => $featured, 'text-success' => ! $featured]) aria-hidden="true">✓</span>
-                                        <span class="min-w-0">{{ $feature }}</span>
+                                        <span @class([
+                                            'shrink-0 leading-6',
+                                            'text-on-spot-accent' => $featured && ! $feature['soon'],
+                                            'text-success' => ! $featured && ! $feature['soon'],
+                                            'opacity-50' => $feature['soon'],
+                                        ]) aria-hidden="true">{{ $feature['soon'] ? '◔' : '✓' }}</span>
+
+                                        <span class="min-w-0">
+                                            {{ $feature['name'] }}
+                                            @if($feature['soon'])
+                                                {{-- الوسم بجوار الميزة لا في حاشية: الحاشية لا تُقرأ --}}
+                                                <span @class([
+                                                    'inline-block align-middle text-[10px] font-semibold rounded px-1.5 py-0.5 ms-1',
+                                                    'bg-spot-line text-on-spot-muted' => $featured,
+                                                    'bg-surface-sunken text-subtle' => ! $featured,
+                                                ])>{{ __('قريباً') }}</span>
+                                            @endif
+                                        </span>
                                     </li>
                                 @endforeach
                             </ul>

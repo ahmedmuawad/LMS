@@ -141,6 +141,7 @@ return [
             'label' => 'النظام',
             'items' => [
                 ['key' => 'billing', 'label' => 'الاشتراك والفواتير', 'icon' => '◨', 'route' => 'admin.billing'],
+                ['key' => 'usage', 'label' => 'استهلاك باقتك', 'icon' => '◑', 'route' => 'admin.usage', 'ability' => Ability::BILLING_MANAGE],
                 ['key' => 'notifications', 'label' => 'الإشعارات', 'icon' => '◔', 'route' => 'admin.notifications.matrix'],
                 ['key' => 'platform-mode', 'label' => 'نمط المنصة', 'icon' => '◎', 'route' => 'admin.platform-mode', 'ability' => Ability::SETTINGS_MANAGE],
                 ['key' => 'settings', 'label' => 'الإعدادات', 'icon' => '⚙', 'route' => 'admin.settings.index'],

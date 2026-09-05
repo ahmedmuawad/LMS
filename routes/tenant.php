@@ -58,6 +58,7 @@ use App\Http\Controllers\Tenant\ImpersonationController;
 use App\Http\Controllers\Tenant\OnboardingController;
 use App\Http\Controllers\Tenant\PlatformModeController;
 use App\Http\Controllers\Tenant\SettingsController;
+use App\Http\Controllers\Tenant\UsageController;
 use App\Http\Middleware\ApplyTenantTheme;
 use App\Http\Middleware\EnsureAbility;
 use App\Http\Middleware\EnsurePanelAccess;
@@ -352,6 +353,9 @@ $tenantRoutes = function (): void {
      */
     Route::middleware([EnsurePanelAccess::class, RequireOnboarding::class, EnsureAbility::class.':'.Ability::SETTINGS_MANAGE])
         ->group(function (): void {
+            // استهلاك الحدود — الحدّ الذي لا يُرى يُصطدَم به فجأةً
+            Route::get('/admin/usage', UsageController::class)->name('admin.usage');
+
             Route::get('/admin/platform-mode', [PlatformModeController::class, 'show'])->name('admin.platform-mode');
             Route::put('/admin/platform-mode', [PlatformModeController::class, 'update'])->name('admin.platform-mode.update');
         });
