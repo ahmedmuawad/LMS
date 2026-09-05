@@ -50,8 +50,14 @@ it('never caches a page rendered for a signed-in user', function () {
         $this->actingAs($user);
     });
 
-    tenantGet($this->tenant, '/')->assertOk()->assertHeader('X-Page-Cache', 'miss');
-    tenantGet($this->tenant, '/')->assertOk()->assertHeader('X-Page-Cache', 'miss');
+    /*
+     | وغيابُ الترويسة هو الإثبات.
+     |
+     | المِدلوير يخرج مبكّراً لما لا يُخزَّن، فلا يضع ترويسةً أصلاً —
+     | ووجودُ «miss» يعني أنه نظر في الكاش، وهو ما لا نريده هنا.
+     */
+    tenantGet($this->tenant, '/')->assertOk()->assertHeaderMissing('X-Page-Cache');
+    tenantGet($this->tenant, '/')->assertOk()->assertHeaderMissing('X-Page-Cache');
 });
 
 it('leaves a page out of the cache when the tenant did not choose it', function () {
@@ -61,8 +67,8 @@ it('leaves a page out of the cache when the tenant did not choose it', function 
         $settings->flush();
     });
 
-    tenantGet($this->tenant, '/')->assertOk()->assertHeader('X-Page-Cache', 'miss');
-    tenantGet($this->tenant, '/')->assertOk()->assertHeader('X-Page-Cache', 'miss');
+    tenantGet($this->tenant, '/')->assertOk()->assertHeaderMissing('X-Page-Cache');
+    tenantGet($this->tenant, '/')->assertOk()->assertHeaderMissing('X-Page-Cache');
 });
 
 it('never caches the panel whatever the setting says', function () {

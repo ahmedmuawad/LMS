@@ -113,6 +113,8 @@ return [
                 ['key' => 'shipping-zones', 'label' => 'مناطق الشحن', 'icon' => '⇥', 'module' => 'commerce'],
                 ['key' => 'recharge-codes', 'label' => 'أكواد الشحن', 'icon' => '⌗', 'module' => 'commerce', 'feature' => 'recharge_codes'],
                 ['key' => 'refunds', 'label' => 'طلبات الاسترداد', 'icon' => '↩', 'module' => 'commerce'],
+                // النزاع غير الاسترداد: قرارُ البنك لا قرارُ المشترك، وله مهلة
+                ['key' => 'disputes', 'label' => 'النزاعات', 'icon' => '⚖', 'route' => 'admin.disputes', 'module' => 'commerce', 'ability' => Ability::ORDERS_MANAGE],
                 ['key' => 'payouts', 'label' => 'تحويلات المدرّسين', 'icon' => '⇄', 'module' => 'payouts'],
                 ['key' => 'earnings', 'label' => 'الأرباح والعمولات', 'icon' => '⛁', 'module' => 'payouts', 'route' => 'admin.instructor.earnings', 'ability' => Ability::EARNINGS_VIEW],
             ],
@@ -159,6 +161,10 @@ return [
                 ['key' => 'api', 'label' => 'الواجهة البرمجية', 'icon' => '⚯', 'route' => 'admin.api', 'feature' => 'api_access', 'ability' => Ability::SETTINGS_MANAGE],
                 // الـWebhooks تتبع الواجهة البرمجية: من لا باقةَ له فيها لا يربط نظاماً خارجياً أصلاً
                 ['key' => 'webhooks', 'label' => 'الـ Webhooks', 'icon' => '⇲', 'route' => 'admin.webhooks', 'feature' => 'api_access', 'ability' => Ability::SETTINGS_MANAGE],
+                // النسخ تعمل منذ كُتبت؛ وهذه أوّل شاشةٍ تُظهرها لصاحبها
+                ['key' => 'backups', 'label' => 'النسخ الاحتياطية', 'icon' => '⛁', 'route' => 'admin.backups', 'ability' => Ability::SETTINGS_MANAGE],
+                // من يملك ماذا — كان في ملفٍّ لا يراه المشترك ولا يعدّله
+                ['key' => 'roles', 'label' => 'الأدوار والصلاحيات', 'icon' => '⚿', 'route' => 'admin.roles', 'ability' => Ability::SETTINGS_MANAGE],
                 // نصوص الواجهة: ترجمتها، وإعادة صياغتها بكلمات المشترك
                 ['key' => 'translations', 'label' => 'نصوص الواجهة', 'icon' => '⌘', 'route' => 'admin.translations', 'ability' => Ability::SETTINGS_MANAGE],
                 ['key' => 'notifications', 'label' => 'الإشعارات', 'icon' => '◔', 'route' => 'admin.notifications.matrix'],

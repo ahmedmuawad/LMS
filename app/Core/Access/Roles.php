@@ -6,6 +6,8 @@ namespace App\Core\Access;
 
 use App\Models\User;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Support\Facades\DB;
+use Throwable;
 
 /**
  * الجواب الوحيد على «هل يستطيع؟».
@@ -16,6 +18,16 @@ use Illuminate\Contracts\Auth\Authenticatable;
  */
 final class Roles
 {
+    /**
+     * تُقرأ مرّةً في الطلب.
+     *
+     * `Roles` مفردةٌ في الحاوية، والحراسة تُنادى عشرات المرّات في
+     * الصفحة الواحدة.
+     *
+     * @var array<string, list<string>>|null
+     */
+    private ?array $overrides = null;
+
     /**
      * `Authenticatable` لا `User` عمداً.
      *
@@ -37,14 +49,69 @@ final class Roles
         return in_array($ability, $this->abilitiesFor((string) $user->role), true);
     }
 
-    /** @return list<string> */
+    /**
+     * @return list<string>
+     */
     public function abilitiesFor(string $role): array
     {
+        /*
+         | صاحب المنصّة قبل كل شيء.
+         |
+         | ولا يُقرأ له صفٌّ في القاعدة: مشتركٌ ينزع بالخطأ صلاحيةً من
+         | صاحب المنصّة يُقفل نفسه خارج لوحته، ولا بابَ إلا نحن.
+         */
         if ($role === 'owner') {
             return Ability::all();
         }
 
-        return array_values((array) config('roles.abilities.'.$role, []));
+        return $this->overrides()[$role] ?? array_values((array) config('roles.abilities.'.$role, []));
+    }
+
+    /**
+     * ما عدّله المشترك — يعلو على `config/roles.php`.
+     *
+     * ويُقرأ مرّةً في الطلب: الحراسة تُنادى عشرات المرّات في الصفحة
+     * الواحدة، واستعلامٌ لكلٍّ منها يجعل اللوحة تزحف.
+     *
+     * @return array<string, list<string>>
+     */
+    private function overrides(): array
+    {
+        if ($this->overrides !== null) {
+            return $this->overrides;
+        }
+
+        if (tenant() === null) {
+            return $this->overrides = [];
+        }
+
+        try {
+            return $this->overrides = DB::table('role_abilities')->get()
+                ->mapWithKeys(function (object $row): array {
+                    $abilities = json_decode((string) $row->abilities, true);
+
+                    /*
+                     | ولا يُقبَل إلا ما يعرفه الكود.
+                     |
+                     | صلاحيةٌ حُذفت من `Ability` وبقيت في صفٍّ قديم
+                     | تُمنح لاسمٍ لا يحرسه شيء — وهي لا تفتح باباً،
+                     | لكنّها تُظهر في الشاشة صلاحيةً لا وجود لها.
+                     */
+                    return [(string) $row->role => array_values(array_intersect(
+                        is_array($abilities) ? $abilities : [],
+                        Ability::all(),
+                    ))];
+                })->all();
+        } catch (Throwable) {
+            // مشتركٌ لم تصله الهجرة بعد يعمل بتوزيع الإعدادات
+            return $this->overrides = [];
+        }
+    }
+
+    /** يُنسى المقروء بعد كل تعديل */
+    public function forgetOverrides(): void
+    {
+        $this->overrides = null;
     }
 
     public function mayEnterPanel(?Authenticatable $user): bool

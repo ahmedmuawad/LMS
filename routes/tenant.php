@@ -28,6 +28,7 @@ use App\Http\Controllers\Center\SelfCheckInController;
 use App\Http\Controllers\Center\StudentFileController;
 use App\Http\Controllers\Commerce\AdminOrderController;
 use App\Http\Controllers\Commerce\CartController;
+use App\Http\Controllers\Commerce\DisputeController;
 use App\Http\Controllers\Commerce\CheckoutController;
 use App\Http\Controllers\Commerce\ShopController;
 use App\Http\Controllers\Commerce\WalletController;
@@ -96,6 +97,8 @@ use App\Http\Controllers\Tenant\OnboardingController;
 use App\Http\Controllers\Tenant\PlatformModeController;
 use App\Http\Controllers\Tenant\SettingsController;
 use App\Http\Controllers\Tenant\UsageController;
+use App\Http\Controllers\Tenant\BackupController;
+use App\Http\Controllers\Tenant\RoleController;
 use App\Http\Controllers\Tenant\TranslationController;
 use App\Http\Controllers\Tenant\WebhookEndpointController;
 use App\Http\Controllers\Tenant\WebhookSubscriptionController;
@@ -814,6 +817,40 @@ $tenantRoutes = function (): void {
              | واحد فيها — فمن اختار الإنجليزية يرى صفحةً إنجليزية
              | الاتجاه عربية النصّ. وهذه الشاشة هي ما يملؤها.
              */
+            /*
+             | الأدوار والصلاحيات — توزيعٌ يراه المشترك ويعدّله.
+             |
+             | كان في `config/roles.php` وحده: واحدٌ لكل المنصّة لا
+             | يراه ولا يعدّله، فكل طلبٍ يخصّ فريقه يصير تذكرةً عندنا.
+             */
+            /*
+             | النسخ الاحتياطية — تعمل منذ كُتبت ولا يراها أحد.
+             |
+             | فيسأل المشترك عنها، أو الأسوأ: لا يسأل ويظنّ أن لا نسخَ
+             | عندنا. والاسم يُبنى من هويّته لا من الرابط — وإلا نزّل
+             | قاعدة جاره بتبديل حرف.
+             */
+            /*
+             | النزاعات — والمهلة هي سبب الشاشة.
+             |
+             | إخطارُ البوابة يصل بريداً لا يقرؤه أحد، فتفوت المهلة
+             | ويخسر المشترك مالاً كان يملك دليلَه.
+             */
+            Route::get('/admin/disputes', [DisputeController::class, 'index'])->name('admin.disputes');
+            Route::put('/admin/disputes/{id}', [DisputeController::class, 'update'])
+                ->whereNumber('id')->name('admin.disputes.update');
+
+            Route::get('/admin/backups', [BackupController::class, 'index'])->name('admin.backups');
+            Route::post('/admin/backups', [BackupController::class, 'store'])->name('admin.backups.store');
+            Route::get('/admin/backups/{date}', [BackupController::class, 'download'])
+                ->where('date', '[0-9-]+')->name('admin.backups.download');
+
+            Route::get('/admin/roles', [RoleController::class, 'index'])->name('admin.roles');
+            Route::put('/admin/roles/{role}', [RoleController::class, 'update'])
+                ->where('role', '[a-z_]+')->name('admin.roles.update');
+            Route::post('/admin/roles/{role}/reset', [RoleController::class, 'reset'])
+                ->where('role', '[a-z_]+')->name('admin.roles.reset');
+
             Route::get('/admin/translations', [TranslationController::class, 'index'])->name('admin.translations');
             Route::post('/admin/translations', [TranslationController::class, 'store'])->name('admin.translations.store');
             Route::post('/admin/translations/rescan', [TranslationController::class, 'rescan'])

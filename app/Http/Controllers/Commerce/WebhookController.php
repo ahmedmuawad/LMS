@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Commerce;
 
 use App\Modules\Commerce\Actions\RecordOrderPayment;
+use App\Modules\Commerce\Gateways\DisputeListener;
 use App\Modules\Commerce\Gateways\GatewayManager;
 use App\Modules\Commerce\Models\Order;
 use Illuminate\Http\RedirectResponse;
@@ -23,12 +24,24 @@ final class WebhookController
     public function __construct(
         private readonly GatewayManager $gateways,
         private readonly RecordOrderPayment $payments,
+        private readonly DisputeListener $disputes,
     ) {}
 
     public function __invoke(Request $request, string $gateway): Response
     {
         if (! $this->gateways->has($gateway)) {
             return response('unknown gateway', 404);
+        }
+
+        /*
+         | النزاع يُلتقط قبل الدفع.
+         |
+         | إخطارُه ليس `PaymentResult`: لا طلبَ يُحدَّث ولا مبلغَ
+         | يُحصَّل — بل مالٌ سُحب ومهلةٌ تبدأ. وتمريرُه على مسار الدفع
+         | يجعله «ردّاً غير مفهوم» يُهمَل بصمت، فتفوت المهلة.
+         */
+        if ($this->disputes->fromRequest($gateway, $request)) {
+            return response('ok', 200);
         }
 
         $result = $this->gateways->resolve($gateway)->handleCallback($request);

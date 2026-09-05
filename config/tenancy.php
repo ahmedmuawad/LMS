@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Core\Tenancy\Bootstrappers\ScopedStateBootstrapper;
 use App\Core\Tenancy\Bootstrappers\TenantMediaUrlBootstrapper;
 use App\Core\Tenancy\Models\Domain;
 use App\Core\Tenancy\Models\Tenant;
@@ -61,6 +62,14 @@ return [
         // بعد بوتستراب الملفات: ذاك يضبط الجذر، وهذا يضبط الرابط
         TenantMediaUrlBootstrapper::class,
         QueueTenancyBootstrapper::class,
+        /*
+         | آخر واحد: يُنسي ما حُفظ عن المشترك السابق.
+         |
+         | `Roles` مفردةٌ تحمل توزيع الصلاحيات؛ وبلا هذا تحمل توزيع
+         | أوّل مشترك مرّ بها إلى كل من بعده — في الطابور والأوامر
+         | والاختبارات، حيث يمرّ مشتركان في عمليةٍ واحدة.
+         */
+        ScopedStateBootstrapper::class,
         // Stancl\Tenancy\Bootstrappers\RedisTenancyBootstrapper::class, // Note: phpredis is needed
     ],
 

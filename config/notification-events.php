@@ -120,6 +120,18 @@ return [
         'channels' => ['mail', 'database'], 'default' => ['mail', 'database'],
         'variables' => [...$person, 'order_number', 'amount', 'reason'],
     ],
+    /*
+     | النزاع أعجلُ ما يقع في التجارة.
+     |
+     | البوابة تُمهل أياماً معدودة، ومن لا يفتح لوحته يومياً يجب أن
+     | يصله الخبر في بريده وواتسابه — وإلا فاتت المهلة وخسر المال
+     | وهو يملك دليلَه.
+     */
+    'commerce.dispute_opened' => [
+        'group' => 'commerce', 'label' => 'نزاع على دفعة', 'audience' => 'staff', 'module' => 'commerce',
+        'channels' => ['mail', 'whatsapp', 'database'], 'default' => ['mail', 'whatsapp', 'database'],
+        'variables' => [...$person, 'order_number', 'amount', 'reason', 'due_by'],
+    ],
     'commerce.abandoned_cart' => [
         'group' => 'commerce', 'label' => 'سلة متروكة', 'audience' => 'customer', 'module' => 'commerce',
         'channels' => ['mail', 'whatsapp', 'database'], 'default' => ['mail'],
