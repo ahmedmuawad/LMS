@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Tenant;
 
+use App\Core\Auth\LegacyPassword;
 use App\Core\Auth\TwoFactor;
 use App\Core\Security\DeviceGuard;
 use App\Http\Controllers\Auth\TwoFactorController;
@@ -62,7 +63,7 @@ final class AuthController
         $guard = Auth::guard();
         $payload = [$field => $credentials['email'], 'password' => $credentials['password']];
 
-        if (! $guard->validate($payload)) {
+        if (! $guard->validate($payload) && ! $this->legacyMatches($field, $credentials)) {
             RateLimiter::hit($key, 300);
 
             throw ValidationException::withMessages([
@@ -160,5 +161,42 @@ final class AuthController
         return in_array($user->role, User::panelRoles(), true)
             ? null
             : $this->deviceLimit();
+    }
+
+    /**
+     * كلمة مرور منقولة من ووردبريس.
+     *
+     * `legacy_hash` كان عموداً يُعرض في اللوحة ولا يقرؤه أحدٌ عند
+     * الدخول — فكلّ طالبٍ مستورَد لا يستطيع الدخول أبداً ولا رسالة
+     * تشرح له. وهذا يُبطل الاستيراد كلّه: مدرسةٌ نقلَت مئتي طالب
+     * فلم يدخل منهم أحد.
+     *
+     * وأولُ دخولٍ ناجح يُعيد التجزئة بمعيارنا ويُطفئ العلَم، فتنتقل
+     * المدرسة كلّها خلال أسابيع بلا أن يشعر أحد.
+     *
+     * @param  array{email:string, password:string}  $credentials
+     */
+    private function legacyMatches(string $field, array $credentials): bool
+    {
+        $user = User::where($field, $credentials['email'])->where('legacy_hash', true)->first();
+
+        if ($user === null) {
+            return false;
+        }
+
+        if (! app(LegacyPassword::class)->verifyAndUpgrade($user, $credentials['password'])) {
+            return false;
+        }
+
+        /*
+         | نُعيد سؤال الحارس بعد الترقية.
+         |
+         | فبقيّة المسار تعتمد على `getLastAttempted()`، وتخطّيها
+         | هنا يجعل التوثيق بخطوتين وحالةَ الحساب بلا فحص.
+         */
+        return Auth::guard()->validate([
+            $field => $credentials['email'],
+            'password' => $credentials['password'],
+        ]);
     }
 }
