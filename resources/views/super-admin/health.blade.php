@@ -23,8 +23,15 @@
                     <li class="flex items-start justify-between gap-3">
                         <div class="min-w-0">
                             <p class="text-sm font-medium">{{ $check['label'] }}</p>
-                            @if($check['error'])
-                                <p class="text-xs text-danger mt-0.5 break-words">{{ $check['error'] }}</p>
+                            {{-- التفصيل يُعرض دائماً لا عند الفشل وحده:
+                                 «لا مهام عالقة» يطمئن، و«لم يعمل منذ ساعتين» يُنذر —
+                                 وكلاهما أنفع من كلمة «سليم» وحدها. --}}
+                            @if($check['detail'] ?? null)
+                                <p @class([
+                                    'text-xs mt-0.5 break-words leading-relaxed',
+                                    'text-danger' => ! $check['ok'],
+                                    'text-muted' => $check['ok'],
+                                ])>{{ $check['detail'] }}</p>
                             @endif
                         </div>
                         <x-ui.badge :tone="$check['ok'] ? 'success' : 'danger'" class="shrink-0">

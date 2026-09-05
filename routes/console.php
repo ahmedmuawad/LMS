@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
@@ -50,4 +51,26 @@ Schedule::command('billing:run')
 Schedule::command('center:remind')
     ->everyFiveMinutes()
     ->withoutOverlapping(10)
+    ->runInBackground();
+
+
+/*
+ | ختم المجدول — يُكتب في كل دورة.
+ |
+ | صفحة الصحّة كانت تقول «الطوابير سليمة» لأن الإعداد مكتوب، ولا
+ | عاملَ مركَّب أصلاً. والإعداد لا يُثبت التشغيل؛ والختم يُثبته.
+ */
+Schedule::call(fn () => Cache::put('scheduler:last_run', now()->toDateTimeString(), now()->addDay()))
+    ->everyFiveMinutes()
+    ->name('scheduler-heartbeat');
+
+/*
+ | النسخ الاحتياطي — كل ليلة قبل ذروة الاستخدام.
+ |
+ | لم يكن ثمة نسخٌ احتياطي إطلاقاً. ومنصّةٌ تحمل بيانات مدارس
+ | وأقساط طلبة بلا نسخة ليست منصّةً بل مقامرة.
+ */
+Schedule::command('backup:run')
+    ->dailyAt('02:00')
+    ->withoutOverlapping(120)
     ->runInBackground();

@@ -73,11 +73,23 @@ final class BackupDatabases extends Command
     {
         $connection = config('database.connections.'.config('tenancy.database.central_connection'));
 
-        // SQLite في التطوير: نسخُ الملفّ هو النسخة الاحتياطية
+        /*
+         | SQLite في التطوير: نسخُ الملفّ هو النسخة الاحتياطية.
+         |
+         | و`database` قد يكون مساراً مطلقاً (القاعدة المركزية) أو
+         | اسم ملفٍّ داخل مجلد القواعد (قواعد المشتركين) — فيُجرَّب
+         | كما هو أولاً ثم يُبنى المسار.
+         */
         if (($connection['driver'] ?? '') === 'sqlite') {
-            $file = database_path($database);
+            $file = File::exists($database) ? $database : database_path($database);
 
-            return File::exists($file) && File::copy($file, str_replace('.sql.gz', '.sqlite', $target));
+            if (! File::exists($file)) {
+                $this->error("[{$database}] الملف غير موجود.");
+
+                return false;
+            }
+
+            return File::copy($file, str_replace('.sql.gz', '.sqlite', $target));
         }
 
         $command = sprintf(

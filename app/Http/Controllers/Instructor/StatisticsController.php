@@ -76,11 +76,21 @@ final class StatisticsController
         return view('instructor.statistics', [
             'rows' => $rows,
             'enrollmentsByDay' => $this->enrollmentsByDay($ids),
+            /*
+             | الإيراد يجمع مصدرَي المال لا أحدهما.
+             |
+             | بيع الكورسات وتحصيل الأقساط كلاهما مالٌ دخل. وعرضُ
+             | «الإيراد ٠٫٠٠» بجوار «محصَّل الأقساط ١٠٠٫٠٠» يجعل
+             | الرقمين يتناقضان أمام صاحبهما، فلا يثق بأيّهما.
+             |
+             | والبطاقة الثانية تبقى تفصيلاً للمجموع لا بديلاً عنه.
+             */
             'revenue' => Money::fromMinor(
                 (int) $this->scope->byInstructor(InstructorEarning::query(), $user)
                     ->whereIn('status', ['available', 'paid'])
                     ->where('created_at', '>=', now()->subDays(self::DAYS))
-                    ->sum('amount_minor'),
+                    ->sum('amount_minor')
+                + $this->feesCollectedMinor(),
                 $currency,
             ),
             'sales' => (int) $this->scope->byInstructor(OrderItem::query(), $user)
@@ -153,15 +163,26 @@ final class StatisticsController
     /** ما حُصِّل من أقساط في المدة، أو null إن كانت الأقساط مطفأة */
     private function feesCollected(string $currency): ?Money
     {
-        if (! module_enabled('center-finance') || ! Schema::hasTable('center_payments')) {
+        if (! $this->tracksFees()) {
             return null;
         }
 
-        return Money::fromMinor(
-            (int) DB::table('center_payments')
-                ->where('paid_at', '>=', now()->subDays(self::DAYS))
-                ->sum('amount_minor'),
-            $currency,
-        );
+        return Money::fromMinor($this->feesCollectedMinor(), $currency);
+    }
+
+    private function feesCollectedMinor(): int
+    {
+        if (! $this->tracksFees()) {
+            return 0;
+        }
+
+        return (int) DB::table('center_payments')
+            ->where('paid_at', '>=', now()->subDays(self::DAYS))
+            ->sum('amount_minor');
+    }
+
+    private function tracksFees(): bool
+    {
+        return module_enabled('center-finance') && Schema::hasTable('center_payments');
     }
 }
