@@ -6,11 +6,39 @@
     $watermark = setting('security.video_watermark', true) ? auth()->user()?->email : null;
     // الرابط يُوقَّع هنا لكل طلب ولا يُخزَّن؛ الرابط الثابت يُوزَّع خلال دقائق
     $src = app(App\Modules\Lms\VideoUrl::class)->for($lesson, auth()->id());
+
+    /*
+     | نقاط التفاعل — تُحمَّل مرة واحدة إلى المتصفّح.
+     |
+     | وحالة «أُجيب» تُحسب هنا لا في المتصفّح: من أجاب أمس لا يُسأل
+     | اليوم مرة أخرى عند كل إعادة مشاهدة.
+     */
+    $me = auth()->user();
+    $moments = $me === null ? collect() : App\Modules\Lms\Models\VideoMoment::where('lesson_id', $lesson->getKey())
+        ->with(['question', 'responses' => fn ($q) => $q->where('user_id', $me->getKey())])
+        ->orderBy('at_second')
+        ->get()
+        ->map(fn (App\Modules\Lms\Models\VideoMoment $m): array => [
+            'id' => $m->getKey(),
+            'at' => (int) $m->at_second,
+            'kind' => $m->kind,
+            'required' => (bool) $m->is_required,
+            'answered' => $m->responses->isNotEmpty(),
+            'html' => $m->kind === 'question'
+                ? (string) ($m->question?->body ?? '')
+                : e((string) ($m->body ?? $m->url ?? '')),
+        ]);
 @endphp
 
 <div class="grid gap-4">
     @if($lesson->type === 'video')
         <div class="surface-card overflow-hidden relative"
+             @if($moments->isNotEmpty())
+                 data-moments-root
+                 data-moments="{{ $moments->toJson() }}"
+                 data-moment-token="{{ csrf_token() }}"
+                 data-moment-url="{{ url('/moments/__ID__/respond') }}"
+             @endif
              x-data="lessonPlayer({
                  url: @js(url('/learn/'.$course->slug.'/'.$item->getKey().'/heartbeat')),
                  token: @js(csrf_token()),
@@ -31,6 +59,33 @@
                         <source src="{{ $src }}">
                         {{ __('متصفّحك لا يدعم تشغيل الفيديو.') }}
                     </video>
+
+                    {{--
+                        لوحة النقطة فوق الفيديو لا تحته.
+                        الطالب ينظر إلى الفيديو، ولوحةٌ أسفل الشاشة
+                        تظهر بلا أن يراها فيظنّ الفيديو تعطّل.
+                    --}}
+                    <div data-moment-panel hidden
+                         class="absolute inset-0 z-10 grid place-items-center p-4 sm:p-8
+                                bg-[color-mix(in_oklab,var(--sem-surface)_92%,transparent)]">
+                        <div class="w-full max-w-[520px] surface-card p-5 grid gap-4">
+                            <div data-moment-body
+                                 class="text-sm leading-relaxed [&_p]:mb-2 [&_img]:max-w-full"></div>
+
+                            <form data-moment-form class="grid gap-3">
+                                <label class="sr-only" for="moment-answer">{{ __('إجابتك') }}</label>
+                                <x-ui.input id="moment-answer" data-moment-answer
+                                            :placeholder="__('إجابتك…')" autocomplete="off" />
+                                <div class="flex flex-wrap gap-2">
+                                    <x-ui.button type="submit" size="sm">{{ __('تحقّق') }}</x-ui.button>
+                                    <x-ui.button type="button" size="sm" variant="ghost"
+                                                 data-moment-skip>{{ __('تخطَّ') }}</x-ui.button>
+                                </div>
+                            </form>
+
+                            <p data-moment-result hidden class="text-sm"></p>
+                        </div>
+                    </div>
                 @else
                     <p class="absolute inset-0 grid place-items-center text-muted text-sm px-4 text-center">{{ __('لم يُرفع فيديو هذا الدرس بعد.') }}</p>
                 @endif

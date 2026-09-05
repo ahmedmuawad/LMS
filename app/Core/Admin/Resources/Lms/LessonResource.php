@@ -48,11 +48,23 @@ final class LessonResource extends Resource
      */
     public function nextStep(Model $record, string $key): ?array
     {
-        return [
-            'url' => url('/admin/lessons/'.$record->getKey().'/attachments'),
-            'label' => __('مرفقات الدرس'),
-            'hint' => __('ارفع ملفّات PDF أو Word هنا — يقرؤها الطالب داخل المنصة بعلامة مائية باسمه.'),
-        ];
+        /*
+         | الخطوة تتبع نوع الدرس.
+         |
+         | درسُ الفيديو خطوته نقاط التفاعل، ودرسُ الملف مرفقاته —
+         | ولافتةٌ واحدة لكليهما تدلّ نصف من يقرؤها على غير حاجته.
+         */
+        return $record->type === 'video'
+            ? [
+                'url' => url('/admin/lessons/'.$record->getKey().'/moments'),
+                'label' => __('نقاط التفاعل'),
+                'hint' => __('ضع سؤالاً عند الدقيقة التي تشرح فيها أصعب فكرة — هناك يظهر من فهم.'),
+            ]
+            : [
+                'url' => url('/admin/lessons/'.$record->getKey().'/attachments'),
+                'label' => __('مرفقات الدرس'),
+                'hint' => __('ارفع ملفّات PDF أو Word هنا — يقرؤها الطالب داخل المنصة بعلامة مائية باسمه.'),
+            ];
     }
 
     public function label(): string

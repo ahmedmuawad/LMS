@@ -3,6 +3,7 @@ import focus from '@alpinejs/focus';
 import collapse from '@alpinejs/collapse';
 import { initContentGuard } from './content-guard';
 import { initProctor } from './proctor';
+import { initVideoMoments } from './video-moments';
 
 import './math.js';
 import mathEditor from './math-editor.js';
@@ -285,3 +286,4 @@ initContentGuard();
 
 // المراقبة تعمل حيث توجد ورقةٌ مُراقَبة فقط
 document.querySelectorAll('[data-proctor-root]').forEach(initProctor);
+document.querySelectorAll('[data-moments-root]').forEach(initVideoMoments);

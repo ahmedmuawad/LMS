@@ -48,6 +48,7 @@ use App\Http\Controllers\Lms\LearnController;
 use App\Http\Controllers\Lms\LessonAttachmentController;
 use App\Http\Controllers\Lms\MyCoursesController;
 use App\Http\Controllers\Lms\QuizController;
+use App\Http\Controllers\Lms\VideoMomentController;
 use App\Http\Controllers\Lms\StudentAreaController;
 use App\Http\Controllers\Lms\StudentDashboardController;
 use App\Http\Controllers\Notifications\InboxController;
@@ -158,6 +159,10 @@ $tenantRoutes = function (): void {
 
         // حصص الطالب ومجموعاته ورابط دخولها — كان الرابط يُحفظ ولا يصل صاحبه
         Route::get('/my-classes', MyClassesController::class)->name('my-classes');
+
+        // إجابة نقطة تفاعل — تُقيَّم فوراً، فالفائدة في أن يعرف الآن
+        Route::post('/moments/{moment}/respond', [VideoMomentController::class, 'respond'])
+            ->whereNumber('moment')->name('moments.respond');
 
         /*
          | مرفقات الدروس — محروسةً لا بروابط تخزين عامة.
@@ -419,6 +424,19 @@ $tenantRoutes = function (): void {
              | للمرفق إعداداته (يُنزَّل؟ يُوسَم؟) وسجلّ فتحاته، وحشرُ
              | ذلك في نموذج الدرس يجعله صفحتين لا يُقرأ أيّهما.
              */
+            /*
+             | نقاط التفاعل داخل الفيديو.
+             |
+             | الطالب يشاهد عشرين دقيقة ثم ينتقل، ولا يعرف المدرّس
+             | أفَهِم أم مرّت الصورة أمامه.
+             */
+            Route::prefix('admin/lessons/{lesson}/moments')->whereNumber('lesson')
+                ->name('admin.lessons.moments.')->group(function (): void {
+                    Route::get('/', [VideoMomentController::class, 'index'])->name('index');
+                    Route::post('/', [VideoMomentController::class, 'store'])->name('store');
+                    Route::delete('/{id}', [VideoMomentController::class, 'destroy'])->whereNumber('id')->name('destroy');
+                });
+
             Route::prefix('admin/lessons/{lesson}/attachments')->whereNumber('lesson')
                 ->name('admin.lessons.attachments.')->group(function (): void {
                     Route::get('/', [LessonAttachmentController::class, 'index'])->name('index');

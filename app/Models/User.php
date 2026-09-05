@@ -8,6 +8,7 @@ use App\Core\Access\Roles;
 use App\Core\Auth\TwoFactor;
 use App\Modules\Gamification\Models\Badge;
 use App\Modules\Gamification\Models\LearningStreak;
+use App\Modules\Lms\Models\MomentResponse;
 use App\Modules\Lms\Models\Note;
 use App\Modules\Lms\Models\Wishlist;
 use Database\Factories\UserFactory;
@@ -165,6 +166,12 @@ class User extends Authenticatable implements MustVerifyEmail
     public function wishlist(): HasMany
     {
         return $this->hasMany(Wishlist::class);
+    }
+
+    /** إجاباته على نقاط التفاعل — تُنشأ عبر العلاقة فيُملأ user_id من الجالس */
+    public function momentResponses(): HasMany
+    {
+        return $this->hasMany(MomentResponse::class);
     }
 
     protected function casts(): array
