@@ -341,8 +341,13 @@
                                     </div>
 
                                     @if($left > 0)
-                                        <a href="{{ $wa ? 'https://wa.me/'.$wa : url('/register') }}"
-                                           @if($wa) target="_blank" rel="noopener" @endif
+                                        @php
+                                            $bookingUrl = auth()->check()
+                                                ? url('/checkout?group='.$group->id)
+                                                : ($wa ? 'https://wa.me/'.$wa.'?text='.rawurlencode(__('السلام عليكم، أود حجز مكان في مجموعة: :name', ['name' => $group->name])) : url('/register?group='.$group->id));
+                                        @endphp
+                                        <a href="{{ $bookingUrl }}"
+                                           @if(!auth()->check() && $wa) target="_blank" rel="noopener" @endif
                                            class="px-5 py-2.5 rounded-md bg-primary text-primary-on font-semibold shrink-0 hover:bg-primary-hover transition-colors">{{ __('احجز مكانك') }}</a>
                                     @endif
                                 </div>

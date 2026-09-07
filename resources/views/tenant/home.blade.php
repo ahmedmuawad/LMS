@@ -91,17 +91,29 @@
                                 </p>
                             @endif
 
-                            <div class="flex flex-wrap items-center gap-2 mt-1">
-                                @if($group->price_minor > 0)
-                                    <span class="font-mono text-sm font-semibold tabular">{{ $group->price()->format() }}</span>
-                                @endif
+                            <div class="flex flex-wrap items-center justify-between gap-2 mt-2 pt-2 border-t border-line">
+                                <div class="flex items-center gap-2">
+                                    @if($group->price_minor > 0)
+                                        <span class="font-mono text-sm font-semibold tabular">{{ $group->price()->format() }}</span>
+                                    @endif
 
-                                @php $left = $group->seatsLeft(); @endphp
-                                @if($left > 0 && $left <= 5)
-                                    {{-- الندرة بالرقم لا بكلمة «سارع» --}}
-                                    <x-ui.badge tone="warning">{{ __('بقي :n مقاعد', ['n' => $left]) }}</x-ui.badge>
-                                @elseif($left <= 0)
-                                    <x-ui.badge tone="neutral">{{ __('مكتملة') }}</x-ui.badge>
+                                    @php $left = $group->seatsLeft(); @endphp
+                                    @if($left > 0 && $left <= 5)
+                                        <x-ui.badge tone="warning">{{ __('بقي :n مقاعد', ['n' => $left]) }}</x-ui.badge>
+                                    @elseif($left <= 0)
+                                        <x-ui.badge tone="neutral">{{ __('مكتملة') }}</x-ui.badge>
+                                    @endif
+                                </div>
+
+                                @if($left > 0)
+                                    @php
+                                        $bookingUrl = auth()->check()
+                                            ? url('/checkout?group='.$group->id)
+                                            : ($wa ? 'https://wa.me/'.$wa.'?text='.rawurlencode(__('السلام عليكم، أود حجز مكان في مجموعة: :name', ['name' => $group->name])) : url('/register?group='.$group->id));
+                                    @endphp
+                                    <a href="{{ $bookingUrl }}"
+                                       @if(!auth()->check() && $wa) target="_blank" rel="noopener" @endif
+                                       class="px-3.5 py-1.5 rounded-md bg-primary text-primary-on text-xs font-semibold hover:bg-primary-hover transition-colors">{{ __('احجز مكانك') }}</a>
                                 @endif
                             </div>
                         </div>
