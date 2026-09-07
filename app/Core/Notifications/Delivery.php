@@ -22,7 +22,12 @@ final class Delivery
 
     public function url(): ?string
     {
-        $url = $this->data['url'] ?? null;
+        $url = $this->data['verify_url']
+            ?? $this->data['reset_url']
+            ?? $this->data['login_url']
+            ?? $this->data['action_url']
+            ?? $this->data['url']
+            ?? null;
 
         return is_string($url) && $url !== '' ? $url : null;
     }
